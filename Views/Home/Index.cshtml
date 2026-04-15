@@ -1,0 +1,74 @@
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<div class="text-center py-5">
+    <h1 class="display-4 fw-bold text-primary">
+        <i class="bi bi-box-seam"></i> SCM System
+    </h1>
+    <p class="lead text-muted">Hệ thống quản lý chuỗi cung ứng</p>
+    <hr class="my-4" />
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="display-6 text-primary mb-3"><i class="bi bi-box-seam"></i></div>
+                <h5 class="card-title">Sản phẩm</h5>
+                <p class="card-text text-muted">Quản lý danh mục và sản phẩm trong hệ thống.</p>
+                <a asp-controller="Products" asp-action="Index" class="btn btn-outline-primary">Xem chi tiết</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="display-6 text-success mb-3"><i class="bi bi-truck"></i></div>
+                <h5 class="card-title">Nhà cung cấp</h5>
+                <p class="card-text text-muted">Quản lý thông tin nhà cung cấp.</p>
+                <a asp-controller="Suppliers" asp-action="Index" class="btn btn-outline-success">Xem chi tiết</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="display-6 text-warning mb-3"><i class="bi bi-people"></i></div>
+                <h5 class="card-title">Khách hàng</h5>
+                <p class="card-text text-muted">Quản lý thông tin khách hàng.</p>
+                <a asp-controller="Customers" asp-action="Index" class="btn btn-outline-warning">Xem chi tiết</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="display-6 text-info mb-3"><i class="bi bi-cart-plus"></i></div>
+                <h5 class="card-title">Đơn nhập hàng</h5>
+                <p class="card-text text-muted">Quản lý đơn hàng nhập từ nhà cung cấp.</p>
+                <a asp-controller="PurchaseOrders" asp-action="Index" class="btn btn-outline-info">Xem chi tiết</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="display-6 text-danger mb-3"><i class="bi bi-bag-check"></i></div>
+                <h5 class="card-title">Đơn bán hàng</h5>
+                <p class="card-text text-muted">Quản lý đơn bán hàng cho khách.</p>
+                <a asp-controller="SaleOrders" asp-action="Index" class="btn btn-outline-danger">Xem chi tiết</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="display-6 text-secondary mb-3"><i class="bi bi-archive"></i></div>
+                <h5 class="card-title">Kho hàng</h5>
+                <p class="card-text text-muted">Quản lý tồn kho và vị trí sản phẩm.</p>
+                <a asp-controller="Inventories" asp-action="Index" class="btn btn-outline-secondary">Xem chi tiết</a>
+            </div>
+        </div>
+    </div>
+</div>

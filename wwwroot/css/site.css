@@ -1,0 +1,35 @@
+/* SCM System - Custom Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.table th {
+    background-color: #343a40;
+    color: white;
+    border: none;
+}
+
+.btn {
+    border-radius: 0.375rem;
+}
+
+.navbar-brand {
+    font-size: 1.4rem;
+}
