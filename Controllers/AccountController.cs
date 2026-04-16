@@ -15,5 +15,11 @@ namespace SCM_System.Controllers
         {
             return View();
         }
+
+        [HttpGet]
+        public IActionResult ForgetPassword()
+        {
+            return View();
+        }
     }
 }
