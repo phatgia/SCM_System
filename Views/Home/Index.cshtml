@@ -21,201 +21,238 @@
 
 <div class="container-fluid" style="padding:20px 20px;">
   <div class="row g-3">
-    <div class="col-xl-3 border border-secondary rounded p-3">
-        <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #e0e7ff; color: #4f46e5;">
-            <i class="bi bi-graph-up-arrow fs-4"></i>
+    <div class="col-xl-3">
+        <div class="border border-secondary rounded p-3 h-100 bg-white shadow-sm">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #e0e7ff; color: #4f46e5;">
+                <i class="bi bi-graph-up-arrow fs-4"></i>
+            </div>
+            <p class="title">Doanh thu tháng 3</p>
+            <p class="total-price-and-amount">892.500.000 ₫</p>
         </div>
-        <p class="title">Doanh thu tháng 3</p>
-        <p class="total-price-and-amount">892.500.000 ₫</p>
     </div>
 
-    <div class="col-xl-3 border border-secondary rounded p-3">
-        <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #f3e8ff; color: #7c3aed;">
-            <i class="bi bi-cart3 fs-4"></i>
+    <div class="col-xl-3">
+        <div class="border border-secondary rounded p-3 h-100 bg-white shadow-sm">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #f3e8ff; color: #7c3aed;">
+                <i class="bi bi-cart3 fs-4"></i>
+            </div>
+            <p class="title">Tổng đơn hàng</p>
+            <p class="total-price-and-amount">156</p>
         </div>
-        <p class="title">Tổng đơn hàng</p>
-        <p class="total-price-and-amount">156</p>
     </div>
 
-    <div class="col-xl-3 border border-secondary rounded p-3">
-        <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #dcfce7; color: #16a34a;">
-            <i class="bi bi-box fs-4"></i>
+    <div class="col-xl-3">
+        <div class="border border-secondary rounded p-3 h-100 bg-white shadow-sm">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #dcfce7; color: #16a34a;">
+                <i class="bi bi-box fs-4"></i>
+            </div>
+            <p class="title">Giá trị tồn kho</p>
+            <p class="total-price-and-amount">2.340.000.000 ₫</p>
+            <p class="detail">15 danh mục</p>
         </div>
-        <p class="title">Giá trị tồn kho</p>
-        <p class="total-price-and-amount">2.340.000.000 ₫</p>
-        <p class="detail">15 danh mục</p>
+
     </div>
 
-    <div class="col-xl-3 border border-secondary rounded p-3">
-        <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #ffedd5; color: #ea580c;">
-            <i class="bi bi-truck fs-4"></i>
+    <div class="col-xl-3">
+        <div class="border border-secondary rounded p-3 h-100 bg-white shadow-sm">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #ffedd5; color: #ea580c;">
+                <i class="bi bi-truck fs-4"></i>
+            </div>
+            <p class="title">Đang vận chuyển</p>
+            <p class="total-price-and-amount">4</p>
+            <p class="detail">đơn đang giao</p>   
         </div>
-        <p class="title">Đang vận chuyển</p>
-        <p class="total-price-and-amount">4</p>
-        <p class="detail">đơn đang giao</p>              
     </div>
   </div>
 
     <div class="row mt-4">
-        <div class="col-xl-8 border border-secondary rounded p-5 ">
-            <h2>Doanh thu & Chi phí</h2>
-            <p class="detail">6 tháng gần nhất</p>
-            <div style="height: 320px; width: 100%;">
-                <canvas id="revenueCostChart"></canvas>
+        <div class="col-xl-8  ">
+            <div class="border border-secondary rounded p-5 h-100">
+                <h2>Doanh thu & Chi phí</h2>
+                <p class="detail">6 tháng gần nhất</p>
+                <div style="height: 320px; width: 100%;">
+                    <canvas id="revenueCostChart"></canvas>
+                </div>
             </div>
         </div>
 
-        <div class="col-xl-4 border border-secondary rounded p-5">
-            <h2>Trạng thái đơn hàng</h2>
-            <p class="detail">tháng này</p>
-            <div style="height: 220px; position: relative;" class="mb-4">
-                <canvas id="orderStatusChart"></canvas>
-            </div>
-
-            <div class="mt-4">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="d-flex align-items-center">
-                        <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #10b981;"></span>
-                        <span class="text-muted small">Đã giao</span>
-                    </div>
-                    <span class="small">89</span>
+        <div class="col-xl-4">
+            <div class=" border border-secondary rounded p-5 h-100">
+                <h2>Trạng thái đơn hàng</h2>
+                <p class="detail">tháng này</p>
+                <div style="height: 220px; position: relative;" class="mb-4">
+                    <canvas id="orderStatusChart"></canvas>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="d-flex align-items-center">
-                        <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #3b82f6;"></span>
-                        <span class="text-muted small">Đang giao</span>
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between  align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #10b981;"></span>
+                            <span class="text-muted small">Đã giao</span>
+                        </div>
+                        <span class="small">89</span>
                     </div>
-                    <span class="small">12</span>
-                </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="d-flex align-items-center">
-                        <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #f59e0b;"></span>
-                        <span class="text-muted small">Đang xử lý</span>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #3b82f6;"></span>
+                            <span class="text-muted small">Đang giao</span>
+                        </div>
+                        <span class="small">12</span>
                     </div>
-                    <span class="small">28</span>
-                </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="d-flex align-items-center">
-                        <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #6366f1;"></span>
-                        <span class="text-muted small">Mới tạo</span>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #f59e0b;"></span>
+                            <span class="text-muted small">Đang xử lý</span>
+                        </div>
+                        <span class="small">28</span>
                     </div>
-                    <span class="small">15</span>
-                </div>
 
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center">
-                        <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #ef4444;"></span>
-                        <span class="text-muted small">Đã hủy</span>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #6366f1;"></span>
+                            <span class="text-muted small">Mới tạo</span>
+                        </div>
+                        <span class="small">15</span>
                     </div>
-                    <span class="small">12</span>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #ef4444;"></span>
+                            <span class="text-muted small">Đã hủy</span>
+                        </div>
+                        <span class="small">12</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row mt-4">
-        <div class="col-xl-8 border border-secondary rounded p-5">
-            <div class="d-flex align-items-center justify-content-between">
-                <h2>Đơn hàng gần đây</h2>
-                <a href="#">
-                    Xem tất cả
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
+        <div class="col-xl-8 ">
+            <div class="border border-secondary rounded p-5 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h2>Đơn hàng gần đây</h2>
+                    <a href="#">
+                        Xem tất cả
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
 
-            <div class="mt-4">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Mã đơn</th>
-                            <th>Khách hàng</th>
-                            <th>Tổng tiền</th>
-                            <th>Trạng thái</th>
-                            <th>Ngày</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>SO-2026-001</td>
-                            <td>Công ty TNHH ABC Tech</td>
-                            <td>56.300.000 ₫</td>
-                            <td>Đã giao</td>
-                            <td>2026-03-20</td>
-                        </tr>
+                <div class="mt-4">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SO-2026-001</td>
+                                <td>Công ty TNHH ABC Tech</td>
+                                <td>56.300.000 ₫</td>
+                                <td><span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span></td>
+                                <td>2026-03-20</td>
+                            </tr>
 
-                        <tr>
-                            <td>SO-2026-001</td>
-                            <td>Công ty TNHH ABC Tech</td>
-                            <td>56.300.000 ₫</td>
-                            <td>Đã giao</td>
-                            <td>2026-03-20</td>
-                        </tr>
+                            <tr>
+                                <td>SO-2026-001</td>
+                                <td>Công ty TNHH ABC Tech</td>
+                                <td>56.300.000 ₫</td>
+                                <td><span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span></td>
+                                <td>2026-03-20</td>
+                            </tr>
 
-                        <tr>
-                            <td>SO-2026-001</td>
-                            <td>Công ty TNHH ABC Tech</td>
-                            <td>56.300.000 ₫</td>
-                            <td>Đã giao</td>
-                            <td>2026-03-20</td>
-                        </tr>
-                    </tbody>
-                </table>
+                            <tr>
+                                <td>SO-2026-001</td>
+                                <td>Công ty TNHH ABC Tech</td>
+                                <td>56.300.000 ₫</td>
+                                <td><span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span></td>
+                                <td>2026-03-20</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <div class="col-xl-4">
-            <div class="row border border-secondary rounded p-2">
-                <i class="bi bi-exclamation-triangle">Cảnh báo tồn kho</i>
-                
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="">
-                        <span>MSI MEG X670E ACE <br><span class="text-muted small">Bo mạch chủ</span></span>
+            <div class="row">
+                <div class="border border-secondary rounded p-2">
+                    <div class="d-flex align-items-center ">
+                        <i class="bi bi-exclamation-triangle me-2" style="background-color: #e0e7ff; color: orange;"></i>
+                        <span class="text-orange">Cảnh báo tồn kho</span>
                     </div>
-                    <div class="">
-                        <span class="small">12 <br><span class="text-muted small">Còn: 5</span></span>
-                    </div>
-                </div>
 
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="">
-                        <span>MSI MEG X670E ACE <br><span class="text-muted small">Bo mạch chủ</span></span>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="d-flex flex-column">
+                            <span>MSI MEG X670E ACE</span>
+                            <span class="small">Bo mạch chủ</span>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <span class="text-danger">12</span>
+                            <span class="small">Min: 5</span>
+                        </div>
                     </div>
-                    <div class="">
-                        <span class="small">12 <br><span class="text-muted small">Còn: 5</span></span>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="d-flex flex-column">
+                            <span>MSI MEG X670E ACE</span>
+                            <span class="small">Bo mạch chủ</span>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <span class="text-danger">12</span>
+                            <span class="small">Min: 5</span>
+                        </div>
                     </div>
+
+
                 </div>
             </div>
 
-            <div class="row border border-secondary rounded p-2">
-                <i class="bi bi-clock">Đang vận chuyển</i>
+            <div class="row mt-4">
+                <div class="border border-secondary rounded p-2">
+                    <div class="d-flex align-items-center ">
+                        <i class="bi bi-clock me-2" style="background-color: #e0e7ff; color: blue;"></i>
+                        <span>Đang vận chuyển</span>
+                    </div>
                 
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="">
-                        <span>MSI MEG X670E ACE <br><span class="text-muted small">Bo mạch chủ <br><span>Tài xế:Nguyễn Hoàng Long</span></span></span>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="d-flex flex-column">
+                            <span>SO-2026-002</span>
+                            <span>Nguyễn Hoàng Long</span>
+                            <span>Tài xế: Trần Tài Xế</span>
+                        </div>
+                        <div class="">
+                            <span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span>
+                        </div>
                     </div>
-                    <div class="">
-                        <span class="small">Đang giao</span>
-                    </div>
-                </div>
 
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="">
-                        <span>MSI MEG X670E ACE <br><span class="text-muted small">Bo mạch chủ <br><span>Tài xế:Nguyễn Hoàng Long</span></span></span>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="d-flex flex-column">
+                            <span>SO-2026-002</span>
+                            <span>Nguyễn Hoàng Long</span>
+                            <span>Tài xế: Trần Tài Xế</span>
+                        </div>
+                        <div class="">
+                            <span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span>
+                        </div>
                     </div>
-                    <div class="">
-                        <span class="small">Đang giao</span>
-                    </div>
-                </div>
 
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="">
-                        <span>MSI MEG X670E ACE <br><span class="text-muted small">Bo mạch chủ <br><span>Tài xế:Nguyễn Hoàng Long</span></span></span>
-                    </div>
-                    <div class="">
-                        <span class="small">Đã lên lịch</span>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="d-flex flex-column">
+                            <span>SO-2026-002</span>
+                            <span>Nguyễn Hoàng Long</span>
+                            <span>Tài xế: Trần Tài Xế</span>
+                        </div>
+                        <div class="">
+                            <span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -223,13 +260,15 @@
 
     </div>
 
-    <div class="row border border-secondary rounded mt-4">
+    <div class="row mt-4">
         <div class="col-12">
-            <h5 class="fw-bold mb-1">Tồn kho theo danh mục</h5>
-            <p class="text-muted small mb-4">Số lượng hiện tại</p>
-            
-            <div style="height: 300px; width: 100%;">
-                <canvas id="inventoryCategoryChart"></canvas>
+            <div class="border border-secondary rounded p-5">
+                <h5 class="fw-bold mb-1">Tồn kho theo danh mục</h5>
+                <p class="text-muted small mb-4">Số lượng hiện tại</p>
+                
+                <div style="height: 300px; width: 100%;">
+                    <canvas id="inventoryCategoryChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
