@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using SCM_System.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,17 @@ builder.Services.AddControllersWithViews();
 // Add DbContext with SQL Server
 builder.Services.AddDbContext<SCMDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add Cookie Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/Login";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+    });
 
 var app = builder.Build();
 
@@ -39,6 +51,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication(); // <-- phải trước UseAuthorization
 app.UseAuthorization();
 
 // Default route

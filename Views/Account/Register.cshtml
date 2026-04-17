@@ -1,43 +1,80 @@
+@model SCM_System.Models.ViewModels.RegisterViewModel
 @{
-    ViewData["Title"] = "Đăng ký";
-    Layout = "~/Views/Shared/_AuthLayout.cshtml"; // Gọi Layout riêng
+    ViewData["Title"] = "Tạo tài khoản";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
 
 <div class="card shadow-sm border-0 rounded-3">
     <div class="card-body p-4 p-sm-5">
         <div class="text-center mb-4">
-            <h3 class="mt-2 fw-bold">Đăng ký</h3>
-            <p class="text-muted">Tạo tài khoản mới</p>
+            <h3 class="mt-2 fw-bold">Tạo tài khoản mới</h3>
+            <p class="text-muted">Chỉ Quản trị viên mới có quyền thực hiện</p>
         </div>
 
-        <form>
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success py-2">@TempData["Success"]</div>
+        }
+
+        <form asp-action="Register" asp-controller="Account" method="post">
+            @Html.AntiForgeryToken()
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger py-2">
+                    <div asp-validation-summary="ModelOnly" class="mb-0"></div>
+                </div>
+            }
+
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="nameInput" placeholder="Tên hiển thị" required>
-                <label for="nameInput">Tên đăng nhập</label>
+                <input asp-for="FullName" type="text" class="form-control" id="fullNameInput" placeholder="Họ và tên" />
+                <label for="fullNameInput">Họ và tên</label>
+                <span asp-validation-for="FullName" class="text-danger small"></span>
             </div>
 
             <div class="form-floating mb-3">
-                <input type="email" class="form-control" id="emailInput" placeholder="name@example.com" required>
-                <label for="emailInput">Địa chỉ Email</label>
+                <input asp-for="Username" type="text" class="form-control" id="usernameInput" placeholder="Tên đăng nhập" />
+                <label for="usernameInput">Tên đăng nhập</label>
+                <span asp-validation-for="Username" class="text-danger small"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Email" type="email" class="form-control" id="emailInput" placeholder="Email" />
+                <label for="emailInput">Địa chỉ Email (tuỳ chọn)</label>
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="PhoneNumber" type="text" class="form-control" id="phoneInput" placeholder="Số điện thoại" />
+                <label for="phoneInput">Số điện thoại (tuỳ chọn)</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <select asp-for="RoleID" asp-items="ViewBag.Roles" class="form-select" id="roleSelect">
+                    <option value="">-- Chọn chức vụ --</option>
+                </select>
+                <label for="roleSelect">Chức vụ</label>
+                <span asp-validation-for="RoleID" class="text-danger small"></span>
             </div>
             
-            <div class="form-floating mb-4">
-                <input type="password" class="form-control" id="passwordInput" placeholder="Mật khẩu" required>
+            <div class="form-floating mb-3">
+                <input asp-for="Password" type="password" class="form-control" id="passwordInput" placeholder="Mật khẩu" />
                 <label for="passwordInput">Mật khẩu</label>
+                <span asp-validation-for="Password" class="text-danger small"></span>
             </div>
 
             <div class="form-floating mb-4">
-                <input type="password" class="form-control" id="confirm_passwordInput" placeholder="Xác nhận mật khẩu" required>
-                <label for="confirm_passwordInput">Xác nhận mật khẩu</label>
+                <input asp-for="ConfirmPassword" type="password" class="form-control" id="confirmPasswordInput" placeholder="Xác nhận mật khẩu" />
+                <label for="confirmPasswordInput">Xác nhận mật khẩu</label>
+                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
             </div>
 
             <div class="d-grid mb-3">
-                <button class="btn btn-primary btn-lg" type="submit">Đăng ký</button>
+                <button class="btn btn-primary btn-lg" type="submit">Tạo tài khoản</button>
             </div>
-            
+
             <div class="text-center">
-                <span class="text-muted">Bạn đã có tài khoản có tài khoản?</span>
-                <a href="@Url.Action("Login", "Account")" class="text-decoration-none fw-bold">Đăng nhập</a>
+                <a href="@Url.Action("Index", "Home")" class="text-decoration-none">← Quay về trang chủ</a>
             </div>
         </form>
     </div>
