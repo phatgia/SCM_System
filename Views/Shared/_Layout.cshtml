@@ -7,99 +7,299 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+    
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #94a3b8; 
+        }
+    </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
-                <i class="bi bi-box-seam"></i> SCM System
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+
+<body class="container-fluid vh-100 bg-light overflow-hidden">
+    <div class="row h-100">
+        
+        <aside class="offcanvas-xl offcanvas-start col-xl-2 d-flex flex-column bg-white shadow-sm border-end border-secondary h-100" tabindex="-1" id="mySidebar">
+            
+            <div class="offcanvas-header border-bottom border-secondary border-opacity-25 d-xl-none flex-shrink-0">
+                <h5 class="mb-0 fw-bold d-flex align-items-center">
+                    <div class="bg-primary rounded p-1 me-2 d-flex align-items-center justify-content-center" style="background-color: #1a56db !important;">
+                        <i class="bi bi-box-seam text-white fs-6"></i>
+                    </div>
+                    SCM System
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#mySidebar" aria-label="Close"></button>
+            </div>
+
+            <div class="p-3 border-bottom border-secondary border-opacity-25 d-none d-xl-block flex-shrink-0">
+                <a href="/" class="text-black text-decoration-none d-flex align-items-center">
+                    <div class="bg-primary rounded p-2 me-2 d-flex align-items-center justify-content-center" style="background-color: #1a56db !important;">
+                        <i class="bi bi-box-seam text-white fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold">SCM System</h5>
+                        <small class="text-black-50" style="font-size: 0.75rem;">Quản lý chuỗi cung ứng</small>
+                    </div>
+                </a>
+            </div>
+
+            <div class="p-3 flex-grow-1 overflow-auto custom-scrollbar">
+                <ul class="nav flex-column gap-2">
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Home" asp-action="Index">
-                            <i class="bi bi-house"></i> Trang chủ
+                        <a href="#" class="nav-link sidebar-link active rounded-3 d-flex align-items-center py-2">
+                            <i class="bi bi-grid-1x2-fill me-3 fs-5"></i> Tổng quan
                         </a>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-gear"></i> Quản lý danh mục
+
+                    <li class="nav-item">
+                        <a href="#muaHangMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <i class="bi bi-cart3 me-3 fs-5"></i> Mua hàng
+                            <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" asp-controller="Categories" asp-action="Index">Danh mục sản phẩm</a></li>
-                            <li><a class="dropdown-item" asp-controller="Products" asp-action="Index">Sản phẩm</a></li>
-                            <li><a class="dropdown-item" asp-controller="Suppliers" asp-action="Index">Nhà cung cấp</a></li>
-                            <li><a class="dropdown-item" asp-controller="Customers" asp-action="Index">Khách hàng</a></li>
-                        </ul>
+                        <div class="collapse show mt-1" id="muaHangMenu">
+                            <ul class="nav flex-column ms-4 border-start border-secondary" style="font-size: 0.9rem;">
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-buildings me-2"></i> Nhà cung cấp
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-text me-2"></i> Đơn nhập hàng
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-cart-plus me-2"></i> Tạo đơn nhập
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-arrow-return-left me-2"></i> Trả hàng nhà cung cấp
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-cart"></i> Đơn hàng
+
+                    <li class="nav-item">
+                        <a href="#quanLyKhoMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <i class="bi bi-shop-window me-3 fs-5"></i> Quản lý kho
+                            <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" asp-controller="PurchaseOrders" asp-action="Index">Đơn nhập hàng</a></li>
-                            <li><a class="dropdown-item" asp-controller="SaleOrders" asp-action="Index">Đơn bán hàng</a></li>
-                            <li><a class="dropdown-item" asp-controller="Deliveries" asp-action="Index">Giao hàng</a></li>
-                            <li><a class="dropdown-item" asp-controller="ReturnOrders" asp-action="Index">Đơn trả hàng</a></li>
-                        </ul>
+                        <div class="collapse show mt-1" id="quanLyKhoMenu">
+                            <ul class="nav flex-column ms-4 border-start border-secondary" style="font-size: 0.9rem;">
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-box-arrow-in-down me-2"></i> Nhập kho
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-geo-alt me-2"></i> Vị trí kho
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-box-seam me-2"></i> Soạn hàng & Đóng gói
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-clipboard2-check me-2"></i> Kiểm kê tồn kho
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-box-arrow-up me-2"></i> Bàn giao xuất kho
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-arrow-counterclockwise me-2"></i> Nhận hàng hoàn
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-shield-check me-2"></i> Kiểm tra chất lượng
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-wrench-adjustable me-2"></i> Bảo hành
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-archive"></i> Kho hàng
+
+                    <li class="nav-item">
+                        <a href="#banHangMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <i class="bi bi-box-seam-fill me-3 fs-5"></i> Bán hàng
+                            <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" asp-controller="ProductLocations" asp-action="Index">Vị trí kho</a></li>
-                            <li><a class="dropdown-item" asp-controller="Inventories" asp-action="Index">Tồn kho</a></li>
-                            <li><a class="dropdown-item" asp-controller="ProductSerials" asp-action="Index">Serial sản phẩm</a></li>
-                        </ul>
+                        <div class="collapse show mt-1" id="banHangMenu">
+                            <ul class="nav flex-column ms-4 border-start border-secondary" style="font-size: 0.9rem;">
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-cart-plus me-2"></i> Tạo đơn bán
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-receipt me-2"></i> Đơn bán hàng
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-boxes me-2"></i> Tra cứu tồn kho
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-arrow-left-right me-2"></i> Đổi trả hàng
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-people"></i> Hệ thống
+
+                    <li class="nav-item">
+                        <a href="#vanChuyenMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <i class="bi bi-truck me-3 fs-5"></i> Vận chuyển
+                            <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" asp-controller="Users" asp-action="Index">Người dùng</a></li>
-                            <li><a class="dropdown-item" asp-controller="Roles" asp-action="Index">Vai trò</a></li>
-                        </ul>
+                        <div class="collapse show mt-1" id="vanChuyenMenu">
+                            <ul class="nav flex-column ms-4 border-start border-secondary" style="font-size: 0.9rem;">
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-signpost-split me-2"></i> Điều phối
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-card-list me-2"></i> Danh sách giao hàng
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-box-arrow-in-right me-2"></i> Xác nhận lấy hàng
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-clock-history me-2"></i> Cập nhật trạng thái
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-person-check me-2"></i> Bàn giao khách hàng
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-arrow-return-left me-2"></i> Ghi nhận trả hàng
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="#quanTriMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <i class="bi bi-gear me-3 fs-5"></i> Quản trị
+                            <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
+                        </a>
+                        <div class="collapse show mt-1" id="quanTriMenu">
+                            <ul class="nav flex-column ms-4 border-start border-secondary" style="font-size: 0.9rem;">
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-person-vcard me-2"></i> Tài khoản & Phân quyền
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-sliders me-2"></i> Cấu hình hệ thống
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="nav-link sidebar-link py-1 d-flex align-items-center">
+                                        <i class="bi bi-bar-chart-line me-2"></i> Báo cáo tổng quan
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                 </ul>
             </div>
-        </div>
-    </nav>
 
-    <aside class="bg-primary">
-        <button class ="btn btn-danger">Thoát</button>
-    </aside>
+            <div class="p-3 border-top border-secondary border-opacity-25 mt-auto flex-shrink-0">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold" style="width: 35px; height: 35px; background-color: #1a56db !important;">A</div>
+                        <div class="lh-sm">
+                            <h6 class="mb-0 fs-6 fw-bold">Admin Hệ Thống</h6>
+                            <span class="badge bg-secondary text-light mt-1" style="font-size: 0.7rem;">Quản trị viên</span>
+                        </div>
+                    </a>
+                </div>
 
-    <main class="container mt-4">
-
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div>
+                    <a href="/Account/Login" class="text-danger text-decoration-none d-flex align-items-center">
+                        <i class="bi bi-box-arrow-left me-2 fs-5"></i>
+                        <span class="fw-bold">Đăng xuất</span>
+                    </a>
+                </div>
             </div>
-        }
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </aside>
+
+        <main class="col-xl-10 border-start border-secondary p-0 d-flex flex-column h-100">
+            
+            <div class="bg-white p-3 d-flex align-items-center shadow-sm flex-shrink-0" style="min-height: 80px;">
+                
+                <button class="btn border-0 me-3 d-xl-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mySidebar" aria-controls="mySidebar">
+                    <i class="bi bi-list fs-3"></i>
+                </button>
+                
+                <div class="mb-0 ">
+                    <h4 class="mb-0 fw-bold">Tổng quan hệ thống</h4>
+                    <p>Chào mừng, <span class="text-primary">Admin Hệ Thống</span>, Hôm nay 01/04/2026</p>
+                </div>
             </div>
-        }
-        @RenderBody()
-    </main>
 
-    <footer class="bg-dark text-white text-center py-3 mt-5">
-        <div class="container">
-            <p class="mb-0">&copy; 2026 SCM System - Supply Chain Management</p>
-        </div>
-    </footer>
+            <div class="p-4 flex-grow-1 overflow-auto custom-scrollbar">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                
+                @RenderBody()
+            </div>
+        </main>
 
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -2,73 +2,390 @@
     ViewData["Title"] = "Trang chủ";
 }
 
-<div class="text-center py-5">
-    <h1 class="display-4 fw-bold text-primary">
-        <i class="bi bi-box-seam"></i> SCM System
-    </h1>
-    <p class="lead text-muted">Hệ thống quản lý chuỗi cung ứng</p>
-    <hr class="my-4" />
+<style>
+    .detail{
+        font-size: small;
+    }
+    .title{
+        font-size:small;
+        margin:0;
+        margin-top:2em
+    }
+
+    .total-price-and-amount{
+        margin:0;
+        font-size: large;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container-fluid" style="padding:20px 20px;">
+  <div class="row g-3">
+    <div class="col-xl-3 border border-secondary rounded p-3">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #e0e7ff; color: #4f46e5;">
+            <i class="bi bi-graph-up-arrow fs-4"></i>
+        </div>
+        <p class="title">Doanh thu tháng 3</p>
+        <p class="total-price-and-amount">892.500.000 ₫</p>
+    </div>
+
+    <div class="col-xl-3 border border-secondary rounded p-3">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #f3e8ff; color: #7c3aed;">
+            <i class="bi bi-cart3 fs-4"></i>
+        </div>
+        <p class="title">Tổng đơn hàng</p>
+        <p class="total-price-and-amount">156</p>
+    </div>
+
+    <div class="col-xl-3 border border-secondary rounded p-3">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #dcfce7; color: #16a34a;">
+            <i class="bi bi-box fs-4"></i>
+        </div>
+        <p class="title">Giá trị tồn kho</p>
+        <p class="total-price-and-amount">2.340.000.000 ₫</p>
+        <p class="detail">15 danh mục</p>
+    </div>
+
+    <div class="col-xl-3 border border-secondary rounded p-3">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #ffedd5; color: #ea580c;">
+            <i class="bi bi-truck fs-4"></i>
+        </div>
+        <p class="title">Đang vận chuyển</p>
+        <p class="total-price-and-amount">4</p>
+        <p class="detail">đơn đang giao</p>              
+    </div>
+  </div>
+
+    <div class="row mt-4">
+        <div class="col-xl-8 border border-secondary rounded p-5 ">
+            <h2>Doanh thu & Chi phí</h2>
+            <p class="detail">6 tháng gần nhất</p>
+            <div style="height: 320px; width: 100%;">
+                <canvas id="revenueCostChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-xl-4 border border-secondary rounded p-5">
+            <h2>Trạng thái đơn hàng</h2>
+            <p class="detail">tháng này</p>
+            <div style="height: 220px; position: relative;" class="mb-4">
+                <canvas id="orderStatusChart"></canvas>
+            </div>
+
+            <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center">
+                        <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #10b981;"></span>
+                        <span class="text-muted small">Đã giao</span>
+                    </div>
+                    <span class="small">89</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center">
+                        <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #3b82f6;"></span>
+                        <span class="text-muted small">Đang giao</span>
+                    </div>
+                    <span class="small">12</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center">
+                        <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #f59e0b;"></span>
+                        <span class="text-muted small">Đang xử lý</span>
+                    </div>
+                    <span class="small">28</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center">
+                        <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #6366f1;"></span>
+                        <span class="text-muted small">Mới tạo</span>
+                    </div>
+                    <span class="small">15</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #ef4444;"></span>
+                        <span class="text-muted small">Đã hủy</span>
+                    </div>
+                    <span class="small">12</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-xl-8 border border-secondary rounded p-5">
+            <div class="d-flex align-items-center justify-content-between">
+                <h2>Đơn hàng gần đây</h2>
+                <a href="#">
+                    Xem tất cả
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="mt-4">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>SO-2026-001</td>
+                            <td>Công ty TNHH ABC Tech</td>
+                            <td>56.300.000 ₫</td>
+                            <td>Đã giao</td>
+                            <td>2026-03-20</td>
+                        </tr>
+
+                        <tr>
+                            <td>SO-2026-001</td>
+                            <td>Công ty TNHH ABC Tech</td>
+                            <td>56.300.000 ₫</td>
+                            <td>Đã giao</td>
+                            <td>2026-03-20</td>
+                        </tr>
+
+                        <tr>
+                            <td>SO-2026-001</td>
+                            <td>Công ty TNHH ABC Tech</td>
+                            <td>56.300.000 ₫</td>
+                            <td>Đã giao</td>
+                            <td>2026-03-20</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="row border border-secondary rounded p-2">
+                <i class="bi bi-exclamation-triangle">Cảnh báo tồn kho</i>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="">
+                        <span>MSI MEG X670E ACE <br><span class="text-muted small">Bo mạch chủ</span></span>
+                    </div>
+                    <div class="">
+                        <span class="small">12 <br><span class="text-muted small">Còn: 5</span></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="">
+                        <span>MSI MEG X670E ACE <br><span class="text-muted small">Bo mạch chủ</span></span>
+                    </div>
+                    <div class="">
+                        <span class="small">12 <br><span class="text-muted small">Còn: 5</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row border border-secondary rounded p-2">
+                <i class="bi bi-clock">Đang vận chuyển</i>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="">
+                        <span>MSI MEG X670E ACE <br><span class="text-muted small">Bo mạch chủ <br><span>Tài xế:Nguyễn Hoàng Long</span></span></span>
+                    </div>
+                    <div class="">
+                        <span class="small">Đang giao</span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="">
+                        <span>MSI MEG X670E ACE <br><span class="text-muted small">Bo mạch chủ <br><span>Tài xế:Nguyễn Hoàng Long</span></span></span>
+                    </div>
+                    <div class="">
+                        <span class="small">Đang giao</span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="">
+                        <span>MSI MEG X670E ACE <br><span class="text-muted small">Bo mạch chủ <br><span>Tài xế:Nguyễn Hoàng Long</span></span></span>
+                    </div>
+                    <div class="">
+                        <span class="small">Đã lên lịch</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row border border-secondary rounded mt-4">
+        <div class="col-12">
+            <h5 class="fw-bold mb-1">Tồn kho theo danh mục</h5>
+            <p class="text-muted small mb-4">Số lượng hiện tại</p>
+            
+            <div style="height: 300px; width: 100%;">
+                <canvas id="inventoryCategoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<div class="row g-4">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="display-6 text-primary mb-3"><i class="bi bi-box-seam"></i></div>
-                <h5 class="card-title">Sản phẩm</h5>
-                <p class="card-text text-muted">Quản lý danh mục và sản phẩm trong hệ thống.</p>
-                <a asp-controller="Products" asp-action="Index" class="btn btn-outline-primary">Xem chi tiết</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="display-6 text-success mb-3"><i class="bi bi-truck"></i></div>
-                <h5 class="card-title">Nhà cung cấp</h5>
-                <p class="card-text text-muted">Quản lý thông tin nhà cung cấp.</p>
-                <a asp-controller="Suppliers" asp-action="Index" class="btn btn-outline-success">Xem chi tiết</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="display-6 text-warning mb-3"><i class="bi bi-people"></i></div>
-                <h5 class="card-title">Khách hàng</h5>
-                <p class="card-text text-muted">Quản lý thông tin khách hàng.</p>
-                <a asp-controller="Customers" asp-action="Index" class="btn btn-outline-warning">Xem chi tiết</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="display-6 text-info mb-3"><i class="bi bi-cart-plus"></i></div>
-                <h5 class="card-title">Đơn nhập hàng</h5>
-                <p class="card-text text-muted">Quản lý đơn hàng nhập từ nhà cung cấp.</p>
-                <a asp-controller="PurchaseOrders" asp-action="Index" class="btn btn-outline-info">Xem chi tiết</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="display-6 text-danger mb-3"><i class="bi bi-bag-check"></i></div>
-                <h5 class="card-title">Đơn bán hàng</h5>
-                <p class="card-text text-muted">Quản lý đơn bán hàng cho khách.</p>
-                <a asp-controller="SaleOrders" asp-action="Index" class="btn btn-outline-danger">Xem chi tiết</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="display-6 text-secondary mb-3"><i class="bi bi-archive"></i></div>
-                <h5 class="card-title">Kho hàng</h5>
-                <p class="card-text text-muted">Quản lý tồn kho và vị trí sản phẩm.</p>
-                <a asp-controller="Inventories" asp-action="Index" class="btn btn-outline-secondary">Xem chi tiết</a>
-            </div>
-        </div>
-    </div>
-</div>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctxLine = document.getElementById('revenueCostChart').getContext('2d');
+            new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: ['T10/25', 'T11/25', 'T12/25', 'T1/26', 'T2/26', 'T3/26'],
+                    datasets: [
+                        {
+                            label: 'Doanh thu',
+                            data: [610, 720, 980, 710, 680, 890],
+                            borderColor: '#3b82f6', // Màu xanh dương
+                            borderWidth: 2,
+                            tension: 0.4, // Uốn cong đường kẻ
+                            pointRadius: 0, // Ẩn điểm tròn
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Chi phí',
+                            data: [510, 620, 810, 590, 560, 740],
+                            borderColor: '#10b981', // Màu xanh lá
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#f3f4f6', drawBorder: false } },
+                        y: {
+                            min: 0, max: 1000,
+                            ticks: {
+                                stepSize: 250,
+                                callback: function(value) { return value + 'M'; }
+                            },
+                            grid: { color: '#f3f4f6', borderDash: [5, 5], drawBorder: false }
+                        }
+                    }
+                }
+            });
+
+            const ctxDonut = document.getElementById('orderStatusChart').getContext('2d');
+            new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Đã giao', 'Đang giao', 'Đang xử lý', 'Mới tạo', 'Đã hủy'],
+                    datasets: [{
+                        data: [89, 12, 28, 15, 12], // Số liệu thực tế
+                        backgroundColor: [
+                            '#10b981', // Xanh lá
+                            '#3b82f6', // Xanh dương
+                            '#f59e0b', // Cam
+                            '#6366f1', // Tím
+                            '#ef4444'  // Đỏ
+                        ],
+                        borderWidth: 3, // Độ dày của viền trắng giữa các miếng
+                        borderColor: '#ffffff', // Viền trắng
+                        hoverOffset: 4 // Hiệu ứng đẩy miếng bánh ra ngoài khi rê chuột
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%', // Bí kíp: Đục lỗ ở giữa to ra (70%) để thành Donut mảnh
+                    plugins: {
+                        legend: { 
+                            display: false // Ẩn chú thích gốc vì mình đã tự code HTML ở trên
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + ' đơn'; // Nối thêm chữ "đơn" vào tooltip
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const ctxBar = document.getElementById('inventoryCategoryChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar', // Chỉ định loại biểu đồ cột
+                data: {
+                    labels: ['CPU', 'GPU', 'RAM', 'SSD', 'Bo mạch', 'Phụ kiện'],
+                    datasets: [{
+                        label: 'Số lượng',
+                        data: [42, 22, 96, 96, 15, 165], // Dữ liệu giả lập theo ảnh
+                        backgroundColor: [
+                            '#2563eb', // Xanh dương (CPU)
+                            '#8b5cf6', // Tím (GPU)
+                            '#16a34a', // Xanh lá (RAM)
+                            '#0ea5e9', // Xanh ngọc (SSD)
+                            '#d97706', // Cam (Bo mạch)
+                            '#6b7280'  // Xám (Phụ kiện)
+                        ],
+                        borderRadius: 4, // BÍ KÍP 1: Bo tròn 4px ở đỉnh cột cho mềm mại
+                        borderSkipped: false, // Giữ bo góc cân đối
+                        barThickness: 60 // Độ rộng (mập) của mỗi cột, có thể tăng giảm tùy ý
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Ẩn chú thích (Legend) vì trục X đã có tên rồi
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.parsed.y + ' cái';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false, // BÍ KÍP 2: Ẩn các đường kẻ lưới dọc cho giao diện thoáng hơn
+                                drawBorder: false
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 180, // Set max 180 để cột cao nhất (165) không đụng nóc
+                            ticks: {
+                                stepSize: 40 // Bước nhảy của trục Y (0, 40, 80, 120, 160)
+                            },
+                            grid: {
+                                color: '#f3f4f6',
+                                borderDash: [5, 5], // Kẻ đường gạch đứt
+                                drawBorder: false
+                            }
+                        }
+                    }
+                }
+            });
+                
+        });
+    </script>
+}
