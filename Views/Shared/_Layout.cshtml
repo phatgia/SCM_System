@@ -245,17 +245,19 @@
 
             <div class="p-3 border-top border-secondary border-opacity-25 mt-auto flex-shrink-0">
                 <div class="d-flex align-items-center justify-content-between mb-3">
-                    <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold" style="width: 35px; height: 35px; background-color: #1a56db !important;">A</div>
-                        <div class="lh-sm">
-                            <h6 class="mb-0 fs-6 fw-bold text-white">Admin Hệ Thống</h6>
-                            <span class="badge bg-secondary text-light mt-1" style="font-size: 0.7rem;">Quản trị viên</span>
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold" style="width: 35px; height: 35px; background-color: #1a56db !important;">
+                            @(Context.User.FindFirst("FullName")?.Value?.FirstOrDefault().ToString().ToUpper() ?? "?")
                         </div>
-                    </a>
+                        <div class="lh-sm">
+                            <h6 class="mb-0 fs-6 fw-bold text-white">@(Context.User.FindFirst("FullName")?.Value ?? "Người dùng")</h6>
+                            <span class="badge bg-secondary text-light mt-1" style="font-size: 0.7rem;">@(Context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "")</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
-                    <a href="/Account/Login" class="text-danger text-decoration-none d-flex align-items-center">
+                    <a href="@Url.Action("Logout", "Account")" class="text-danger text-decoration-none d-flex align-items-center">
                         <i class="bi bi-box-arrow-left me-2 fs-5"></i>
                         <span class="fw-bold">Đăng xuất</span>
                     </a>
@@ -272,7 +274,7 @@
                 </button>
                 
                 <div class="mb-0">
-                    <p>Chào mừng, <span class="text-primary">Admin Hệ Thống</span>, Hôm nay 01/04/2026</p>
+                    <p>Chào mừng, <span class="text-primary">@(Context.User.FindFirst("FullName")?.Value ?? "Người dùng")</span>, Hôm nay @DateTime.Now.ToString("dd/MM/yyyy")</p>
                 </div>
             </div>
 
