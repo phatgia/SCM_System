@@ -132,13 +132,283 @@
             </div>
 
             <div class="tab-pane container" id="menu2">
-                <p class="mt-4 text-muted">Chức năng đang phát triển...</p>
+                <div class="mt-4">
+                    <form action="">
+                        <input type="text" name="" id="" class="w-50 rounded p-2 border border-secondary" placeholder="Tìm đơn nhập...">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                            Tất cả trạng thái
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">Tất cả trạng thái</a></li>
+                            <li><a class="dropdown-item" href="#">Bản nháp</a></li>
+                            <li><a class="dropdown-item" href="#">Chờ duyệt</a></li>
+                            <li><a class="dropdown-item" href="#">Đã duyệt</a></li>
+                            <li><a class="dropdown-item" href="#">Đang vận chuyển</a></li>
+                            <li><a class="dropdown-item" href="#">Hoàn thành</a></li>
+                            <li><a class="dropdown-item" href="#">Đã hủy</a></li>
+                        </ul>
+
+                    </form>
+                </div>
+
+                <div class="mt-4">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mã ĐƠN</th>
+                                <th>Tên NHÀ CUNG CẤP</th>
+                                <th>NGÀY ĐẶT</th>
+                                <th>NGÀY GIAO HÀNG DỰ KIẾN</th>
+                                <th>GIÁ TRỊ</th>
+                                <th>TRẠNG THÁI</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr >
+                                <td class="border-bottom-0">PO-2026-001</td>
+                                <td class=" border-bottom-0">
+                                    TechCore Distribution
+                                </td>
+                                <td class=" border-bottom-0">2026-03-15</td>
+                                <td class=" border-bottom-0">
+                                    2026-03-22	
+                                </td>
+                                <td class=" border-bottom-0">   
+                                    185.000.000 ₫
+                                </td>
+                                <td class=" border-bottom-0 d-flex items-center justify-content-center"><span class="badge bg-success rounded-pill px-3 py-2">Hoàn thành</span></td>
+                                <td class=" border-bottom-0">
+                                    <button class="border-0 bg-white">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
+                                </td>
+                            </tr>
+
+                            <tr >
+                                <td class="border-bottom-0">PO-2026-001</td>
+                                <td class=" border-bottom-0">
+                                    TechCore Distribution
+                                </td>
+                                <td class=" border-bottom-0">2026-03-15</td>
+                                <td class=" border-bottom-0">
+                                    2026-03-22	
+                                </td>
+                                <td class=" border-bottom-0">   
+                                    185.000.000 ₫
+                                </td>
+                                <td class=" border-bottom-0 d-flex items-center justify-content-center"><span class="badge bg-primary rounded-pill px-3 py-2">Đang vận chuyển</span></td>
+                                <td class=" border-bottom-0">
+                                    <button class="border-0 bg-white">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
+                                </td>
+                            </tr>
+
+
+                            <tr >
+                                <td class="border-bottom-0">PO-2026-001</td>
+                                <td class=" border-bottom-0">
+                                    TechCore Distribution
+                                </td>
+                                <td class=" border-bottom-0">2026-03-15</td>
+                                <td class=" border-bottom-0">
+                                    2026-03-22	
+                                </td>
+                                <td class=" border-bottom-0">   
+                                    185.000.000 ₫
+                                </td>
+                                <td class=" border-bottom-0 d-flex items-center justify-content-center"><span class="badge bg-danger rounded-pill px-3 py-2">Đã hủy</span></td>
+                                <td class=" border-bottom-0">
+                                    <button class="border-0 bg-white">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="tab-pane container" id="menu3">
-                <p class="mt-4 text-muted">Chức năng đang phát triển...</p>
+                <form class="mt-4" action="">
+                    <div class="container">
+                        <div class="row border border-secondary rounded">
+                            <div class="mb-3 mt-3">
+                                <label for="supplier" class="form-label">Nhà cung cấp *</label>
+                                <select name="" class="form-select" id="">
+                                    <option selected>--Chọn nhà cung cấp--</option>
+                                    <option value="1">TechCore Distribution</option>
+                                    <option value="2">CPU VietNam Co.</option>
+                                    <option value="3">RAM & Storage Hub</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="date" class="form-label">Ngày giao hàng dự kiến</label>
+                                <input type="date" class="form-control" id="date" placeholder="mm/dd/yyy" name="date">
+                            </div>
+                            <div class="mb-3">
+                                <label for="comment">Ghi chú</label>
+                                <textarea class="form-control" rows="2" id="comment" name="text" placeholder="Ghi chú đặc biệt..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row p-3 mt-4 border border-secondary rounded">
+                            <div class="row">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h5>Danh sách sản phẩm</h5>
+                                    <button class="btn btn-primary">
+                                        <i class="bi bi-plus"></i>
+                                        <span>Thêm sản phẩm</span>
+                                    </button>
+                                </div>
+                            </div>
+
+
+
+                            <div class="row mt-3">
+                                <div class="col-xl-10 d-flex align-items-center justify-content-around">
+                                    <div class="">
+                                        <label for="supplier" class="form-label">Sản phẩm</label>
+                                        <select name="" class="form-select" id="">
+                                            <option selected>--Chọn sản phẩm--</option>
+                                            <option value="1">TechCore Distribution</option>
+                                            <option value="2">CPU VietNam Co.</option>
+                                            <option value="3">RAM & Storage Hub</option>
+                                        </select>
+                                    </div>
+                                    <div class="">
+                                        <label for="quantity" class="form-label">Số lượng</label>
+                                        <input type="text" class="form-control" id="date" name="quantity">
+                                    </div>
+                                    <div class="">
+                                        <label for="price" class="form-label">Giá</label>
+                                        <input type="text" class="form-control" name="price" id="price">
+                                    </div>
+                                </div>
+
+                                <div class="col-xl-2 d-flex justify-content-around align-items-center">
+                                    <div class="d-flex flex-column">
+                                        <span>Thành tiền</span>
+                                        <span>0đ</span>
+                                    </div>
+                                    <button class="bg-white border-0">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="d-flex flex-column align-items-end">
+                                    <span>Tổng giá trị đơn hàng</span>
+                                    <span>0đ</span>
+                                </div>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="d-flex align-items-center justify-content-end">
+                                    <button class="rounded me-3">
+                                        Lưu nháp
+                                    </button>
+
+                                    <button class="btn btn-primary text-white border-0 rounded">
+                                        Gửi đơn hàng
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                   
+                </form>
             </div>
             <div class="tab-pane container" id="menu4">
-                <p class="mt-4 text-muted">Chức năng đang phát triển...</p>
+                <div class="mt-4">
+                    <form action="">
+                        <div class="mt-4">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#returnRequestModal">
+                                <i class="bi bi-plus"></i>
+                                <span>Tạo yêu cầu trả hàng</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal fade" id="returnRequestModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            
+                            <div class="modal-header">
+                                <h5 class="modal-title fw-bold" id="returnModalLabel">Tạo yêu cầu trả hàng NCC</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <form id="returnForm">
+                                    <div class="mb-3">
+                                        <label for="supplierSelect" class="form-label">Nhà cung cấp</label>
+                                        <select class="form-select" id="supplierSelect">
+                                            <option selected>TechCore Distribution</option>
+                                            <option value="2">GPU Vietnam Co.</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="poSelect" class="form-label">Đơn nhập hàng liên quan</label>
+                                        <select class="form-select" id="poSelect">
+                                            <option selected>PO-2026-001 - TechCore Distribution</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="reasonText" class="form-label">Lý do trả hàng</label>
+                                        <textarea class="form-control" id="reasonText" rows="4" placeholder="Mô tả lý do trả hàng..."></textarea>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="modal-footer border-top-0">
+                                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Hủy</button>
+                                <button type="button" class="btn btn-primary px-4">Gửi yêu cầu</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mã YÊU CẦU</th>
+                                <th>TÊN NHÀ CUNG CẤP</th>
+                                <th>SẢN PHẨM</th>
+                                <th>LÝ DO</th>
+                                <th>SỐ TIỀN</th>
+                                <th>TRẠNG THÁI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr >
+                                <td class="border-bottom-0">RTN-002</td>
+                                <td class=" border-bottom-0">
+                                    GPU Vietnam Co.	
+                                </td>
+                                <td class=" border-bottom-0">NVIDIA RTX 4090 24GB (x1)</td>
+                                <td class=" border-bottom-0">
+                                    Card màn hình bị trầy xước	
+                                </td>
+                                <td class=" border-bottom-0">   
+                                    38.000.000 ₫
+                                </td>
+                                <td class=" border-bottom-0 d-flex items-center justify-content-center"><span class="badge bg-success rounded-pill px-3 py-2">Hoàn thành</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
         </div>
