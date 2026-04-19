@@ -1,0 +1,44 @@
+@{ViewData["Title"] = "Quản trị hệ thống";}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div><h4 class="fw-bold mb-1">Quản trị hệ thống</h4><p class="text-muted small mb-0">Quản lý tài khoản, phân quyền, cấu hình và báo cáo</p></div>
+</div>
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><a class="nav-link" href="/Admin/Users"><i class="bi bi-person-vcard me-1"></i>Tài khoản & Phân quyền</a></li>
+    <li class="nav-item"><a class="nav-link" href="/Admin/Config"><i class="bi bi-sliders me-1"></i>Cấu hình hệ thống</a></li>
+    <li class="nav-item"><a class="nav-link active" href="/Admin/Reports"><i class="bi bi-bar-chart-line me-1"></i>Báo cáo tổng quan</a></li>
+</ul>
+    
+<div class="tab-content">
+    <!-- BÁO CÁO -->
+    <div class="tab-pane active" id="tab-baocao">
+        <div class="card border-0 shadow-sm mb-3"><div class="card-body p-3"><div class="row g-3 align-items-end">
+            <div class="col-md-3"><label class="form-label small fw-semibold">Từ ngày</label><input type="date" class="form-control form-control-sm"></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Đến ngày</label><input type="date" class="form-control form-control-sm"></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Loại báo cáo</label><select class="form-select form-select-sm"><option>Tổng quan</option><option>Doanh thu</option><option>Tồn kho</option><option>Vận chuyển</option><option>Nhà cung cấp</option></select></div>
+            <div class="col-auto"><button class="btn btn-sm btn-primary"><i class="bi bi-bar-chart me-1"></i>Xem báo cáo</button></div>
+        </div></div></div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-3 fw-bold text-primary">4.82 tỷ</div><div class="small text-muted">Doanh thu tháng 4</div><div class="small text-success"><i class="bi bi-arrow-up-short"></i>12.5% vs T3</div></div></div>
+            <div class="col-md-3"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-3 fw-bold text-success">284</div><div class="small text-muted">Đơn hàng hoàn thành</div><div class="small text-success"><i class="bi bi-arrow-up-short"></i>8.2%</div></div></div>
+            <div class="col-md-3"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-3 fw-bold text-warning">96.5%</div><div class="small text-muted">Tỷ lệ giao thành công</div><div class="small text-success"><i class="bi bi-arrow-up-short"></i>1.2%</div></div></div>
+            <div class="col-md-3"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-3 fw-bold text-danger">2.4%</div><div class="small text-muted">Tỷ lệ đổi trả</div><div class="small text-success"><i class="bi bi-arrow-down-short"></i>0.3%</div></div></div>
+        </div>
+        <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0">Biểu đồ doanh thu theo tháng</h6></div><div class="card-body"><canvas id="adminReportChart" height="120"></canvas></div></div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const ctx = document.getElementById('adminReportChart');
+if (ctx) {
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['T10/25','T11/25','T12/25','T1/26','T2/26','T3/26','T4/26'],
+            datasets: [{ label: 'Doanh thu (triệu ₫)', data: [3200,3800,4100,3600,4200,4500,4820], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.4, pointBackgroundColor: '#3b82f6', pointRadius: 5 }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => v+'M' } } } }
+    });
+}
+</script>
+}

@@ -1,0 +1,57 @@
+@{ViewData["Title"] = "Bán hàng & Xuất kho";}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div><h4 class="fw-bold mb-1">Bán hàng & Xuất kho</h4><p class="text-muted small mb-0">Tạo đơn, tra cứu tồn kho và xử lý đổi trả</p></div>
+</div>
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><a class="nav-link" href="/Sales/Create"><i class="bi bi-receipt me-1"></i>Tạo đơn bán</a></li>
+    <li class="nav-item"><a class="nav-link active" href="/Sales/Orders"><i class="bi bi-cart-plus me-1"></i>Đơn bán hàng</a></li>
+    <li class="nav-item"><a class="nav-link" href="/Sales/Stock"><i class="bi bi-boxes me-1"></i>Tra cứu tồn kho</a></li>
+    <li class="nav-item"><a class="nav-link" href="/Sales/Returns"><i class="bi bi-arrow-left-right me-1"></i>Đổi trả hàng</a></li>
+</ul>
+<div class="tab-content">
+    <!-- DANH SÁCH ĐƠN BÁN -->
+    <div class="tab-pane active" id="tab-dsbh">
+        <div class="card border-0 shadow-sm mb-3"><div class="card-body p-3"><div class="row g-3 align-items-end">
+            <div class="col-md-4"><label class="form-label small fw-semibold">Tìm kiếm</label><input type="text" class="form-control form-control-sm" placeholder="Mã đơn hoặc SĐT khách..."></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Trạng thái</label><select class="form-select form-select-sm"><option>Tất cả</option><option>Chờ xuất kho</option><option>Đã đóng gói</option><option>Đang giao</option><option>Hoàn thành</option><option>Đã hủy</option></select></div>
+            <div class="col-md-3"><label class="form-label small fw-semibold">Từ ngày — Đến ngày</label><input type="date" class="form-control form-control-sm"></div>
+            <div class="col-auto"><button class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i>Tìm</button></div>
+        </div></div></div>
+        <div class="card border-0 shadow-sm"><div class="card-body p-0"><div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light"><tr>
+                    <th class="ps-4 py-2 small text-muted border-0 text="bg-white">MÃ ĐƠN</th><th class="py-2 small text-muted border-0">KHÁCH HÀNG</th>
+                    <th class="py-2 small text-muted border-0">SẢN PHẨM</th><th class="py-2 small text-muted border-0">TỔNG TIỀN</th>
+                    <th class="py-2 small text-muted border-0">NGÀY TẠO</th><th class="py-2 small text-muted border-0">TRẠNG THÁI</th><th class="py-2 small text-muted border-0"></th>
+                </tr></thead>
+                <tbody>
+                    <tr><td class="ps-4 py-2 fw-semibold small text-primary">SO-2026-041</td><td class="py-2"><div class="small fw-semibold">Trần Minh Khoa</div><div class="small text-muted">0912345678</div></td><td class="py-2 small">Intel i9-13900K, DDR5 32GB</td><td class="py-2 small fw-semibold">12.500.000 ₫</td><td class="py-2 small text-muted">19/04/2026</td><td class="py-2"><span class="badge bg-success bg-opacity-10 text-success fw-semibold px-2">Hoàn thành</span></td><td class="py-2"><button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalChiTiet"><i class="bi bi-eye me-1"></i>Xem</button></td></tr>
+                    <tr><td class="ps-4 py-2 fw-semibold small text-primary">SO-2026-040</td><td class="py-2"><div class="small fw-semibold">Nguyễn Thị Lan</div><div class="small text-muted">0987654321</div></td><td class="py-2 small">RTX 4080 16GB</td><td class="py-2 small fw-semibold">28.200.000 ₫</td><td class="py-2 small text-muted">19/04/2026</td><td class="py-2"><span class="badge bg-warning bg-opacity-10 text-warning fw-semibold px-2">Đang giao</span></td><td class="py-2"><button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalChiTiet"><i class="bi bi-eye me-1"></i>Xem</button></td></tr>
+                    <tr><td class="ps-4 py-2 fw-semibold small text-primary">SO-2026-039</td><td class="py-2"><div class="small fw-semibold">Lê Văn Bình</div><div class="small text-muted">0901234567</div></td><td class="py-2 small">RTX 4070 Ti (x2), DDR5 32GB (x4)</td><td class="py-2 small fw-semibold">34.700.000 ₫</td><td class="py-2 small text-muted">18/04/2026</td><td class="py-2"><span class="badge bg-info bg-opacity-10 text-info fw-semibold px-2">Chờ xuất kho</span></td><td class="py-2"><button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalChiTiet"><i class="bi bi-eye me-1"></i>Xem</button></td></tr>
+                    <tr><td class="ps-4 py-2 fw-semibold small text-primary">SO-2026-037</td><td class="py-2"><div class="small fw-semibold">Hoàng Đức Nam</div><div class="small text-muted">0903213213</div></td><td class="py-2 small">ASUS ROG Strix Z790</td><td class="py-2 small fw-semibold">19.300.000 ₫</td><td class="py-2 small text-muted">17/04/2026</td><td class="py-2"><span class="badge bg-danger bg-opacity-10 text-danger fw-semibold px-2">Đã hủy</span></td><td class="py-2"><button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalChiTiet"><i class="bi bi-eye me-1"></i>Xem</button></td></tr>
+                </tbody>
+            </table>
+        </div></div></div>
+    </div>
+</div>    
+
+<!-- Modal Chi tiết đơn -->
+<div class="modal fade" id="modalChiTiet" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content border-0 shadow">
+    <div class="modal-header border-0"><h5 class="modal-title fw-bold">Chi tiết đơn hàng — SO-2026-041</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <div class="row g-3 mb-3">
+            <div class="col-md-6"><div class="card border bg-light p-3 small h-100"><p class="fw-semibold mb-2">KHÁCH HÀNG</p><p class="mb-1"><strong>Tên:</strong> Trần Minh Khoa</p><p class="mb-1"><strong>SĐT:</strong> 0912345678</p><p class="mb-0"><strong>Địa chỉ:</strong> 45 Lê Lợi, Q.1, TP.HCM</p></div></div>
+            <div class="col-md-6"><div class="card border bg-light p-3 small h-100"><p class="fw-semibold mb-2">TIẾN ĐỘ ĐƠN HÀNG</p>
+                <div class="d-flex align-items-center mb-1"><span class="badge bg-success me-2">✓</span><span>Tạo đơn — 19/04 08:00</span></div>
+                <div class="d-flex align-items-center mb-1"><span class="badge bg-success me-2">✓</span><span>Đóng gói — 19/04 09:30</span></div>
+                <div class="d-flex align-items-center mb-1"><span class="badge bg-success me-2">✓</span><span>Đang giao — 19/04 10:00</span></div>
+                <div class="d-flex align-items-center"><span class="badge bg-success me-2">✓</span><span>Hoàn thành — 19/04 14:00</span></div>
+            </div></div>
+        </div>
+        <table class="table table-sm border"><thead class="table-light"><tr><th class="small">SẢN PHẨM</th><th class="small">SERIAL</th><th class="small">SL</th><th class="small">ĐƠN GIÁ</th><th class="small">THÀNH TIỀN</th></tr></thead>
+        <tbody><tr><td class="small">Intel Core i9-13900K</td><td class="small text-muted">SN-CPU-00142</td><td class="small">1</td><td class="small">8.500.000 ₫</td><td class="small fw-semibold">8.500.000 ₫</td></tr>
+        <tr><td class="small">Corsair DDR5 32GB</td><td class="small text-muted">SN-RAM-00198</td><td class="small">2</td><td class="small">2.000.000 ₫</td><td class="small fw-semibold">4.000.000 ₫</td></tr></tbody>
+        <tfoot><tr><td colspan="4" class="text-end fw-bold small">Tổng cộng:</td><td class="fw-bold text-primary small">12.500.000 ₫</td></tr></tfoot></table>
+    </div>
+    <div class="modal-footer border-0"><button class="btn btn-light border" data-bs-dismiss="modal">Đóng</button><button class="btn btn-outline-primary"><i class="bi bi-printer me-1"></i>In phiếu</button></div>
+</div></div></div>

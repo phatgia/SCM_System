@@ -1,0 +1,363 @@
+@{ViewData["Title"] = "Quản trị hệ thống";}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Quản trị hệ thống</h4>
+        <p class="text-muted small mb-0">Quản lý tài khoản, phân quyền, cấu hình và báo cáo</p>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><a class="nav-link active" href="/Admin/Users"><i class="bi bi-person-vcard me-1"></i>Tài khoản & Phân quyền</a></li>
+    <li class="nav-item"><a class="nav-link" href="/Admin/Config"><i class="bi bi-sliders me-1"></i>Cấu hình hệ thống</a></li>
+    <li class="nav-item"><a class="nav-link" href="/Admin/Reports"><i class="bi bi-bar-chart-line me-1"></i>Báo cáo tổng quan</a></li>
+</ul>
+
+<div class="tab-content">
+<div class="tab-pane active">
+
+    <!-- FILTER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex gap-2">
+            <input type="text" class="form-control form-control-sm" style="width:250px;" placeholder="Tìm theo tên, email...">
+            <select class="form-select form-select-sm" style="width:180px;">
+                <option>Tất cả vai trò</option>
+                <option>Quản trị viên</option>
+                <option>Nhân viên mua hàng</option>
+                <option>Quản lý kho</option>
+                <option>Nhân viên bán hàng</option>
+                <option>Nhân viên vận chuyển</option>
+            </select>
+        </div>
+        <a href="/Account/Register" class="btn btn-sm btn-primary">
+            <i class="bi bi-person-plus me-1"></i>Thêm tài khoản
+        </a>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="text-muted small ">
+                        <th>NHÂN VIÊN</th>
+                        <th>TÊN ĐĂNG NHẬP</th>
+                        <th>VAI TRÒ</th>
+                        <th>LIÊN HỆ</th>
+                        <th>TRẠNG THÁI</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <!-- ITEM -->
+                    <tr class="border-top">
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-semibold"
+                                     style="width:36px;height:36px;">
+                                    AD
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">Admin Hệ Thống</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="text-muted small">admin</td>
+
+                        <td>
+                            <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger px-3 py-1">
+                                Quản trị viên
+                            </span>
+                        </td>
+
+                        <td class="text-muted small">
+                            admin@scm.vn
+                        </td>
+
+                        <td>
+                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">
+                                Đang hoạt động
+                            </span>
+                        </td>
+
+                        <td>
+                            <button class="btn btn-sm btn-light border me-1">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light border text-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- ITEM -->
+                    <tr class="border-top">
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-semibold"
+                                     style="width:36px;height:36px;">
+                                    NK
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">Nguyễn Văn Khánh</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="text-muted small">nvkhanh</td>
+
+                        <td>
+                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">
+                                Quản lý kho
+                            </span>
+                        </td>
+
+                        <td class="text-muted small">nvkhanh@scm.vn</td>
+
+                        <td>
+                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">
+                                Đang hoạt động
+                            </span>
+                        </td>
+
+                        <td>
+                            <button class="btn btn-sm btn-light border me-1">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light border text-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- ITEM -->
+                    <tr class="border-top">
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center fw-semibold"
+                                     style="width:36px;height:36px;">
+                                    TL
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">Trần Thị Lan</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="text-muted small">ttlan</td>
+
+                        <td>
+                            <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning px-3 py-1">
+                                NV Bán hàng
+                            </span>
+                        </td>
+
+                        <td class="text-muted small">ttlan@scm.vn</td>
+
+                        <td>
+                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">
+                                Đang hoạt động
+                            </span>
+                        </td>
+
+                        <td>
+                            <button class="btn btn-sm btn-light border me-1">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light border text-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- ITEM -->
+                    <tr class="border-top">
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center fw-semibold"
+                                     style="width:36px;height:36px;">
+                                    VC
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">Trần Văn Cường</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="text-muted small">tvcuong</td>
+
+                        <td>
+                            <span class="badge rounded-pill bg-info bg-opacity-10 text-info px-3 py-1">
+                                NV Vận chuyển
+                            </span>
+                        </td>
+
+                        <td class="text-muted small">tvcuong@scm.vn</td>
+
+                        <td>
+                            <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary px-3 py-1">
+                                Chờ duyệt
+                            </span>
+                        </td>
+
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-check2"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PERMISSION MATRIX -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="p-3 border-bottom">
+            <h6 class="mb-0 fw-bold bi bi-shield" >Ma trận phân quyền</h6>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="text-muted small">
+                        <th>CHỨC NĂNG</th>
+                        <th class="text-center">Quản trị viên</th>
+                        <th class="text-center">Mua hàng</th>
+                        <th class="text-center">Quản lý kho</th>
+                        <th class="text-center">Vận chuyển</th>
+                        <th class="text-center">Bán hàng</th>
+                    </tr>
+                </thead>
+
+                <tbody class="small">
+
+                    <tr>
+                        <td>Xem Dashboard</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                    </tr>
+
+                    <tr>
+                        <td>Quản lý NCC</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                    </tr>
+
+                    <tr>
+                        <td>Tạo đơn nhập hàng</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                    </tr>
+
+                    <tr>
+                        <td>Nhập kho</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                    </tr>
+
+                    <tr>
+                        <td>Kiểm kê kho</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                    </tr>
+
+                    <tr>
+                        <td>Soạn/Đóng gói</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                    </tr>
+
+                    <tr>
+                        <td>Tạo đơn bán</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                    </tr>
+
+                    <tr>
+                        <td>Điều phối vận chuyển</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                    </tr>
+
+                    <tr>
+                        <td>Cập nhật trạng thái GH</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                    </tr>
+
+                    <tr>
+                        <td>Xem báo cáo</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                    </tr>
+
+                    <tr>
+                        <td>Quản lý tài khoản</td>
+                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                        <td class="text-center">—</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<script>
+document.querySelectorAll(".toggle-permission").forEach(btn => {
+    btn.addEventListener("click", function () {
+        let enabled = this.getAttribute("data-enabled") === "true";
+
+        if (enabled) {
+            this.innerHTML = '<i class="bi bi-x-lg text-muted"></i>';
+            this.setAttribute("data-enabled", "false");
+        } else {
+            this.innerHTML = '<i class="bi bi-check-lg text-success"></i>';
+            this.setAttribute("data-enabled", "true");
+        }
+    });
+});
+</script>

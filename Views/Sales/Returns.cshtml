@@ -1,0 +1,36 @@
+@{ViewData["Title"] = "Bán hàng & Xuất kho";}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div><h4 class="fw-bold mb-1">Bán hàng & Xuất kho</h4><p class="text-muted small mb-0">Tạo đơn, tra cứu tồn kho và xử lý đổi trả</p></div>
+</div>
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><a class="nav-link" href="/Sales/Create"><i class="bi bi-receipt me-1"></i>Tạo đơn bán</a></li>
+    <li class="nav-item"><a class="nav-link" href="/Sales/Orders"><i class="bi bi-cart-plus me-1"></i>Đơn bán hàng</a></li>
+    <li class="nav-item"><a class="nav-link" href="/Sales/Stock"><i class="bi bi-boxes me-1"></i>Tra cứu tồn kho</a></li>
+    <li class="nav-item"><a class="nav-link active" href="/Sales/Returns"><i class="bi bi-arrow-left-right me-1"></i>Đổi trả hàng</a></li>
+</ul>
+
+<div class="tab-content">
+    <!-- ĐỔI TRẢ HÀNG -->
+    <div class="tab-pane active" id="tab-doitra">
+        <div class="d-flex justify-content-between align-items-center mb-3"><h6 class="fw-bold mb-0">Yêu cầu đổi trả hàng</h6><button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalDoiTra"><i class="bi bi-plus me-1"></i>Tạo yêu cầu đổi trả</button></div>
+        <div class="card border-0 shadow-sm"><div class="card-body p-0"><div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light"><tr><th class="ps-4 py-2 small text-muted border-0">MÃ YÊU CẦU</th><th class="py-2 small text-muted border-0">ĐƠN GỐC</th><th class="py-2 small text-muted border-0">KHÁCH HÀNG</th><th class="py-2 small text-muted border-0">SẢN PHẨM</th><th class="py-2 small text-muted border-0">HÌNH THỨC</th><th class="py-2 small text-muted border-0">TRẠNG THÁI</th></tr></thead>
+                <tbody>
+                    <tr><td class="ps-4 py-2 fw-semibold small text-primary">DT-2026-003</td><td class="py-2 small">SO-2026-030</td><td class="py-2 small">Vũ Thị Thu</td><td class="py-2 small">Intel i7-13700K (x1)</td><td class="py-2 small">Đổi mới</td><td class="py-2"><span class="badge bg-warning bg-opacity-10 text-warning px-2">Đang xử lý</span></td></tr>
+                </tbody>
+            </table>
+        </div></div></div>
+    </div>
+</div>
+<!-- Modal Đổi trả -->
+<div class="modal fade" id="modalDoiTra" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow">
+    <div class="modal-header border-0"><h5 class="modal-title fw-bold">Tạo yêu cầu đổi trả</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <div class="mb-3"><label class="form-label small fw-semibold">Tìm đơn hàng gốc *</label><input type="text" class="form-control" placeholder="Nhập mã đơn hoặc SĐT khách..."></div>
+        <div class="mb-3"><label class="form-label small fw-semibold">Quét Serial linh kiện *</label><div class="input-group"><input type="text" class="form-control" placeholder="Quét mã Serial..."><button class="btn btn-primary">Kiểm tra</button></div></div>
+        <div class="mb-3"><label class="form-label small fw-semibold">Hình thức xử lý *</label><select class="form-select"><option>Đổi mới</option><option>Hoàn tiền</option></select></div>
+        <div class="mb-3"><label class="form-label small fw-semibold">Lý do đổi trả *</label><textarea class="form-control" rows="3" placeholder="Mô tả lý do..."></textarea></div>
+    </div>
+    <div class="modal-footer border-0"><button class="btn btn-light border" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary">Xác nhận tạo yêu cầu</button></div>
+</div></div></div>
