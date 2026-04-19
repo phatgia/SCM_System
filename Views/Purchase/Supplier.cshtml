@@ -274,10 +274,7 @@
     </div>
 </div>
 
-@* Add/Edit/Return Modals (Hidden for brevity, but exist in actual file) *@
-@* [I will KEEP the actual file content for these mods below] *@
-
-@* Add Supplier Modal *@
+@* ========== MODAL THÊM NHÀ CUNG CẤP ========== *@
 <div class="modal fade" id="addSupplierModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg">
@@ -383,137 +380,154 @@
 
 @section Scripts {
     <script>
-        // --- 1. Global Setup ---
-        const symbol = '@Model.CurrencySymbol';
-        const locale = symbol === '₫' ? 'vi-VN' : 'en-US';
-        const rate = symbol === '₫' ? 1 : (symbol === '$' ? 25000 : 27000);
-
-        // --- 2. Edit Supplier Data Binding ---
-        document.getElementById('editSupplierModal').addEventListener('show.bs.modal', function (event) {
-            const btn = event.relatedTarget;
-            document.getElementById('editSupplierID').value = btn.dataset.id;
-            document.getElementById('editSupplierName').value = btn.dataset.name;
-            document.getElementById('editAddress').value = btn.dataset.address;
-        });
-
-        // --- 3. View PO Details ---
-        $('.btn-view-po').on('click', function() {
-            const id = $(this).data('id');
-            $('#modalPODetailBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted small">Đang nạp dữ liệu...</p></div>');
-            $.get('/Purchase/PODetails/' + id, function(data) {
-                $('#modalPODetailBody').html(data);
-            }).fail(function() {
-                $('#modalPODetailBody').html('<div class="alert alert-danger">Không thể nạp dữ liệu đơn hàng này.</div>');
-            });
-        });
-
-        // --- 4. Dynamic PO Item Management ---
-        const products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AvailableProducts.Select(p => new { p.ProductID, p.ProductName })));
-        
-        function addPOItemRow() {
-            const tbody = document.querySelector('#poItemsTable tbody');
-            const rowId = Date.now();
-            const tr = document.createElement('tr');
-            tr.id = `row-${rowId}`;
-            
-            let productOptions = products.map(p => `<option value="${p.ProductID}">${p.ProductName}</option>`).join('');
-            
-            tr.innerHTML = `
-                <td class="ps-3 py-3">
-                    <select class="form-select item-product border-secondary border-opacity-25 shadow-sm" onchange="updateRowTotal(${rowId})">
-                        <option value="">-- Chọn sản phẩm --</option>
-                        ${productOptions}
-                    </select>
-                </td>
-                <td class="py-3"><input type="number" class="form-control item-qty text-center shadow-sm" value="1" min="1" onchange="updateRowTotal(${rowId})"></td>
-                <td class="py-3"><input type="number" class="form-control item-price shadow-sm" value="0" min="0" step="0.01" onchange="updateRowTotal(${rowId})"></td>
-                <td class="py-3 fw-bold text-end pe-3 item-total-display text-dark">${symbol} 0.00</td>
-                <td class="py-3 text-center"><button type="button" class="btn btn-link text-danger p-0" onclick="removePOItemRow(${rowId})"><i class="bi bi-trash3 fs-5"></i></button></td>
-            `;
-            tbody.appendChild(tr);
-        }
-
-        function removePOItemRow(id) {
-            document.getElementById(`row-${id}`).remove();
-            calculateGrandTotal();
-        }
-
-        function updateRowTotal(id) {
-            const row = document.getElementById(`row-${id}`);
-            const qty = row.querySelector('.item-qty').value;
-            const price = row.querySelector('.item-price').value;
-            const totalDisplay = row.querySelector('.item-total-display');
-            
-            const total = qty * price;
-            totalDisplay.innerText = symbol + new Intl.NumberFormat(locale, { minimumFractionDigits: (symbol==='₫'?0:2) }).format(total);
-            calculateGrandTotal();
-        }
-
-        function calculateGrandTotal() {
-            let grandTotal = 0;
-            document.querySelectorAll('#poItemsTable tbody tr').forEach(row => {
-                const qty = row.querySelector('.item-qty').value;
-                const price = row.querySelector('.item-price').value;
-                grandTotal += (qty * price);
-            });
-            document.getElementById('poTotalDisplay').innerText = symbol + ' ' + new Intl.NumberFormat(locale, { minimumFractionDigits: (symbol==='₫'?0:2) }).format(grandTotal);
-        }
-
-        // --- 5. Submit PO via AJAX ---
-        async function submitPurchaseOrder() {
-            const supplierID = document.getElementById('poSupplierID').value;
-            const expectedDate = document.getElementById('poExpectedDate').value;
-            const notes = document.getElementById('poNotes').value;
-            
-            if (!supplierID) return alert('Vui lòng chọn nhà cung cấp.');
-            
-            const items = [];
-            document.querySelectorAll('#poItemsTable tbody tr').forEach(row => {
-                const productID = row.querySelector('.item-product').value;
-                if (productID) {
-                    const enteredPrice = parseFloat(row.querySelector('.item-price').value);
-                    items.push({
-                        ProductID: parseInt(productID),
-                        Quantity: parseInt(row.querySelector('.item-qty').value),
-                        Price: enteredPrice * rate // CONVERT BACK TO VND FOR STORAGE
-                    });
+        document.addEventListener("DOMContentLoaded", function () {
+            // --- 1. Sync Tab & Sidebar (Incoming feature) ---
+            function syncPurchaseUI() {
+                let hash = window.location.hash || "#menu1"; 
+                let targetTab = document.querySelector('.nav-tabs a[href="' + hash + '"]');
+                if (targetTab) {
+                    new bootstrap.Tab(targetTab).show();
                 }
+                document.querySelectorAll('#muaHangMenu .sidebar-link').forEach(link => {
+                    link.classList.remove('bg-primary', 'text-white');
+                    link.classList.add('text-secondary');
+                });
+                let activeSidebarLink = document.querySelector('#muaHangMenu a[href$="' + hash + '"]');
+                if (activeSidebarLink) {
+                    activeSidebarLink.classList.remove('text-secondary');
+                    activeSidebarLink.classList.add('bg-primary', 'text-white');
+                }
+            }
+            syncPurchaseUI();
+            document.querySelectorAll('.nav-tabs a[data-bs-toggle="tab"]').forEach(function (tab) {
+                tab.addEventListener('shown.bs.tab', function (event) {
+                    let currentHash = event.target.getAttribute('href');
+                    history.replaceState(null, null, currentHash);
+                    syncPurchaseUI(); 
+                });
+            });
+            window.addEventListener('hashchange', function() {
+                syncPurchaseUI();
             });
 
-            if (items.length === 0) return alert('Vui lòng thêm ít nhất một sản phẩm.');
+            // --- 2. Existing Setup & Variables ---
+            const symbol = '@Model.CurrencySymbol';
+            const locale = symbol === '₫' ? 'vi-VN' : 'en-US';
+            const rate = symbol === '₫' ? 1 : (symbol === '$' ? 25000 : 27000);
 
-            const data = {
-                SupplierID: parseInt(supplierID),
-                ExpectedDeliveryDate: expectedDate || null,
-                Notes: notes,
-                Items: items
+            // --- 3. Edit Supplier Data Binding ---
+            document.getElementById('editSupplierModal').addEventListener('show.bs.modal', function (event) {
+                const btn = event.relatedTarget;
+                document.getElementById('editSupplierID').value = btn.dataset.id;
+                document.getElementById('editSupplierName').value = btn.dataset.name;
+                document.getElementById('editAddress').value = btn.dataset.address;
+            });
+
+            // --- 4. View PO Details (AJAX) ---
+            $('.btn-view-po').on('click', function() {
+                const id = $(this).data('id');
+                $('#modalPODetailBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted small">Đang nạp dữ liệu...</p></div>');
+                $.get('/Purchase/PODetails/' + id, function(data) {
+                    $('#modalPODetailBody').html(data);
+                }).fail(function() {
+                    $('#modalPODetailBody').html('<div class="alert alert-danger">Không thể nạp dữ liệu đơn hàng này.</div>');
+                });
+            });
+
+            // --- 5. Dynamic PO Item Management ---
+            const products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AvailableProducts.Select(p => new { p.ProductID, p.ProductName })));
+            
+            window.addPOItemRow = function() {
+                const tbody = document.querySelector('#poItemsTable tbody');
+                const rowId = Date.now();
+                const tr = document.createElement('tr');
+                tr.id = `row-${rowId}`;
+                let productOptions = products.map(p => `<option value="${p.ProductID}">${p.ProductName}</option>`).join('');
+                tr.innerHTML = `
+                    <td class="ps-3 py-3">
+                        <select class="form-select item-product border-secondary border-opacity-25 shadow-sm" onchange="updateRowTotal(${rowId})">
+                            <option value="">-- Chọn sản phẩm --</option>
+                            ${productOptions}
+                        </select>
+                    </td>
+                    <td class="py-3"><input type="number" class="form-control item-qty text-center shadow-sm" value="1" min="1" onchange="updateRowTotal(${rowId})"></td>
+                    <td class="py-3"><input type="number" class="form-control item-price shadow-sm" value="0" min="0" step="0.01" onchange="updateRowTotal(${rowId})"></td>
+                    <td class="py-3 fw-bold text-end pe-3 item-total-display text-dark">${symbol} 0.00</td>
+                    <td class="py-3 text-center"><button type="button" class="btn btn-link text-danger p-0" onclick="removePOItemRow(${rowId})"><i class="bi bi-trash3 fs-5"></i></button></td>
+                `;
+                tbody.appendChild(tr);
             };
 
-            // Get Anti-Forgery Token
-            const token = $('input[name="__RequestVerificationToken"]').val();
+            window.removePOItemRow = function(id) {
+                document.getElementById(`row-${id}`).remove();
+                calculateGrandTotal();
+            };
 
-            try {
-                const response = await fetch('/Purchase/CreatePurchaseOrder', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify(data)
+            window.updateRowTotal = function(id) {
+                const row = document.getElementById(`row-${id}`);
+                const qty = row.querySelector('.item-qty').value;
+                const price = row.querySelector('.item-price').value;
+                const totalDisplay = row.querySelector('.item-total-display');
+                const total = qty * price;
+                totalDisplay.innerText = symbol + new Intl.NumberFormat(locale, { minimumFractionDigits: (symbol==='₫'?0:2) }).format(total);
+                calculateGrandTotal();
+            };
+
+            function calculateGrandTotal() {
+                let grandTotal = 0;
+                document.querySelectorAll('#poItemsTable tbody tr').forEach(row => {
+                    const qty = row.querySelector('.item-qty').value;
+                    const price = row.querySelector('.item-price').value;
+                    grandTotal += (qty * price);
                 });
-
-                if (response.ok) {
-                    alert('Đã tạo đơn nhập hàng thành công!');
-                    location.reload();
-                } else {
-                    const error = await response.text();
-                    alert('Lỗi: ' + error);
-                }
-            } catch (err) {
-                alert('Có lỗi xảy ra khi kết nối server.');
+                document.getElementById('poTotalDisplay').innerText = symbol + ' ' + new Intl.NumberFormat(locale, { minimumFractionDigits: (symbol==='₫'?0:2) }).format(grandTotal);
             }
-        }
 
-        addPOItemRow();
+            // --- 6. Submit PO via AJAX ---
+            window.submitPurchaseOrder = async function() {
+                const supplierID = document.getElementById('poSupplierID').value;
+                const expectedDate = document.getElementById('poExpectedDate').value;
+                const notes = document.getElementById('poNotes').value;
+                if (!supplierID) return alert('Vui lòng chọn nhà cung cấp.');
+                const items = [];
+                document.querySelectorAll('#poItemsTable tbody tr').forEach(row => {
+                    const productID = row.querySelector('.item-product').value;
+                    if (productID) {
+                        const enteredPrice = parseFloat(row.querySelector('.item-price').value);
+                        items.push({
+                            ProductID: parseInt(productID),
+                            Quantity: parseInt(row.querySelector('.item-qty').value),
+                            Price: enteredPrice * rate
+                        });
+                    }
+                });
+                if (items.length === 0) return alert('Vui lòng thêm ít nhất một sản phẩm.');
+                const data = {
+                    SupplierID: parseInt(supplierID),
+                    ExpectedDeliveryDate: expectedDate || null,
+                    Notes: notes,
+                    Items: items
+                };
+                const token = $('input[name="__RequestVerificationToken"]').val();
+                try {
+                    const response = await fetch('/Purchase/CreatePurchaseOrder', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                        body: JSON.stringify(data)
+                    });
+                    if (response.ok) {
+                        alert('Đã tạo đơn nhập hàng thành công!');
+                        location.reload();
+                    } else {
+                        const error = await response.text();
+                        alert('Lỗi: ' + error);
+                    }
+                } catch (err) {
+                    alert('Có lỗi xảy ra khi kết nối server.');
+                }
+            };
+
+            addPOItemRow();
+        });
     </script>
 }
