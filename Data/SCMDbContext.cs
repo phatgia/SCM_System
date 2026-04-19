@@ -23,6 +23,8 @@ namespace SCM_System.Data
         public DbSet<SaleOrderDetail> SaleOrderDetails { get; set; }
         public DbSet<Delivery> Deliveries { get; set; }
         public DbSet<ReturnOrder> ReturnOrders { get; set; }
+        public DbSet<PurchaseReturn> PurchaseReturns { get; set; }
+        public DbSet<SystemSetting> SystemSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -69,6 +71,13 @@ namespace SCM_System.Data
                 .HasForeignKey(r => r.SOID)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // ReturnOrder -> User (restrict)
+            modelBuilder.Entity<ReturnOrder>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserID)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // ProductSerial -> ProductLocation (restrict)
             modelBuilder.Entity<ProductSerial>()
                 .HasOne(ps => ps.ProductLocation)
@@ -102,6 +111,20 @@ namespace SCM_System.Data
                 .HasOne(pod => pod.Product)
                 .WithMany(p => p.PurchaseOrderDetails)
                 .HasForeignKey(pod => pod.ProductID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // PurchaseReturn -> PurchaseOrder (restrict)
+            modelBuilder.Entity<PurchaseReturn>()
+                .HasOne(pr => pr.PurchaseOrder)
+                .WithMany()
+                .HasForeignKey(pr => pr.POID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // PurchaseReturn -> User (restrict)
+            modelBuilder.Entity<PurchaseReturn>()
+                .HasOne(pr => pr.User)
+                .WithMany()
+                .HasForeignKey(pr => pr.UserID)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

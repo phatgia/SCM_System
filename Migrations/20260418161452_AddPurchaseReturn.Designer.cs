@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SCM_System.Data;
 
@@ -11,9 +12,11 @@ using SCM_System.Data;
 namespace SCM_System.Migrations
 {
     [DbContext(typeof(SCMDbContext))]
-    partial class SCMDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260418161452_AddPurchaseReturn")]
+    partial class AddPurchaseReturn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -294,15 +297,15 @@ namespace SCM_System.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PurchaseReturnID"));
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("POID")
                         .HasColumnType("int");
 
                     b.Property<string>("Reason")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("RefundAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("ReturnDate")
                         .HasColumnType("datetime2");
@@ -312,14 +315,9 @@ namespace SCM_System.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
                     b.HasKey("PurchaseReturnID");
 
                     b.HasIndex("POID");
-
-                    b.HasIndex("UserID");
 
                     b.ToTable("PurchaseReturn");
                 });
@@ -332,6 +330,10 @@ namespace SCM_System.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReturnID"));
 
+                    b.Property<string>("Condition")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Reason")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -339,23 +341,9 @@ namespace SCM_System.Migrations
                     b.Property<int>("SOID")
                         .HasColumnType("int");
 
-                    b.Property<string>("Settlement")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
                     b.HasKey("ReturnID");
 
                     b.HasIndex("SOID");
-
-                    b.HasIndex("UserID");
 
                     b.ToTable("ReturnOrder");
                 });
@@ -475,44 +463,6 @@ namespace SCM_System.Migrations
                     b.ToTable("Supplier");
                 });
 
-            modelBuilder.Entity("SCM_System.Models.SystemSetting", b =>
-                {
-                    b.Property<int>("SettingID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SettingID"));
-
-                    b.Property<bool>("AutoBackup")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<bool>("EnableEmail")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("EnableSMS")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("LowStockThreshold")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TimeZone")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("WarrantyAlertDays")
-                        .HasColumnType("int");
-
-                    b.HasKey("SettingID");
-
-                    b.ToTable("SystemSettings");
-                });
-
             modelBuilder.Entity("SCM_System.Models.User", b =>
                 {
                     b.Property<int>("UserID")
@@ -554,7 +504,7 @@ namespace SCM_System.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("User");
                 });
 
             modelBuilder.Entity("SCM_System.Models.Delivery", b =>
@@ -679,15 +629,7 @@ namespace SCM_System.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SCM_System.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("PurchaseOrder");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SCM_System.Models.ReturnOrder", b =>
@@ -698,15 +640,7 @@ namespace SCM_System.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SCM_System.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("SaleOrder");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SCM_System.Models.SaleOrder", b =>

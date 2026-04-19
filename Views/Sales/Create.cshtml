@@ -1,48 +1,254 @@
-@{ViewData["Title"] = "Bán hàng & Xuất kho";}
+@model SCM_System.Models.ViewModels.SalesCreateViewModel
+@{
+    ViewData["Title"] = "Bán hàng & Xuất kho - Tạo đơn";
+}
+
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <div><h4 class="fw-bold mb-1">Bán hàng & Xuất kho</h4><p class="text-muted small mb-0">Tạo đơn, tra cứu tồn kho và xử lý đổi trả</p></div>
-</div>
-<ul class="nav nav-tabs mb-4">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="/Sales/Create"><i class="bi bi-receipt me-1"></i>Tạo đơn bán</a></li>
-    <li class="nav-item"><a class="nav-link" href="/Sales/Orders"><i class="bi bi-cart-plus me-1"></i>Đơn bán hàng</a></li>
-    <li class="nav-item"><a class="nav-link" href="/Sales/Stock"><i class="bi bi-boxes me-1"></i>Tra cứu tồn kho</a></li>
-    <li class="nav-item"><a class="nav-link" href="/Sales/Returns"><i class="bi bi-arrow-left-right me-1"></i>Đổi trả hàng</a></li>
-</ul>
-<div class="teb-content">
-<!-- TẠO ĐƠN BÁN -->
-    <div class="tab-pane active" id="tab-taodh">
-        <div class="row g-4">
-            <div class="col-xl-8">
-                <div class="card border-0 shadow-sm mb-3"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0">Thông tin khách hàng</h6></div><div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6"><label class="form-label small fw-semibold">Họ tên khách hàng *</label><input type="text" class="form-control" placeholder="Nhập tên khách hàng..."></div>
-                        <div class="col-md-6"><label class="form-label small fw-semibold">Số điện thoại *</label><input type="text" class="form-control" placeholder="0912345678"></div>
-                        <div class="col-md-6"><label class="form-label small fw-semibold">Email</label><input type="email" class="form-control" placeholder="email@example.com"></div>
-                        <div class="col-md-6"><label class="form-label small fw-semibold">Địa chỉ giao hàng *</label><input type="text" class="form-control" placeholder="Nhập địa chỉ giao hàng..."></div>
-                    </div>
-                </div></div>
-                <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4 d-flex align-items-center justify-content-between"><h6 class="fw-bold mb-0">Danh sách sản phẩm</h6><button class="btn btn-sm btn-outline-primary" onclick="addProductRow()"><i class="bi bi-plus me-1"></i>Thêm sản phẩm</button></div><div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm" id="productTable">
-                            <thead class="table-light"><tr><th class="small">SẢN PHẨM</th><th class="small">TỒN KHẢ DỤNG</th><th class="small">SỐ LƯỢNG</th><th class="small">ĐƠN GIÁ</th><th class="small">THÀNH TIỀN</th><th></th></tr></thead>
-                            <tbody>
-                                <tr><td><select class="form-select form-select-sm"><option>-- Chọn sản phẩm --</option><option>Intel Core i9-13900K</option><option>NVIDIA RTX 4090 24GB</option><option>Corsair DDR5 32GB</option><option>Samsung 990 Pro 2TB</option></select></td><td class="small text-success fw-semibold align-middle">12</td><td><input type="number" class="form-control form-control-sm" style="width:80px;" value="1" min="1"></td><td><input type="text" class="form-control form-control-sm" style="width:120px;" placeholder="0 ₫"></td><td class="small fw-semibold align-middle">0 ₫</td><td class="align-middle"><button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash"></i></button></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="d-flex justify-content-end mt-3 me-2"><div class="text-end"><p class="small text-muted mb-1">Tổng giá trị đơn hàng</p><h4 class="fw-bold text-primary mb-0">0 ₫</h4></div></div>
-                </div></div>
-            </div>
-            <div class="col-xl-4">
-                <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0">Xác nhận đơn hàng</h6></div><div class="card-body">
-                    <div class="mb-3"><label class="form-label small fw-semibold">Ghi chú</label><textarea class="form-control" rows="3" placeholder="Ghi chú đặc biệt..."></textarea></div>
-                    <div class="alert alert-warning py-2 small"><i class="bi bi-info-circle me-1"></i>Hệ thống sẽ tự động "giữ chỗ" sản phẩm khi xác nhận tạo đơn.</div>
-                    <div class="d-grid gap-2 mt-3">
-                        <button class="btn btn-primary fw-semibold"><i class="bi bi-check2-circle me-1"></i>Xác nhận tạo đơn</button>
-                        <button class="btn btn-outline-secondary">Lưu nháp</button>
-                    </div>
-                </div></div>
-            </div>
-        </div>
+    <div>
+        <h4 class="fw-bold mb-1">Bán hàng & Xuất kho</h4>
+        <p class="text-muted small mb-0">Tạo đơn, tra cứu tồn kho và xử lý đổi trả</p>
     </div>
 </div>
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><a class="nav-link active" asp-action="Create"><i class="bi bi-receipt me-1"></i>Tạo đơn bán</a></li>
+    <li class="nav-item"><a class="nav-link" asp-action="Orders"><i class="bi bi-cart-plus me-1"></i>Đơn bán hàng</a></li>
+    <li class="nav-item"><a class="nav-link" asp-action="Stock"><i class="bi bi-boxes me-1"></i>Tra cứu tồn kho</a></li>
+    <li class="nav-item"><a class="nav-link" asp-action="Returns"><i class="bi bi-arrow-left-right me-1"></i>Đổi trả hàng</a></li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane active" id="tab-taodh">
+        <form id="createOrderForm">
+            @Html.AntiForgeryToken()
+            <div class="row g-4">
+                <!-- PANEL TRÁI: THÔNG TIN KHÁCH HÀNG & SẢN PHẨM -->
+                <div class="col-xl-8">
+                    <!-- KHÁCH HÀNG -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
+                            <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-person-badge me-2"></i>Thông tin khách hàng</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Chọn khách hàng có sẵn</label>
+                                <select id="customerSelect" class="form-select shadow-sm" onchange="toggleCustomerType()">
+                                    <option value="0">-- Khách hàng mới --</option>
+                                    @foreach (var c in Model.Customers)
+                                    {
+                                        <option value="@c.CustomerID" data-name="@c.Name" data-phone="@c.Phone" data-email="@c.Email" data-addr="@c.ShippingAddress">
+                                            @c.Name (@c.Phone)
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div id="newCustomerFields" class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Họ tên khách hàng *</label>
+                                    <input type="text" id="custName" class="form-control" placeholder="Nhập tên...">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Số điện thoại *</label>
+                                    <input type="text" id="custPhone" class="form-control" placeholder="09########">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Email</label>
+                                    <input type="email" id="custEmail" class="form-control" placeholder="email@example.com">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Địa chỉ giao hàng *</label>
+                                    <input type="text" id="custAddr" class="form-control" placeholder="Nhập địa chỉ giao hàng...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SẢN PHẨM -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-0 pt-3 pb-0 px-4 d-flex align-items-center justify-content-between">
+                            <h6 class="fw-bold mb-0 text-success"><i class="bi bi-cart4 me-2"></i>Danh sách sản phẩm</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary shadow-sm" onclick="addProductRow()">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm dòng
+                            </button>
+                        </div>
+                        <div class="card-body p-0 mt-3">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="productTable">
+                                    <thead class="bg-light">
+                                        <tr class="small text-muted">
+                                            <th class="ps-4 border-0">SẢN PHẨM</th>
+                                            <th class="border-0 text-center">SỐ LƯỢNG</th>
+                                            <th class="border-0">ĐƠN GIÁ</th>
+                                            <th class="border-0">THÀNH TIỀN</th>
+                                            <th class="border-0 pe-4"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Rows added by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="p-4 border-top bg-light">
+                                <div class="d-flex justify-content-end align-items-center gap-3">
+                                    <span class="text-muted fw-semibold">TỔNG CỘNG THANH TOÁN:</span>
+                                    <h3 class="fw-bold text-primary mb-0" id="grandTotal">0 ₫</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL PHẢI: XÁC NHẬN -->
+                <div class="col-xl-4">
+                    <div class="card border-0 shadow-sm sticky-top" style="top: 1rem;">
+                        <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-check2-square me-2"></i>Ghi chú & Xác nhận</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Ghi chú đơn hàng</label>
+                                <textarea id="orderNote" class="form-control shadow-sm" rows="4" placeholder="Nhập ghi chú xuất kho, hứa hẹn với khách..."></textarea>
+                            </div>
+                            <div class="alert alert-info py-2 small border-0 bg-opacity-10 bg-info">
+                                <i class="bi bi-info-circle-fill me-2"></i>Chọn sản phẩm và số lượng để hệ thống tự động tính tiền.
+                            </div>
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="button" class="btn btn-primary btn-lg shadow fw-bold" onclick="submitOrder()">
+                                    <i class="bi bi-cart-check-fill me-2"></i>XÁC NHẬN TẠO ĐƠN
+                                </button>
+                                <button type="button" class="btn btn-light border" onclick="location.reload()">Làm lại</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Products));
+
+        function toggleCustomerType() {
+            const select = document.getElementById('customerSelect');
+            const isNew = select.value === "0";
+            const fields = document.getElementById('newCustomerFields');
+            
+            if (!isNew) {
+                const opt = select.options[select.selectedIndex];
+                document.getElementById('custName').value = opt.dataset.name;
+                document.getElementById('custPhone').value = opt.dataset.phone;
+                document.getElementById('custEmail').value = opt.dataset.email;
+                document.getElementById('custAddr').value = opt.dataset.addr;
+                fields.classList.add('opacity-50');
+                // ReadOnly
+                document.getElementById('custName').readOnly = true;
+                document.getElementById('custPhone').readOnly = true;
+                document.getElementById('custEmail').readOnly = true;
+                document.getElementById('custAddr').readOnly = true;
+            } else {
+                document.getElementById('custName').value = "";
+                document.getElementById('custPhone').value = "";
+                document.getElementById('custEmail').value = "";
+                document.getElementById('custAddr').value = "";
+                fields.classList.remove('opacity-50');
+                document.getElementById('custName').readOnly = false;
+                document.getElementById('custPhone').readOnly = false;
+                document.getElementById('custEmail').readOnly = false;
+                document.getElementById('custAddr').readOnly = false;
+            }
+        }
+
+        function addProductRow() {
+            const tbody = document.querySelector('#productTable tbody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="ps-4">
+                    <select class="form-select form-select-sm prod-select shadow-sm" onchange="updateRow(this)">
+                        <option value="0">-- Chọn sản phẩm --</option>
+                        ${products.map(p => `<option value="${p.ProductID}" data-price="${p.WarrantyMonths * 1000000}"> ${p.ProductName} </option>`).join('')}
+                    </select>
+                </td>
+                <td><input type="number" class="form-control form-control-sm text-center mx-auto prod-qty shadow-sm" style="width:70px" value="1" min="1" onchange="calcTotal()"></td>
+                <td><input type="text" class="form-control form-control-sm prod-price shadow-sm" style="width:130px" placeholder="0 ₫" onchange="calcTotal()"></td>
+                <td class="fw-bold text-dark subtotal small">0 ₫</td>
+                <td class="pe-4 text-end"><button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="this.closest('tr').remove(); calcTotal();"><i class="bi bi-trash"></i></button></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function updateRow(select) {
+            const opt = select.options[select.selectedIndex];
+            const row = select.closest('tr');
+            if (opt.value !== "0") {
+                // Mock price logic since we didn't store base price in DB yet (using Warranty as proxy for demo)
+                const basePrice = parseInt(opt.dataset.price) || 1250000;
+                row.querySelector('.prod-price').value = basePrice;
+            }
+            calcTotal();
+        }
+
+        function calcTotal() {
+            let grandTotal = 0;
+            document.querySelectorAll('#productTable tbody tr').forEach(row => {
+                const qty = parseInt(row.querySelector('.prod-qty').value) || 0;
+                const priceValue = row.querySelector('.prod-price').value.toString().replace(/[^0-9]/g, '');
+                const price = parseFloat(priceValue) || 0;
+                const sub = qty * price;
+                grandTotal += sub;
+                row.querySelector('.subtotal').innerText = sub.toLocaleString('vi-VN') + ' ₫';
+            });
+            document.getElementById('grandTotal').innerText = grandTotal.toLocaleString('vi-VN') + ' ₫';
+        }
+
+        async function submitOrder() {
+            const rows = document.querySelectorAll('#productTable tbody tr');
+            if (rows.length === 0) {
+                alert("Vui lòng thêm sản phẩm vào đơn hàng.");
+                return;
+            }
+
+            const data = {
+                CustomerID: parseInt(document.getElementById('customerSelect').value),
+                CustomerName: document.getElementById('custName').value,
+                CustomerPhone: document.getElementById('custPhone').value,
+                CustomerEmail: document.getElementById('custEmail').value,
+                ShippingAddress: document.getElementById('custAddr').value,
+                Note: document.getElementById('orderNote').value,
+                Items: Array.from(rows).map(row => ({
+                    ProductID: parseInt(row.querySelector('.prod-select').value),
+                    Quantity: parseInt(row.querySelector('.prod-qty').value),
+                    UnitPrice: parseFloat(row.querySelector('.prod-price').value)
+                }))
+            };
+
+            if (data.Items.some(i => i.ProductID === 0)) {
+                alert("Vui lòng chọn sản phẩm cho tất cả các dòng.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/Sales/CreateOrder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+                    alert(res.message);
+                    window.location.href = '/Sales/Orders';
+                } else {
+                    const err = await response.text();
+                    alert("Lỗi: " + err);
+                }
+            } catch (e) {
+                alert("Lỗi kết nối Server.");
+            }
+        }
+
+        // Add first row on load
+        document.addEventListener('DOMContentLoaded', addProductRow);
+    </script>
+}

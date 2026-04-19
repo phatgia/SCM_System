@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SCM_System.Models
 {
-    [Table("User")]
+    [Table("Users")]
     [Index(nameof(Username), IsUnique = true)]
     public class User
     {

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SCM_System.Data;
 
@@ -11,9 +12,11 @@ using SCM_System.Data;
 namespace SCM_System.Migrations
 {
     [DbContext(typeof(SCMDbContext))]
-    partial class SCMDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260419095408_RefactorUserAndReturnSchemaFinal")]
+    partial class RefactorUserAndReturnSchemaFinal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -473,44 +476,6 @@ namespace SCM_System.Migrations
                     b.HasKey("SupplierID");
 
                     b.ToTable("Supplier");
-                });
-
-            modelBuilder.Entity("SCM_System.Models.SystemSetting", b =>
-                {
-                    b.Property<int>("SettingID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SettingID"));
-
-                    b.Property<bool>("AutoBackup")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<bool>("EnableEmail")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("EnableSMS")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("LowStockThreshold")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TimeZone")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("WarrantyAlertDays")
-                        .HasColumnType("int");
-
-                    b.HasKey("SettingID");
-
-                    b.ToTable("SystemSettings");
                 });
 
             modelBuilder.Entity("SCM_System.Models.User", b =>

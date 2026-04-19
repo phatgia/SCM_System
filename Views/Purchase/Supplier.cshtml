@@ -1,26 +1,28 @@
 @model SCM_System.Models.ViewModels.SupplierPageViewModel
 @{
     ViewData["Title"] = "Mua hàng & NCC";
+    bool isVND = Model.CurrencySymbol == "₫";
+    string format = isVND ? "N0" : "N2";
 }
 
 <div class="container-fluid" style="padding:20px 20px">
     <div class="row">
-        <h1>Mua hàng & Nhà cung cấp</h1>
+        <h1 class="fw-bold"><i class="bi bi-truck-flatbed me-2"></i>Mua hàng & Nhà cung cấp</h1>
     </div>
 
     <div class="row mt-4">
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs" id="purchaseTabs">
             <li class="nav-item">
-                <a class="nav-link active" data-bs-toggle="tab" href="#menu1">Nhà cung cấp</a>
+                <a class="nav-link active" data-bs-toggle="tab" href="#menu1"><i class="bi bi-building me-1"></i>Nhà cung cấp</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#menu2">Đơn nhập hàng</a>
+                <a class="nav-link" data-bs-toggle="tab" href="#menu2"><i class="bi bi-list-check me-1"></i>Đơn nhập hàng</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#menu3">Tạo đơn nhập</a>
+                <a class="nav-link" data-bs-toggle="tab" href="#menu3"><i class="bi bi-plus-circle me-1"></i>Tạo đơn nhập</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#menu4">Trả hàng NCC</a>
+                <a class="nav-link" data-bs-toggle="tab" href="#menu4"><i class="bi bi-arrow-return-left me-1"></i>Trả hàng NCC</a>
             </li>
         </ul>
     </div>
@@ -30,9 +32,7 @@
 
             @* ========== TAB 1: NHÀ CUNG CẤP ========== *@
             <div class="tab-pane container active" id="menu1">
-
                 <div class="mt-4">
-                    @* Search + Add Button *@
                     <form asp-action="Supplier" asp-controller="Purchase" method="get" class="d-flex gap-2">
                         <input type="text" name="search" value="@Model.SearchTerm"
                                class="w-50 rounded p-2 border border-secondary"
@@ -40,372 +40,209 @@
                         <button type="submit" class="btn btn-outline-secondary">
                             <i class="bi bi-search"></i> Tìm
                         </button>
-                        @if (!string.IsNullOrEmpty(Model.SearchTerm))
-                        {
-                            <a asp-action="Supplier" asp-controller="Purchase" class="btn btn-outline-secondary">
-                                <i class="bi bi-x"></i> Xóa lọc
-                            </a>
-                        }
-                        <button type="button" class="rounded bg-primary text-white p-2 ps-3 pe-3 border-0 ms-auto"
+                        <button type="button" class="rounded bg-primary text-white p-2 ps-3 pe-3 border-0 ms-auto shadow-sm"
                                 data-bs-toggle="modal" data-bs-target="#addSupplierModal">
-                            <i class="bi bi-plus"></i> Thêm nhà cung cấp
+                            <i class="bi bi-plus-lg"></i> Thêm nhà cung cấp
                         </button>
                     </form>
                 </div>
 
                 <div class="mt-4">
-                    @if (!Model.Suppliers.Any())
-                    {
-                        <div class="text-center text-muted py-5">
-                            <i class="bi bi-buildings fs-1"></i>
-                            <p class="mt-2">Chưa có nhà cung cấp nào. Hãy thêm mới!</p>
-                        </div>
-                    }
-                    else
-                    {
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Mã NCC</th>
-                                    <th>TÊN NHÀ CUNG CẤP</th>
-                                    <th>LIÊN HỆ</th>
-                                    <th>EMAIL</th>
-                                    <th>SỐ ĐƠN</th>
-                                    <th>TỔNG ĐÃ MUA</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var s in Model.Suppliers)
-                                {
-                                    <tr>
-                                        <td class="border-bottom-0">NCC@(s.SupplierID.ToString("D3"))</td>
-                                        <td class="d-flex flex-column border-bottom-0">
-                                            @s.SupplierName
-                                            @if (!string.IsNullOrEmpty(s.Address))
-                                            {
-                                                <span class="small text-secondary">@s.Address</span>
-                                            }
-                                        </td>
-                                        <td class="d-flex flex-column border-bottom-0">
-                                            @s.ContactPerson
-                                            @if (!string.IsNullOrEmpty(s.Phone))
-                                            {
-                                                <span class="small text-secondary">@s.Phone</span>
-                                            }
-                                        </td>
-                                        <td class="border-bottom-0">@(s.Email ?? "—")</td>
-                                        <td class="border-bottom-0">@s.TotalOrders</td>
-                                        <td class="border-bottom-0">@s.TotalPurchased.ToString("N0") ₫</td>
-                                        <td class="border-bottom-0">
-                                            @* Edit Button *@
-                                            <button class="border-0 bg-transparent"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editSupplierModal"
-                                                    data-id="@s.SupplierID"
-                                                    data-name="@s.SupplierName"
-                                                    data-contact="@s.ContactPerson"
-                                                    data-phone="@s.Phone"
-                                                    data-email="@s.Email"
-                                                    data-address="@s.Address"
-                                                    title="Chỉnh sửa">
-                                                <i class="bi bi-pencil-square"></i>
-                                            </button>
-
-                                            @* Delete Button *@
-                                            <form asp-action="DeleteSupplier" asp-controller="Purchase"
-                                                  method="post" class="d-inline"
-                                                  onsubmit="return confirm('Xác nhận xóa nhà cung cấp \'@s.SupplierName\'?')">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@s.SupplierID" />
-                                                <button type="submit" class="border-0 bg-transparent text-danger" title="Xóa">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    }
-                </div>
-            </div>
-
-            <div class="tab-pane container" id="menu2">
-                <div class="mt-4">
-                    <form action="">
-                        <input type="text" name="" id="" class="w-50 rounded p-2 border border-secondary" placeholder="Tìm đơn nhập...">
-                        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-                            Tất cả trạng thái
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Tất cả trạng thái</a></li>
-                            <li><a class="dropdown-item" href="#">Bản nháp</a></li>
-                            <li><a class="dropdown-item" href="#">Chờ duyệt</a></li>
-                            <li><a class="dropdown-item" href="#">Đã duyệt</a></li>
-                            <li><a class="dropdown-item" href="#">Đang vận chuyển</a></li>
-                            <li><a class="dropdown-item" href="#">Hoàn thành</a></li>
-                            <li><a class="dropdown-item" href="#">Đã hủy</a></li>
-                        </ul>
-
-                    </form>
-                </div>
-
-                <div class="mt-4">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Mã ĐƠN</th>
-                                <th>Tên NHÀ CUNG CẤP</th>
-                                <th>NGÀY ĐẶT</th>
-                                <th>NGÀY GIAO HÀNG DỰ KIẾN</th>
-                                <th>GIÁ TRỊ</th>
-                                <th>TRẠNG THÁI</th>
+                    <table class="table table-hover align-middle border shadow-sm rounded overflow-hidden">
+                        <thead class="bg-light">
+                            <tr class="small text-muted">
+                                <th class="ps-3">Mã NCC</th>
+                                <th>TÊN NHÀ CUNG CẤP</th>
+                                <th>LIÊN HỆ</th>
+                                <th class="text-center">SỐ ĐƠN</th>
+                                <th class="text-end pe-3">TỔNG ĐÃ MUA (@Model.CurrencySymbol)</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr >
-                                <td class="border-bottom-0">PO-2026-001</td>
-                                <td class=" border-bottom-0">
-                                    TechCore Distribution
-                                </td>
-                                <td class=" border-bottom-0">2026-03-15</td>
-                                <td class=" border-bottom-0">
-                                    2026-03-22	
-                                </td>
-                                <td class=" border-bottom-0">   
-                                    185.000.000 ₫
-                                </td>
-                                <td class=" border-bottom-0 d-flex items-center justify-content-center"><span class="badge bg-success rounded-pill px-3 py-2">Hoàn thành</span></td>
-                                <td class=" border-bottom-0">
-                                    <button class="border-0 bg-white">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-
-                                </td>
-                            </tr>
-
-                            <tr >
-                                <td class="border-bottom-0">PO-2026-001</td>
-                                <td class=" border-bottom-0">
-                                    TechCore Distribution
-                                </td>
-                                <td class=" border-bottom-0">2026-03-15</td>
-                                <td class=" border-bottom-0">
-                                    2026-03-22	
-                                </td>
-                                <td class=" border-bottom-0">   
-                                    185.000.000 ₫
-                                </td>
-                                <td class=" border-bottom-0 d-flex items-center justify-content-center"><span class="badge bg-primary rounded-pill px-3 py-2">Đang vận chuyển</span></td>
-                                <td class=" border-bottom-0">
-                                    <button class="border-0 bg-white">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-
-                                </td>
-                            </tr>
-
-
-                            <tr >
-                                <td class="border-bottom-0">PO-2026-001</td>
-                                <td class=" border-bottom-0">
-                                    TechCore Distribution
-                                </td>
-                                <td class=" border-bottom-0">2026-03-15</td>
-                                <td class=" border-bottom-0">
-                                    2026-03-22	
-                                </td>
-                                <td class=" border-bottom-0">   
-                                    185.000.000 ₫
-                                </td>
-                                <td class=" border-bottom-0 d-flex items-center justify-content-center"><span class="badge bg-danger rounded-pill px-3 py-2">Đã hủy</span></td>
-                                <td class=" border-bottom-0">
-                                    <button class="border-0 bg-white">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-
-                                </td>
-                            </tr>
+                            @foreach (var s in Model.Suppliers)
+                            {
+                                <tr>
+                                    <td class="ps-3 small text-muted">NCC@(s.SupplierID.ToString("D3"))</td>
+                                    <td>
+                                        <div class="fw-bold">@s.SupplierName</div>
+                                        <small class="text-secondary text-truncate d-block" style="max-width: 250px;">@s.Address</small>
+                                    </td>
+                                    <td>
+                                        <div>@s.ContactPerson</div>
+                                        <small class="text-secondary">@s.Phone</small>
+                                    </td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border">@s.TotalOrders</span></td>
+                                    <td class="text-end pe-3 fw-bold text-primary">@Model.CurrencySymbol@s.TotalPurchased.ToString(format)</td>
+                                    <td class="text-end pe-3">
+                                        <button class="btn btn-sm btn-light border" data-bs-toggle="modal" data-bs-target="#editSupplierModal" 
+                                                data-id="@s.SupplierID" data-name="@s.SupplierName" data-contact="@s.ContactPerson"
+                                                data-phone="@s.Phone" data-email="@s.Email" data-address="@s.Address">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <form asp-action="DeleteSupplier" method="post" class="d-inline" onsubmit="return confirm('Xóa nhà cung cấp này?')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@s.SupplierID" />
+                                            <button type="submit" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            @* ========== TAB 2: ĐƠN NHẬP HÀNG ========== *@
+            <div class="tab-pane container" id="menu2">
+                <div class="mt-4">
+                    <table class="table table-hover align-middle border shadow-sm rounded">
+                        <thead class="bg-light">
+                            <tr class="small text-muted">
+                                <th class="ps-3">Mã ĐƠN</th>
+                                <th>NHÀ CUNG CẤP</th>
+                                <th>NGÀY ĐẶT</th>
+                                <th>DỰ KIẾN GIAO</th>
+                                <th class="text-end pe-3">GIÁ TRỊ (@Model.CurrencySymbol)</th>
+                                <th>TRẠNG THÁI</th>
+                                <th class="text-end pe-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var po in Model.PurchaseOrders)
+                            {
+                                <tr>
+                                    <td class="ps-3 fw-bold">PO-@(po.POID.ToString("D5"))</td>
+                                    <td>@po.SupplierName</td>
+                                    <td>@po.OrderDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@(po.ExpectedDeliveryDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                    <td class="text-end pe-3 fw-bold">@Model.CurrencySymbol@po.TotalAmount.ToString(format)</td>
+                                    <td>
+                                        @{
+                                            var badgeClass = po.Status switch {
+                                                "Hoàn thành" => "bg-success",
+                                                "Đang vận chuyển" => "bg-primary",
+                                                "Đã hủy" => "bg-danger",
+                                                _ => "bg-warning"
+                                            };
+                                        }
+                                        <span class="badge @badgeClass rounded-pill px-3">@po.Status</span>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <button class="btn btn-sm btn-light border btn-view-po" data-id="@po.POID" data-bs-toggle="modal" data-bs-target="#modalPODetail">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @* ========== TAB 3: TẠO ĐƠN NHẬP ========== *@
             <div class="tab-pane container" id="menu3">
-                <form class="mt-4" action="">
-                    <div class="container">
-                        <div class="row border border-secondary rounded">
-                            <div class="mb-3 mt-3">
-                                <label for="supplier" class="form-label">Nhà cung cấp *</label>
-                                <select name="" class="form-select" id="">
-                                    <option selected>--Chọn nhà cung cấp--</option>
-                                    <option value="1">TechCore Distribution</option>
-                                    <option value="2">CPU VietNam Co.</option>
-                                    <option value="3">RAM & Storage Hub</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="date" class="form-label">Ngày giao hàng dự kiến</label>
-                                <input type="date" class="form-control" id="date" placeholder="mm/dd/yyy" name="date">
-                            </div>
-                            <div class="mb-3">
-                                <label for="comment">Ghi chú</label>
-                                <textarea class="form-control" rows="2" id="comment" name="text" placeholder="Ghi chú đặc biệt..."></textarea>
-                            </div>
+                <div class="mt-4 px-3 py-4 border rounded shadow-sm bg-white">
+                    <h5 class="mb-4 fw-bold text-primary"><i class="bi bi-cart-plus me-2"></i>Thông tin đơn nhập mới</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nhà cung cấp *</label>
+                            <select id="poSupplierID" class="form-select border-primary shadow-sm">
+                                <option value="">-- Chọn nhà cung cấp --</option>
+                                @foreach (var s in Model.Suppliers)
+                                {
+                                    <option value="@s.SupplierID">@s.SupplierName</option>
+                                }
+                            </select>
                         </div>
-
-                        <div class="row p-3 mt-4 border border-secondary rounded">
-                            <div class="row">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h5>Danh sách sản phẩm</h5>
-                                    <button class="btn btn-primary">
-                                        <i class="bi bi-plus"></i>
-                                        <span>Thêm sản phẩm</span>
-                                    </button>
-                                </div>
-                            </div>
-
-
-
-                            <div class="row mt-3">
-                                <div class="col-xl-10 d-flex align-items-center justify-content-around">
-                                    <div class="">
-                                        <label for="supplier" class="form-label">Sản phẩm</label>
-                                        <select name="" class="form-select" id="">
-                                            <option selected>--Chọn sản phẩm--</option>
-                                            <option value="1">TechCore Distribution</option>
-                                            <option value="2">CPU VietNam Co.</option>
-                                            <option value="3">RAM & Storage Hub</option>
-                                        </select>
-                                    </div>
-                                    <div class="">
-                                        <label for="quantity" class="form-label">Số lượng</label>
-                                        <input type="text" class="form-control" id="date" name="quantity">
-                                    </div>
-                                    <div class="">
-                                        <label for="price" class="form-label">Giá</label>
-                                        <input type="text" class="form-control" name="price" id="price">
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-2 d-flex justify-content-around align-items-center">
-                                    <div class="d-flex flex-column">
-                                        <span>Thành tiền</span>
-                                        <span>0đ</span>
-                                    </div>
-                                    <button class="bg-white border-0">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-
-                            </div>
-                            
-                            <div class="row mt-3">
-                                <div class="d-flex flex-column align-items-end">
-                                    <span>Tổng giá trị đơn hàng</span>
-                                    <span>0đ</span>
-                                </div>
-                            </div>
-
-                            <div class="row mt-3">
-                                <div class="d-flex align-items-center justify-content-end">
-                                    <button class="rounded me-3">
-                                        Lưu nháp
-                                    </button>
-
-                                    <button class="btn btn-primary text-white border-0 rounded">
-                                        Gửi đơn hàng
-                                    </button>
-                                </div>
-
-                            </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Ngày giao dự kiến</label>
+                            <input type="date" id="poExpectedDate" class="form-control" />
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Ghi chú</label>
+                            <textarea id="poNotes" class="form-control" rows="2" placeholder="Ghi chú thêm về đơn hàng..."></textarea>
                         </div>
                     </div>
-                   
-                </form>
-            </div>
-            <div class="tab-pane container" id="menu4">
-                <div class="mt-4">
-                    <form action="">
-                        <div class="mt-4">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#returnRequestModal">
-                                <i class="bi bi-plus"></i>
-                                <span>Tạo yêu cầu trả hàng</span>
+
+                    <div class="mt-5">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0 fw-bold"><i class="bi bi-list-ul me-2"></i>Danh sách sản phẩm</h5>
+                            <button type="button" class="btn btn-success btn-sm shadow-sm" onclick="addPOItemRow()">
+                                <i class="bi bi-plus-lg"></i> Thêm sản phẩm
                             </button>
                         </div>
-                    </form>
-                </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover border align-middle" id="poItemsTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 40%" class="ps-3">Sản phẩm</th>
+                                        <th style="width: 15%" class="text-center">Số lượng</th>
+                                        <th style="width: 20%">Đơn giá (@Model.CurrencySymbol)</th>
+                                        <th style="width: 20%" class="text-end pe-3">Thành tiền</th>
+                                        <th style="width: 5%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic rows added here -->
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-light fw-bold">
+                                        <td colspan="3" class="text-end text-uppercase py-3">Tổng giá trị đơn hàng:</td>
+                                        <td id="poTotalDisplay" class="text-end pe-3 text-primary fs-5 py-3">@Model.CurrencySymbol 0.00</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
 
-                <div class="modal fade" id="returnRequestModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content border-0 shadow">
-                            
-                            <div class="modal-header">
-                                <h5 class="modal-title fw-bold" id="returnModalLabel">Tạo yêu cầu trả hàng NCC</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-
-                            <div class="modal-body">
-                                <form id="returnForm">
-                                    <div class="mb-3">
-                                        <label for="supplierSelect" class="form-label">Nhà cung cấp</label>
-                                        <select class="form-select" id="supplierSelect">
-                                            <option selected>TechCore Distribution</option>
-                                            <option value="2">GPU Vietnam Co.</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="poSelect" class="form-label">Đơn nhập hàng liên quan</label>
-                                        <select class="form-select" id="poSelect">
-                                            <option selected>PO-2026-001 - TechCore Distribution</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="reasonText" class="form-label">Lý do trả hàng</label>
-                                        <textarea class="form-control" id="reasonText" rows="4" placeholder="Mô tả lý do trả hàng..."></textarea>
-                                    </div>
-                                </form>
-                            </div>
-
-                            <div class="modal-footer border-top-0">
-                                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Hủy</button>
-                                <button type="button" class="btn btn-primary px-4">Gửi yêu cầu</button>
-                            </div>
-
+                        <div class="mt-4 text-end">
+                            <button type="button" class="btn btn-outline-secondary me-2 px-4 shadow-sm" onclick="location.reload()">Hủy</button>
+                            <button type="button" class="btn btn-primary px-5 shadow" onclick="submitPurchaseOrder()">
+                                <i class="bi bi-send-fill me-2"></i> Gửi đơn hàng
+                            </button>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            @* ========== TAB 4: TRẢ HÀNG NCC ========== *@
+            <div class="tab-pane container" id="menu4">
+                <div class="mt-4">
+                    <button type="button" class="btn btn-danger shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#returnRequestModal">
+                        <i class="bi bi-arrow-return-left me-2"></i> Tạo yêu cầu trả hàng
+                    </button>
+                </div>
 
                 <div class="mt-4">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Mã YÊU CẦU</th>
-                                <th>TÊN NHÀ CUNG CẤP</th>
-                                <th>SẢN PHẨM</th>
-                                <th>LÝ DO</th>
-                                <th>SỐ TIỀN</th>
+                    <table class="table table-hover align-middle border shadow-sm rounded">
+                        <thead class="bg-light">
+                            <tr class="small text-muted">
+                                <th class="ps-3">Mã RTN</th>
+                                <th>ĐƠN NHẬP</th>
+                                <th>NHÀ CUNG CẤP</th>
+                                <th>NHÂN VIÊN</th>
+                                <th style="width: 300px;">SẢN PHẨM</th>
+                                <th class="text-end pe-3">SỐ TIỀN (@Model.CurrencySymbol)</th>
                                 <th>TRẠNG THÁI</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr >
-                                <td class="border-bottom-0">RTN-002</td>
-                                <td class=" border-bottom-0">
-                                    GPU Vietnam Co.	
-                                </td>
-                                <td class=" border-bottom-0">NVIDIA RTX 4090 24GB (x1)</td>
-                                <td class=" border-bottom-0">
-                                    Card màn hình bị trầy xước	
-                                </td>
-                                <td class=" border-bottom-0">   
-                                    38.000.000 ₫
-                                </td>
-                                <td class=" border-bottom-0 d-flex items-center justify-content-center"><span class="badge bg-success rounded-pill px-3 py-2">Hoàn thành</span></td>
-                            </tr>
+                            @foreach (var r in Model.ReturnOrders)
+                            {
+                                <tr>
+                                    <td class="ps-3">RTN-@(r.ReturnID.ToString("D3"))</td>
+                                    <td class="fw-bold">PO-@(r.ReturnID.ToString("D5"))</td>
+                                    <td>@r.SupplierName</td>
+                                    <td>@r.StaffName</td>
+                                    <td><small class="text-muted">@r.ProductSummary</small></td>
+                                    <td class="text-end pe-3 fw-bold text-danger">@Model.CurrencySymbol@r.Amount.ToString(format)</td>
+                                    <td>
+                                        <span class="badge @(r.Status == "Hoàn thành" ? "bg-success" : "bg-warning") rounded-pill px-3">@r.Status</span>
+                                    </td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -415,87 +252,129 @@
     </div>
 </div>
 
-@* ========== MODAL THÊM NHÀ CUNG CẤP ========== *@
+@* ========== MODALS ========== *@
+@* Modal Chi tiết đơn nhập *@
+<div class="modal fade" id="modalPODetail" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 bg-light p-4">
+                <h5 class="modal-title fw-bold">Chi tiết đơn nhập hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="modalPODetailBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted small">Đang nạp dữ liệu...</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4">
+                <button class="btn btn-light border px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Add/Edit/Return Modals (Hidden for brevity, but exist in actual file) *@
+@* [I will KEEP the actual file content for these mods below] *@
+
+@* Add Supplier Modal *@
 <div class="modal fade" id="addSupplierModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <form asp-action="AddSupplier" asp-controller="Purchase" method="post">
+        <div class="modal-content border-0 shadow-lg">
+            <form asp-action="AddSupplier" method="post">
                 @Html.AntiForgeryToken()
-                <div class="modal-header">
-                    <h5 class="modal-title">Thêm nhà cung cấp mới</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-primary text-white p-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-building-add me-2"></i>Thêm nhà cung cấp</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Tên nhà cung cấp <span class="text-danger">*</span></label>
-                        <input type="text" name="SupplierName" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Người liên hệ</label>
-                        <input type="text" name="ContactPerson" class="form-control">
+                        <label class="form-label fw-bold small">Tên nhà cung cấp *</label>
+                        <input type="text" name="SupplierName" class="form-control" required placeholder="Nhập tên công ty/cá nhân...">
                     </div>
                     <div class="row">
-                        <div class="col mb-3">
-                            <label class="form-label fw-semibold">Số điện thoại</label>
-                            <input type="text" name="Phone" class="form-control">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small">Người liên hệ</label>
+                            <input type="text" name="ContactPerson" class="form-control" placeholder="Họ và tên...">
                         </div>
-                        <div class="col mb-3">
-                            <label class="form-label fw-semibold">Email</label>
-                            <input type="email" name="Email" class="form-control">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small">Số điện thoại</label>
+                            <input type="text" name="Phone" class="form-control" placeholder="09xxx...">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Địa chỉ</label>
-                        <input type="text" name="Address" class="form-control">
+                        <label class="form-label fw-bold small">Địa chỉ</label>
+                        <textarea name="Address" class="form-control" rows="2" placeholder="Địa chỉ trụ sở..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Thêm</button>
+                <div class="modal-footer p-4 border-0">
+                    <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 shadow-sm">Lưu thông tin</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-@* ========== MODAL SỬA NHÀ CUNG CẤP ========== *@
+@* Edit Supplier Modal *@
 <div class="modal fade" id="editSupplierModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <form asp-action="EditSupplier" asp-controller="Purchase" method="post">
+        <div class="modal-content border-0 shadow-lg">
+            <form asp-action="EditSupplier" method="post">
                 @Html.AntiForgeryToken()
-                <input type="hidden" name="SupplierID" id="editSupplierID">
-                <div class="modal-header">
-                    <h5 class="modal-title">Chỉnh sửa nhà cung cấp</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <input type="hidden" name="SupplierID" id="editSupplierID" />
+                <div class="modal-header bg-primary text-white p-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Chỉnh sửa nhà cung cấp</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Tên nhà cung cấp <span class="text-danger">*</span></label>
+                        <label class="form-label fw-bold small">Tên nhà cung cấp *</label>
                         <input type="text" name="SupplierName" id="editSupplierName" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Người liên hệ</label>
-                        <input type="text" name="ContactPerson" id="editContactPerson" class="form-control">
-                    </div>
-                    <div class="row">
-                        <div class="col mb-3">
-                            <label class="form-label fw-semibold">Số điện thoại</label>
-                            <input type="text" name="Phone" id="editPhone" class="form-control">
-                        </div>
-                        <div class="col mb-3">
-                            <label class="form-label fw-semibold">Email</label>
-                            <input type="email" name="Email" id="editEmail" class="form-control">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Địa chỉ</label>
-                        <input type="text" name="Address" id="editAddress" class="form-control">
+                        <label class="form-label fw-bold small">Địa chỉ</label>
+                        <textarea name="Address" id="editAddress" class="form-control" rows="2"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                <div class="modal-footer p-4 border-0">
+                    <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 shadow-sm">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Create Return Modal *@
+<div class="modal fade" id="returnRequestModal" tabindex="-1">
+    <div class="modal-dialog shadow">
+        <div class="modal-content border-0 border-top border-danger border-5 shadow-lg">
+            <form asp-action="CreateReturnOrder" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header p-4 border-0">
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Gửi yêu cầu trả hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Đơn nhập hàng liên quan *</label>
+                        <select name="POID" class="form-select border-danger bg-danger bg-opacity-10" required>
+                            <option value="">-- Chọn đơn nhập --</option>
+                            @foreach (var po in Model.PurchaseOrders.Where(p => p.Status == "Hoàn thành" || p.Status == "Đang vận chuyển"))
+                            {
+                                <option value="@po.POID">PO-@(po.POID.ToString("D5")) - @po.SupplierName (@Model.CurrencySymbol@po.TotalAmount.ToString(format))</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-bold small">Lý do trả hàng *</label>
+                        <textarea name="Reason" class="form-control border-danger" rows="4" placeholder="Mô tả chi tiết lỗi sản phẩm..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer p-4 border-0">
+                    <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger px-4 shadow-sm">Xác nhận gửi</button>
                 </div>
             </form>
         </div>
@@ -504,15 +383,137 @@
 
 @section Scripts {
     <script>
-        // Điền data vào modal Edit khi bấm nút sửa
+        // --- 1. Global Setup ---
+        const symbol = '@Model.CurrencySymbol';
+        const locale = symbol === '₫' ? 'vi-VN' : 'en-US';
+        const rate = symbol === '₫' ? 1 : (symbol === '$' ? 25000 : 27000);
+
+        // --- 2. Edit Supplier Data Binding ---
         document.getElementById('editSupplierModal').addEventListener('show.bs.modal', function (event) {
             const btn = event.relatedTarget;
-            document.getElementById('editSupplierID').value = btn.getAttribute('data-id');
-            document.getElementById('editSupplierName').value = btn.getAttribute('data-name');
-            document.getElementById('editContactPerson').value = btn.getAttribute('data-contact') || '';
-            document.getElementById('editPhone').value = btn.getAttribute('data-phone') || '';
-            document.getElementById('editEmail').value = btn.getAttribute('data-email') || '';
-            document.getElementById('editAddress').value = btn.getAttribute('data-address') || '';
+            document.getElementById('editSupplierID').value = btn.dataset.id;
+            document.getElementById('editSupplierName').value = btn.dataset.name;
+            document.getElementById('editAddress').value = btn.dataset.address;
         });
+
+        // --- 3. View PO Details ---
+        $('.btn-view-po').on('click', function() {
+            const id = $(this).data('id');
+            $('#modalPODetailBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted small">Đang nạp dữ liệu...</p></div>');
+            $.get('/Purchase/PODetails/' + id, function(data) {
+                $('#modalPODetailBody').html(data);
+            }).fail(function() {
+                $('#modalPODetailBody').html('<div class="alert alert-danger">Không thể nạp dữ liệu đơn hàng này.</div>');
+            });
+        });
+
+        // --- 4. Dynamic PO Item Management ---
+        const products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AvailableProducts.Select(p => new { p.ProductID, p.ProductName })));
+        
+        function addPOItemRow() {
+            const tbody = document.querySelector('#poItemsTable tbody');
+            const rowId = Date.now();
+            const tr = document.createElement('tr');
+            tr.id = `row-${rowId}`;
+            
+            let productOptions = products.map(p => `<option value="${p.ProductID}">${p.ProductName}</option>`).join('');
+            
+            tr.innerHTML = `
+                <td class="ps-3 py-3">
+                    <select class="form-select item-product border-secondary border-opacity-25 shadow-sm" onchange="updateRowTotal(${rowId})">
+                        <option value="">-- Chọn sản phẩm --</option>
+                        ${productOptions}
+                    </select>
+                </td>
+                <td class="py-3"><input type="number" class="form-control item-qty text-center shadow-sm" value="1" min="1" onchange="updateRowTotal(${rowId})"></td>
+                <td class="py-3"><input type="number" class="form-control item-price shadow-sm" value="0" min="0" step="0.01" onchange="updateRowTotal(${rowId})"></td>
+                <td class="py-3 fw-bold text-end pe-3 item-total-display text-dark">${symbol} 0.00</td>
+                <td class="py-3 text-center"><button type="button" class="btn btn-link text-danger p-0" onclick="removePOItemRow(${rowId})"><i class="bi bi-trash3 fs-5"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function removePOItemRow(id) {
+            document.getElementById(`row-${id}`).remove();
+            calculateGrandTotal();
+        }
+
+        function updateRowTotal(id) {
+            const row = document.getElementById(`row-${id}`);
+            const qty = row.querySelector('.item-qty').value;
+            const price = row.querySelector('.item-price').value;
+            const totalDisplay = row.querySelector('.item-total-display');
+            
+            const total = qty * price;
+            totalDisplay.innerText = symbol + new Intl.NumberFormat(locale, { minimumFractionDigits: (symbol==='₫'?0:2) }).format(total);
+            calculateGrandTotal();
+        }
+
+        function calculateGrandTotal() {
+            let grandTotal = 0;
+            document.querySelectorAll('#poItemsTable tbody tr').forEach(row => {
+                const qty = row.querySelector('.item-qty').value;
+                const price = row.querySelector('.item-price').value;
+                grandTotal += (qty * price);
+            });
+            document.getElementById('poTotalDisplay').innerText = symbol + ' ' + new Intl.NumberFormat(locale, { minimumFractionDigits: (symbol==='₫'?0:2) }).format(grandTotal);
+        }
+
+        // --- 5. Submit PO via AJAX ---
+        async function submitPurchaseOrder() {
+            const supplierID = document.getElementById('poSupplierID').value;
+            const expectedDate = document.getElementById('poExpectedDate').value;
+            const notes = document.getElementById('poNotes').value;
+            
+            if (!supplierID) return alert('Vui lòng chọn nhà cung cấp.');
+            
+            const items = [];
+            document.querySelectorAll('#poItemsTable tbody tr').forEach(row => {
+                const productID = row.querySelector('.item-product').value;
+                if (productID) {
+                    const enteredPrice = parseFloat(row.querySelector('.item-price').value);
+                    items.push({
+                        ProductID: parseInt(productID),
+                        Quantity: parseInt(row.querySelector('.item-qty').value),
+                        Price: enteredPrice * rate // CONVERT BACK TO VND FOR STORAGE
+                    });
+                }
+            });
+
+            if (items.length === 0) return alert('Vui lòng thêm ít nhất một sản phẩm.');
+
+            const data = {
+                SupplierID: parseInt(supplierID),
+                ExpectedDeliveryDate: expectedDate || null,
+                Notes: notes,
+                Items: items
+            };
+
+            // Get Anti-Forgery Token
+            const token = $('input[name="__RequestVerificationToken"]').val();
+
+            try {
+                const response = await fetch('/Purchase/CreatePurchaseOrder', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Đã tạo đơn nhập hàng thành công!');
+                    location.reload();
+                } else {
+                    const error = await response.text();
+                    alert('Lỗi: ' + error);
+                }
+            } catch (err) {
+                alert('Có lỗi xảy ra khi kết nối server.');
+            }
+        }
+
+        addPOItemRow();
     </script>
 }

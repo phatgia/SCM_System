@@ -108,6 +108,142 @@ namespace SCM_System.Data
                 context.Users.AddRange(randomUsers);
                 context.SaveChanges();
             }
+
+            // 6. Seed Customers
+            if (!context.Customers.Any())
+            {
+                var customerFaker = new Faker<Customer>("vi")
+                    .RuleFor(c => c.Name, f => f.Person.FullName)
+                    .RuleFor(c => c.Phone, f => f.Phone.PhoneNumber("08########"))
+                    .RuleFor(c => c.Email, f => f.Internet.Email())
+                    .RuleFor(c => c.ShippingAddress, f => f.Address.FullAddress());
+
+                context.Customers.AddRange(customerFaker.Generate(15));
+                context.SaveChanges();
+            }
+
+            // 7. Seed SaleOrders & Details (History for last 6 months)
+            if (!context.SaleOrders.Any())
+            {
+                var customerIds = context.Customers.Select(c => c.CustomerID).ToList();
+                var userIds = context.Users.Select(u => u.UserID).ToList();
+                var productIds = context.Products.Select(p => p.ProductID).ToList();
+
+                var statuses = new[] { "Hoàn thành", "Đã giao", "Đang xử lý", "Đã hủy" };
+
+                for (int i = 0; i < 100; i++)
+                {
+                    var faker = new Faker();
+                    var orderDate = faker.Date.Between(DateTime.Now.AddMonths(-6), DateTime.Now);
+                    var status = faker.PickRandom(statuses);
+
+                    var order = new SaleOrder
+                    {
+                        CustomerID = faker.PickRandom(customerIds),
+                        UserID = faker.PickRandom(userIds),
+                        OrderDate = orderDate,
+                        Status = status,
+                        TotalAmount = 0 // Will update after details
+                    };
+
+                    context.SaleOrders.Add(order);
+                    context.SaveChanges();
+
+                    // Details
+                    decimal total = 0;
+                    int itemsCount = faker.Random.Int(1, 3);
+                    for (int j = 0; j < itemsCount; j++)
+                    {
+                        var price = faker.Random.Decimal(1000000, 20000000);
+                        var qty = faker.Random.Int(1, 2);
+                        var detail = new SaleOrderDetail
+                        {
+                            SOID = order.SOID,
+                            ProductID = faker.PickRandom(productIds),
+                            Quantity = qty,
+                            UnitPrice = price
+                        };
+                        context.SaleOrderDetails.Add(detail);
+                        total += (price * qty);
+                    }
+                    order.TotalAmount = total;
+                    context.SaveChanges();
+
+                    // If order is "Hoàn thành" or "Đã giao", create a Delivery
+                    if (status == "Hoàn thành" || status == "Đã giao")
+                    {
+                        context.Deliveries.Add(new Delivery
+                        {
+                            SOID = order.SOID,
+                            UserID = faker.PickRandom(userIds),
+                            Status = "Thành công",
+                            DeliveryTime = orderDate.AddDays(2)
+                        });
+                    }
+                }
+                context.SaveChanges();
+
+                // 8. Seed some ReturnOrders
+                var completedOrderIds = context.SaleOrders.Where(o => o.Status == "Hoàn thành").Select(o => o.SOID).Take(5).ToList();
+                foreach (var soid in completedOrderIds)
+                {
+                    context.ReturnOrders.Add(new ReturnOrder
+                    {
+                        SOID = soid,
+                        UserID = context.Users.First().UserID,
+                        Reason = "Khách đổi ý",
+                        Settlement = "Hoàn tiền",
+                        Status = "Hoàn thành"
+                    });
+                }
+                context.SaveChanges();
+            }
+
+            // 9. Seed PurchaseOrders & Details (History for last 6 months)
+            if (!context.PurchaseOrders.Any())
+            {
+                var supplierIds = context.Suppliers.Select(s => s.SupplierID).ToList();
+                var userIds = context.Users.Select(u => u.UserID).ToList();
+                var productIds = context.Products.Select(p => p.ProductID).ToList();
+
+                for (int i = 0; i < 50; i++)
+                {
+                    var faker = new Faker();
+                    var orderDate = faker.Date.Between(DateTime.Now.AddMonths(-6), DateTime.Now);
+                    
+                    var order = new PurchaseOrder
+                    {
+                        SupplierID = faker.PickRandom(supplierIds),
+                        UserID = faker.PickRandom(userIds),
+                        OrderDate = orderDate,
+                        ExpectedDeliveryDate = orderDate.AddDays(7),
+                        Status = "Hoàn thành",
+                        TotalAmount = 0
+                    };
+
+                    context.PurchaseOrders.Add(order);
+                    context.SaveChanges();
+
+                    decimal total = 0;
+                    int itemsCount = faker.Random.Int(2, 5);
+                    for (int j = 0; j < itemsCount; j++)
+                    {
+                        var price = faker.Random.Decimal(500000, 15000000);
+                        var qty = faker.Random.Int(10, 50);
+                        var detail = new PurchaseOrderDetail
+                        {
+                            POID = order.POID,
+                            ProductID = faker.PickRandom(productIds),
+                            Quantity = qty,
+                            UnitPrice = price
+                        };
+                        context.PurchaseOrderDetails.Add(detail);
+                        total += (price * qty);
+                    }
+                    order.TotalAmount = total;
+                    context.SaveChanges();
+                }
+            }
         }
     }
 }
