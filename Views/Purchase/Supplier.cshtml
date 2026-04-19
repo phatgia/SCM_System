@@ -432,3 +432,51 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            
+            // 1. Hàm đồng bộ Tab và Sidebar
+            function syncPurchaseUI() {
+                let hash = window.location.hash || "#menu1"; 
+                
+                // Mở Tab tương ứng
+                let targetTab = document.querySelector('.nav-tabs a[href="' + hash + '"]');
+                if (targetTab) {
+                    new bootstrap.Tab(targetTab).show();
+                }
+
+                // Reset toàn bộ màu của menu Mua Hàng về màu xám
+                document.querySelectorAll('#muaHangMenu .sidebar-link').forEach(link => {
+                    link.classList.remove('bg-primary', 'text-white');
+                    link.classList.add('text-secondary');
+                });
+
+                // Tìm và tô màu xanh cho thẻ a khớp với hash hiện tại
+                let activeSidebarLink = document.querySelector('#muaHangMenu a[href$="' + hash + '"]');
+                if (activeSidebarLink) {
+                    activeSidebarLink.classList.remove('text-secondary');
+                    activeSidebarLink.classList.add('bg-primary', 'text-white');
+                }
+            }
+
+            // 2. Chạy lần đầu khi load trang
+            syncPurchaseUI();
+
+            // 3. Khi bấm Tab trên màn hình -> Cập nhật URL và Sidebar
+            document.querySelectorAll('.nav-tabs a[data-bs-toggle="tab"]').forEach(function (tab) {
+                tab.addEventListener('shown.bs.tab', function (event) {
+                    let currentHash = event.target.getAttribute('href');
+                    history.replaceState(null, null, currentHash);
+                    syncPurchaseUI(); 
+                });
+            });
+
+            // 4. Khi bấm link trên Sidebar -> Đồng bộ lại Tab
+            window.addEventListener('hashchange', function() {
+                syncPurchaseUI();
+            });
+        });
+    </script>
+}
