@@ -1,0 +1,48 @@
+@{ViewData["Title"] = "Bán hàng & Xuất kho";}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div><h4 class="fw-bold mb-1">Bán hàng & Xuất kho</h4><p class="text-muted small mb-0">Tạo đơn, tra cứu tồn kho và xử lý đổi trả</p></div>
+</div>
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="/Sales/Create"><i class="bi bi-receipt me-1"></i>Tạo đơn bán</a></li>
+    <li class="nav-item"><a class="nav-link" href="/Sales/Orders"><i class="bi bi-cart-plus me-1"></i>Đơn bán hàng</a></li>
+    <li class="nav-item"><a class="nav-link" href="/Sales/Stock"><i class="bi bi-boxes me-1"></i>Tra cứu tồn kho</a></li>
+    <li class="nav-item"><a class="nav-link" href="/Sales/Returns"><i class="bi bi-arrow-left-right me-1"></i>Đổi trả hàng</a></li>
+</ul>
+<div class="teb-content">
+<!-- TẠO ĐƠN BÁN -->
+    <div class="tab-pane active" id="tab-taodh">
+        <div class="row g-4">
+            <div class="col-xl-8">
+                <div class="card border-0 shadow-sm mb-3"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0">Thông tin khách hàng</h6></div><div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label small fw-semibold">Họ tên khách hàng *</label><input type="text" class="form-control" placeholder="Nhập tên khách hàng..."></div>
+                        <div class="col-md-6"><label class="form-label small fw-semibold">Số điện thoại *</label><input type="text" class="form-control" placeholder="0912345678"></div>
+                        <div class="col-md-6"><label class="form-label small fw-semibold">Email</label><input type="email" class="form-control" placeholder="email@example.com"></div>
+                        <div class="col-md-6"><label class="form-label small fw-semibold">Địa chỉ giao hàng *</label><input type="text" class="form-control" placeholder="Nhập địa chỉ giao hàng..."></div>
+                    </div>
+                </div></div>
+                <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4 d-flex align-items-center justify-content-between"><h6 class="fw-bold mb-0">Danh sách sản phẩm</h6><button class="btn btn-sm btn-outline-primary" onclick="addProductRow()"><i class="bi bi-plus me-1"></i>Thêm sản phẩm</button></div><div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="productTable">
+                            <thead class="table-light"><tr><th class="small">SẢN PHẨM</th><th class="small">TỒN KHẢ DỤNG</th><th class="small">SỐ LƯỢNG</th><th class="small">ĐƠN GIÁ</th><th class="small">THÀNH TIỀN</th><th></th></tr></thead>
+                            <tbody>
+                                <tr><td><select class="form-select form-select-sm"><option>-- Chọn sản phẩm --</option><option>Intel Core i9-13900K</option><option>NVIDIA RTX 4090 24GB</option><option>Corsair DDR5 32GB</option><option>Samsung 990 Pro 2TB</option></select></td><td class="small text-success fw-semibold align-middle">12</td><td><input type="number" class="form-control form-control-sm" style="width:80px;" value="1" min="1"></td><td><input type="text" class="form-control form-control-sm" style="width:120px;" placeholder="0 ₫"></td><td class="small fw-semibold align-middle">0 ₫</td><td class="align-middle"><button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash"></i></button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3 me-2"><div class="text-end"><p class="small text-muted mb-1">Tổng giá trị đơn hàng</p><h4 class="fw-bold text-primary mb-0">0 ₫</h4></div></div>
+                </div></div>
+            </div>
+            <div class="col-xl-4">
+                <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0">Xác nhận đơn hàng</h6></div><div class="card-body">
+                    <div class="mb-3"><label class="form-label small fw-semibold">Ghi chú</label><textarea class="form-control" rows="3" placeholder="Ghi chú đặc biệt..."></textarea></div>
+                    <div class="alert alert-warning py-2 small"><i class="bi bi-info-circle me-1"></i>Hệ thống sẽ tự động "giữ chỗ" sản phẩm khi xác nhận tạo đơn.</div>
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-primary fw-semibold"><i class="bi bi-check2-circle me-1"></i>Xác nhận tạo đơn</button>
+                        <button class="btn btn-outline-secondary">Lưu nháp</button>
+                    </div>
+                </div></div>
+            </div>
+        </div>
+    </div>
+</div>
