@@ -1,13 +1,11 @@
+@model SCM_System.Models.ViewModels.SupplierPageViewModel
 @{
     ViewData["Title"] = "Mua hàng & NCC";
 }
 
-
 <div class="container-fluid" style="padding:20px 20px">
     <div class="row">
-        <h1>
-            Mua hàng & Nhà cung cấp
-        </h1>
+        <h1>Mua hàng & Nhà cung cấp</h1>
     </div>
 
     <div class="row mt-4">
@@ -21,7 +19,6 @@
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="tab" href="#menu3">Tạo đơn nhập</a>
             </li>
-
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="tab" href="#menu4">Trả hàng NCC</a>
             </li>
@@ -30,121 +27,107 @@
 
     <div class="row">
         <div class="tab-content">
+
+            @* ========== TAB 1: NHÀ CUNG CẤP ========== *@
             <div class="tab-pane container active" id="menu1">
-                
+
                 <div class="mt-4">
-                    <form action="">
-                        <input type="text" name="" id="" class="w-50 rounded p-2 border border-secondary" placeholder="Tìm nhà cung cấp...">
-                        <button type="" class="rounded bg-primary text-white p-2 ps-3 pe-3" style="border: none !important;">
-                            <i class="bi bi-plus"></i>
-                            Thêm nhà cung cấp
+                    @* Search + Add Button *@
+                    <form asp-action="Supplier" asp-controller="Purchase" method="get" class="d-flex gap-2">
+                        <input type="text" name="search" value="@Model.SearchTerm"
+                               class="w-50 rounded p-2 border border-secondary"
+                               placeholder="Tìm nhà cung cấp...">
+                        <button type="submit" class="btn btn-outline-secondary">
+                            <i class="bi bi-search"></i> Tìm
+                        </button>
+                        @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                        {
+                            <a asp-action="Supplier" asp-controller="Purchase" class="btn btn-outline-secondary">
+                                <i class="bi bi-x"></i> Xóa lọc
+                            </a>
+                        }
+                        <button type="button" class="rounded bg-primary text-white p-2 ps-3 pe-3 border-0 ms-auto"
+                                data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+                            <i class="bi bi-plus"></i> Thêm nhà cung cấp
                         </button>
                     </form>
                 </div>
 
                 <div class="mt-4">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Mã NCC</th>
-                                <th>Tên NHÀ CUNG CẤP</th>
-                                <th>DANH MỤC</th>
-                                <th>LIÊN HỆ</th>
-                                <th>ĐÁNH GIÁ</th>
-                                <th>TRẠNG THÁI</th>
-                                <th>TỔNG ĐÃ MUA</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr >
-                                <td class="border-bottom-0">NCC001</td>
-                                <td class="d-flex flex-column border-bottom-0">
-                                    TechCore Distribution
-                                    <span class="small text-secondary">45 Trần Hưng Đạo, Q.1, TP.HCM</span>
-                                </td>
-                                <td class=" border-bottom-0">CPU, Bo mạch chủ</td>
-                                <td class="d-flex flex-column border-bottom-0">
-                                    Nguyễn Văn Anh
-                                    <span class="small text-secondary">0901234567</span>
-                                </td>
-                                <td class=" border-bottom-0">
-                                    <i class="bi bi-star-fill"></i>
-                                    4.5
-                                </td>
-                                <td class=" border-bottom-0"><span class="badge bg-success rounded-pill px-3 py-2">Đang hợp tác</span></td>
-                                <td class=" border-bottom-0">2.340.000.000 ₫</td>
-                                <td class=" border-bottom-0">
-                                    <button class="border-0">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
+                    @if (!Model.Suppliers.Any())
+                    {
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-buildings fs-1"></i>
+                            <p class="mt-2">Chưa có nhà cung cấp nào. Hãy thêm mới!</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã NCC</th>
+                                    <th>TÊN NHÀ CUNG CẤP</th>
+                                    <th>LIÊN HỆ</th>
+                                    <th>EMAIL</th>
+                                    <th>SỐ ĐƠN</th>
+                                    <th>TỔNG ĐÃ MUA</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var s in Model.Suppliers)
+                                {
+                                    <tr>
+                                        <td class="border-bottom-0">NCC@(s.SupplierID.ToString("D3"))</td>
+                                        <td class="d-flex flex-column border-bottom-0">
+                                            @s.SupplierName
+                                            @if (!string.IsNullOrEmpty(s.Address))
+                                            {
+                                                <span class="small text-secondary">@s.Address</span>
+                                            }
+                                        </td>
+                                        <td class="d-flex flex-column border-bottom-0">
+                                            @s.ContactPerson
+                                            @if (!string.IsNullOrEmpty(s.Phone))
+                                            {
+                                                <span class="small text-secondary">@s.Phone</span>
+                                            }
+                                        </td>
+                                        <td class="border-bottom-0">@(s.Email ?? "—")</td>
+                                        <td class="border-bottom-0">@s.TotalOrders</td>
+                                        <td class="border-bottom-0">@s.TotalPurchased.ToString("N0") ₫</td>
+                                        <td class="border-bottom-0">
+                                            @* Edit Button *@
+                                            <button class="border-0 bg-transparent"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editSupplierModal"
+                                                    data-id="@s.SupplierID"
+                                                    data-name="@s.SupplierName"
+                                                    data-contact="@s.ContactPerson"
+                                                    data-phone="@s.Phone"
+                                                    data-email="@s.Email"
+                                                    data-address="@s.Address"
+                                                    title="Chỉnh sửa">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
 
-                                    <button class="border-0">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-
-
-                            <tr >
-                                <td class="border-bottom-0">NCC001</td>
-                                <td class="d-flex flex-column border-bottom-0">
-                                    TechCore Distribution
-                                    <span class="small text-secondary">45 Trần Hưng Đạo, Q.1, TP.HCM</span>
-                                </td>
-                                <td class=" border-bottom-0">CPU, Bo mạch chủ</td>
-                                <td class="d-flex flex-column border-bottom-0">
-                                    Nguyễn Văn Anh
-                                    <span class="small text-secondary">0901234567</span>
-                                </td>
-                                <td class=" border-bottom-0">
-                                    <i class="bi bi-star-fill"></i>
-                                    4.5
-                                </td>
-                                <td class=" border-bottom-0"><span class="badge bg-success rounded-pill px-3 py-2">Đang hợp tác</span></td>
-                                <td class=" border-bottom-0">2.340.000.000 ₫</td>
-                                <td class=" border-bottom-0">
-                                    <button class="border-0">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
-
-                                    <button class="border-0">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-
-
-                            <tr >
-                                <td class="border-bottom-0">NCC001</td>
-                                <td class="d-flex flex-column border-bottom-0">
-                                    TechCore Distribution
-                                    <span class="small text-secondary">45 Trần Hưng Đạo, Q.1, TP.HCM</span>
-                                </td>
-                                <td class=" border-bottom-0">CPU, Bo mạch chủ</td>
-                                <td class="d-flex flex-column border-bottom-0">
-                                    Nguyễn Văn Anh
-                                    <span class="small text-secondary">0901234567</span>
-                                </td>
-                                <td class=" border-bottom-0">
-                                    <i class="bi bi-star-fill"></i>
-                                    4.5
-                                </td>
-                                <td class=" border-bottom-0"><span class="badge bg-success rounded-pill px-3 py-2">Đang hợp tác</span></td>
-                                <td class=" border-bottom-0">2.340.000.000 ₫</td>
-                                <td class=" border-bottom-0">
-                                    <button class="border-0">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
-
-                                    <button class="border-0">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-
-                        </tbody>
-                    </table>
+                                            @* Delete Button *@
+                                            <form asp-action="DeleteSupplier" asp-controller="Purchase"
+                                                  method="post" class="d-inline"
+                                                  onsubmit="return confirm('Xác nhận xóa nhà cung cấp \'@s.SupplierName\'?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@s.SupplierID" />
+                                                <button type="submit" class="border-0 bg-transparent text-danger" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
                 </div>
             </div>
 
@@ -249,7 +232,6 @@
                     </table>
                 </div>
             </div>
-
             <div class="tab-pane container" id="menu3">
                 <form class="mt-4" action="">
                     <div class="container">
@@ -343,7 +325,6 @@
                    
                 </form>
             </div>
-
             <div class="tab-pane container" id="menu4">
                 <div class="mt-4">
                     <form action="">
@@ -429,6 +410,7 @@
                     </table>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
@@ -477,6 +459,107 @@
             window.addEventListener('hashchange', function() {
                 syncPurchaseUI();
             });
+        });
+    </script>
+}
+@* ========== MODAL THÊM NHÀ CUNG CẤP ========== *@
+<div class="modal fade" id="addSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="AddSupplier" asp-controller="Purchase" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm nhà cung cấp mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên nhà cung cấp <span class="text-danger">*</span></label>
+                        <input type="text" name="SupplierName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Người liên hệ</label>
+                        <input type="text" name="ContactPerson" class="form-control">
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label class="form-label fw-semibold">Số điện thoại</label>
+                            <input type="text" name="Phone" class="form-control">
+                        </div>
+                        <div class="col mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" name="Email" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Địa chỉ</label>
+                        <input type="text" name="Address" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Thêm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* ========== MODAL SỬA NHÀ CUNG CẤP ========== *@
+<div class="modal fade" id="editSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="EditSupplier" asp-controller="Purchase" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="SupplierID" id="editSupplierID">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chỉnh sửa nhà cung cấp</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên nhà cung cấp <span class="text-danger">*</span></label>
+                        <input type="text" name="SupplierName" id="editSupplierName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Người liên hệ</label>
+                        <input type="text" name="ContactPerson" id="editContactPerson" class="form-control">
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label class="form-label fw-semibold">Số điện thoại</label>
+                            <input type="text" name="Phone" id="editPhone" class="form-control">
+                        </div>
+                        <div class="col mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" name="Email" id="editEmail" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Địa chỉ</label>
+                        <input type="text" name="Address" id="editAddress" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Điền data vào modal Edit khi bấm nút sửa
+        document.getElementById('editSupplierModal').addEventListener('show.bs.modal', function (event) {
+            const btn = event.relatedTarget;
+            document.getElementById('editSupplierID').value = btn.getAttribute('data-id');
+            document.getElementById('editSupplierName').value = btn.getAttribute('data-name');
+            document.getElementById('editContactPerson').value = btn.getAttribute('data-contact') || '';
+            document.getElementById('editPhone').value = btn.getAttribute('data-phone') || '';
+            document.getElementById('editEmail').value = btn.getAttribute('data-email') || '';
+            document.getElementById('editAddress').value = btn.getAttribute('data-address') || '';
         });
     </script>
 }

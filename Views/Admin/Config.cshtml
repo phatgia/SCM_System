@@ -1,0 +1,122 @@
+@{ViewData["Title"] = "Quản trị hệ thống";}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div><h4 class="fw-bold mb-1">Quản trị hệ thống</h4><p class="text-muted small mb-0">Quản lý tài khoản, phân quyền, cấu hình và báo cáo</p></div>
+</div>
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><a class="nav-link" href="/Admin/Users"><i class="bi bi-person-vcard me-1"></i>Tài khoản & Phân quyền</a></li>
+    <li class="nav-item"><a class="nav-link active" href="/Admin/Config"><i class="bi bi-sliders me-1"></i>Cấu hình hệ thống</a></li>
+    <li class="nav-item"><a class="nav-link" href="/Admin/Reports"><i class="bi bi-bar-chart-line me-1"></i>Báo cáo tổng quan</a></li>
+</ul>
+
+<div class="tab-content">
+    <!-- CẤU HÌNH -->
+    <div class="container" style="max-width:900px;">
+
+    <!-- THÔNG TIN DOANH NGHIỆP -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">
+                <i class="bi bi-gear me-2"></i>Thông tin doanh nghiệp
+            </h6>
+
+            <div class="row g-3">
+
+                <div class="col-12">
+                    <label class="form-label small">Tên công ty</label>
+                    <input class="form-control form-control-sm" value="Công ty TNHH Linh Kiện PC Pro">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label small">Địa chỉ</label>
+                    <input class="form-control form-control-sm" value="123 Nguyễn Thị Minh Khai, Q.3, TP.HCM">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small">Số điện thoại</label>
+                    <input class="form-control form-control-sm" value="028 1234 5678">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small">Email</label>
+                    <input class="form-control form-control-sm" value="info@pcpro.vn">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small">Mã số thuế</label>
+                    <input class="form-control form-control-sm" value="0123456789">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- CÀI ĐẶT KHO -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">Cài đặt kho hàng</h6>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small">Ngưỡng tồn kho thấp</label>
+                    <input type="number" class="form-control form-control-sm" value="5">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small">Cảnh báo bảo hành (ngày)</label>
+                    <input type="number" class="form-control form-control-sm" value="30">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HỆ THỐNG -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">Thông báo & Hệ thống</h6>
+
+            <!-- SWITCH -->
+            <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" checked>
+                <label class="form-check-label">Sao lưu dữ liệu tự động</label>
+            </div>
+
+            <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" checked>
+                <label class="form-check-label">Gửi Email</label>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox">
+                <label class="form-check-label">Gửi SMS</label>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small">Tiền tệ</label>
+                    <select class="form-select form-select-sm">
+                        <option>VND</option>
+                        <option>USD</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small">Múi giờ</label>
+                    <select class="form-select form-select-sm">
+                        <option>Asia/Ho_Chi_Minh</option>
+                        <option>UTC</option>
+                    </select>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- BUTTON -->
+    <div class="text-end">
+        <button class="btn btn-primary">
+            <i class="bi bi-save me-1"></i>Lưu cấu hình
+        </button>
+    </div>
+
+</div>
+</div>
