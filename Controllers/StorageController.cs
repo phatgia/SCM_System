@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SCM_System.Data;
@@ -7,6 +8,7 @@ using System.Security.Claims;
 
 namespace SCM_System.Controllers
 {
+    [Authorize(Roles = "Quản trị viên,Quản lý kho")]
     public class StorageController : Controller
     {
         private readonly SCMDbContext _context;
