@@ -297,17 +297,33 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            let hash = window.location.hash || "#menu1";
-            let triggerEl = document.querySelector('.nav-link[href="' + hash + '"]');
-            if (triggerEl) bootstrap.Tab.getOrCreateInstance(triggerEl).show();
+            function forceSwitchTab() {
+                let hash = window.location.hash || "#menu1";
+                let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
+                
+                if (tabLink) {
+                    let tab = new bootstrap.Tab(tabLink);
+                    tab.show();
+                }
+            }
 
-            document.querySelectorAll('.nav-link[data-bs-toggle="tab"]').forEach(tab => {
-                tab.addEventListener('shown.bs.tab', e => {
-                    location.hash = tab.getAttribute('href');
-                });
+            forceSwitchTab();
+            window.addEventListener('hashchange', function() {
+                forceSwitchTab();
             });
 
-            addPOItemRow();
+            let tabs = document.querySelectorAll('.nav-tabs a[data-bs-toggle="tab"]');
+            tabs.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function (e) {
+                    let targetHash = tab.getAttribute('href');
+                
+                    if (window.location.hash !== targetHash) {
+                        history.pushState(null, null, targetHash);
+                        
+                        window.dispatchEvent(new Event('hashchange')); 
+                    }
+                });
+            });
         });
 
         function viewPODetail(id) {
@@ -362,25 +378,129 @@
         window.submitPurchaseOrder = async function() {
             const sId = document.getElementById('poSupplierID').value;
             if(!sId) return alert('Chọn NCC');
+            
             const items = [];
             document.querySelectorAll('#poItemsTable tbody tr').forEach(r => {
                 const pId = r.querySelector('.item-p').value;
-                if(pId) items.push({ ProductID: parseInt(pId), Quantity: parseInt(r.querySelector('.item-q').value), Price: parseFloat(r.querySelector('.item-pr').value) * rate });
-            });
+                if(pId) items.push({ 
+                    ProductID: parseInt(pId), 
+                    Quantity: parseInt(r.querySelector('.item-q').value), 
+                    Price: parseFloat(r.querySelector('.item-pr').value) * rate 
+                });
+            }); 
+                        
             if(!items.length) return alert('Chọn SP');
+            
             const res = await fetch('/Purchase/CreatePurchaseOrder', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() 
+                },
                 body: JSON.stringify({ SupplierID: parseInt(sId), Items: items })
             });
+            
             if(res.ok) location.reload();
         };
 
-        $('#editSupplierModal').on('show.bs.modal', function(e) {
-            const b = e.relatedTarget;
-            $('#editSupplierID').val(b.dataset.id);
-            $('#editSupplierName').val(b.dataset.name);
-            $('#editAddress').val(b.dataset.address);
+
+        document.getElementById('editSupplierModal').addEventListener('show.bs.modal', function (event) {
+            const btn = event.relatedTarget;
+            document.getElementById('editSupplierID').value = btn.getAttribute('data-id');
+            document.getElementById('editSupplierName').value = btn.getAttribute('data-name');
+            document.getElementById('editContactPerson').value = btn.getAttribute('data-contact') || '';
+            document.getElementById('editPhone').value = btn.getAttribute('data-phone') || '';
+            document.getElementById('editEmail').value = btn.getAttribute('data-email') || '';
+            document.getElementById('editAddress').value = btn.getAttribute('data-address') || '';
         });
     </script>
 }
+
+
+@* ========== MODAL THÊM NHÀ CUNG CẤP ========== *@
+<div class="modal fade" id="addSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="AddSupplier" asp-controller="Purchase" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm nhà cung cấp mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên nhà cung cấp <span class="text-danger">*</span></label>
+                        <input type="text" name="SupplierName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Người liên hệ</label>
+                        <input type="text" name="ContactPerson" class="form-control">
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label class="form-label fw-semibold">Số điện thoại</label>
+                            <input type="text" name="Phone" class="form-control">
+                        </div>
+                        <div class="col mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" name="Email" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Địa chỉ</label>
+                        <input type="text" name="Address" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Thêm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* ========== MODAL SỬA NHÀ CUNG CẤP ========== *@
+<div class="modal fade" id="editSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="EditSupplier" asp-controller="Purchase" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="SupplierID" id="editSupplierID">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chỉnh sửa nhà cung cấp</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên nhà cung cấp <span class="text-danger">*</span></label>
+                        <input type="text" name="SupplierName" id="editSupplierName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Người liên hệ</label>
+                        <input type="text" name="ContactPerson" id="editContactPerson" class="form-control">
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label class="form-label fw-semibold">Số điện thoại</label>
+                            <input type="text" name="Phone" id="editPhone" class="form-control">
+                        </div>
+                        <div class="col mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" name="Email" id="editEmail" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Địa chỉ</label>
+                        <input type="text" name="Address" id="editAddress" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
