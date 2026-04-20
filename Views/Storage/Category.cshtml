@@ -1,945 +1,515 @@
+@model SCM_System.Models.ViewModels.StoragePageViewModel
 @{
-    ViewData["Title"] = "Kho hàng";
+    ViewData["Title"] = "Quản lý Kho vận";
 }
-
-
-<style>
-    .search-wrapper .form-control:focus {
-        box-shadow: none !important;
-        outline: none !important;
-        border-color: transparent !important;
-    }
-
-    .search-wrapper {
-        border: 1px solid #ced4da; 
-        border-radius: 0.5rem; 
-        display: flex; 
-        align-items: center;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    }
-    .search-wrapper:focus-within {
-        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25); 
-    }
-
-    .pick-checkbox:checked {
-        background-color: #20c997 !important; 
-        border-color: #20c997 !important;
-    }
-
-    .item-completed .product-info {
-        text-decoration: line-through; 
-        opacity: 0.4; 
-        transition: all 0.2s ease; 
-
-</style>
 
 <div class="container-fluid" style="padding:20px 20px">
     <div class="row">
-        <h1>
-            Quản lý kho
-        </h1>
+        <h1 class="fw-bold"><i class="bi bi-box-seam me-2"></i>Quản lý Kho vận</h1>
     </div>
 
     <div class="row mt-4">
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs" id="storageTabs">
             <li class="nav-item">
-                <a class="nav-link active text-success" data-bs-toggle="tab" href="#menu1">Nhập hàng</a>
+                <a class="nav-link active" data-bs-toggle="tab" href="#menu1"><i class="bi bi-download me-1"></i>Nhập kho (PO)</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-success" data-bs-toggle="tab" href="#menu2">Vị trí kho</a>
+                <a class="nav-link" data-bs-toggle="tab" href="#menu2"><i class="bi bi-grid-3x3-gap me-1"></i>Vị trí/Zone</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-success" data-bs-toggle="tab" href="#menu3">Soạn & Đóng gói</a>
+                <a class="nav-link" data-bs-toggle="tab" href="#menu3"><i class="bi bi-cart-check me-1"></i>Soạn & Đóng gói</a>
             </li>
-
             <li class="nav-item">
-                <a class="nav-link text-success" data-bs-toggle="tab" href="#menu4">Kiểm kê</a>
+                <a class="nav-link" data-bs-toggle="tab" href="#menu4"><i class="bi bi-search me-1"></i>Kiểm kê chi tiết</a>
             </li>
-
-            
             <li class="nav-item">
-                <a class="nav-link text-success" data-bs-toggle="tab" href="#menu5">Bàn giao xuất kho</a>
+                <a class="nav-link" data-bs-toggle="tab" href="#menu5"><i class="bi bi-send-check me-1"></i>Bàn giao</a>
             </li>
-
-            
             <li class="nav-item">
-                <a class="nav-link text-success" data-bs-toggle="tab" href="#menu6">Nhận hàng hoàn</a>
+                <a class="nav-link" data-bs-toggle="tab" href="#menu6"><i class="bi bi-arrow-return-left me-1"></i>Hàng hoàn</a>
             </li>
-
             <li class="nav-item">
-                <a class="nav-link text-success" data-bs-toggle="tab" href="#menu7">Kiểm tra CL</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link text-success" data-bs-toggle="tab" href="#menu8">Bảo hành</a>
+                <a class="nav-link" data-bs-toggle="tab" href="#menu7"><i class="bi bi-shield-check me-1"></i>Kiểm soát QC</a>
             </li>
         </ul>
     </div>
 
     <div class="row">
-        <div class="tab-content">
-            <div class="tab-pane container active" id="menu1">
-                <div class="mt-4 border border-secondary border-opacity-25 rounded p-4 bg-white shadow-sm">
-                    <h4 class="mb-3 fw-bold">Tìm đơn nhập hàng</h4>
-                    <form action="">
-                        <div class="d-flex align-items-center">
-                            <div class="search-wrapper flex-grow-1 bg-white">
-                                <span class="ps-3 pe-2 text-muted">
-                                    <i class="bi bi-search"></i>
-                                </span>
-                                <input type="text" class="form-control border-0 bg-transparent py-2 px-1" placeholder="Nhập mã đơn hàng (VD: PO-2026-002)...">
-                            </div>
-                            <button type="submit" class="btn btn-success ms-3 px-4 py-2">
-                                Tìm kiếm
-                            </button>
-                        </div>
-                        
-                        <div class="mt-2 small text-muted">
-                            Nhấn Enter hoặc bấm "Tìm kiếm" · Chỉ hiện đơn đã duyệt hoặc đang vận chuyển
-                        </div>
+        <div class="tab-content border border-top-0 p-4 bg-white shadow-sm rounded-bottom">
+            @* TAB 1: NHẬP HÀNG *@
+            <div class="tab-pane active" id="menu1">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Đơn PO chờ nhập kho</h5>
+                    <form asp-action="Category" method="get" class="d-flex gap-2">
+                        <input type="hidden" name="hash" value="#menu1" />
+                        <input type="text" name="searchReceipt" value="@ViewBag.SearchReceipt" class="form-control form-control-sm" placeholder="Tìm PO hoặc NCC..." style="width: 250px;">
+                        <button type="submit" class="btn btn-primary btn-sm px-3">Tìm</button>
                     </form>
                 </div>
-            </div>
-
-            <div class="tab-pane container" id="menu2">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-xl-3 mt-3">
-                            <div class="border border-secondary rounded p-3">
-                                @* Title *@
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h4>Khu A</h3>
-                                    <span class="bg-warning text-white p-1 pe-2 ps-2 rounded">71%</span>
-                                </div>
-
-                                @* Progress *@
-                                <div class="mt-2">
-                                    <div class="progress">
-                                        <div class="progress-bar" style="width:71%; background-color: orange"></div>
-                                    </div>
-                                </div>
-
-                                @* Info *@
-                                <div class="mt-2">
-                                    <span class="small text-secondary">57/80</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 mt-3">
-                            <div class="border border-secondary rounded p-3">
-                                @* Title *@
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h4>Khu B</h3>
-                                    <span class="bg-success text-white p-1 pe-2 ps-2 rounded">41%</span>
-                                </div>
-
-                                @* Progress *@
-                                <div class="mt-2">
-                                    <div class="progress">
-                                        <div class="progress-bar" style="width:41%; background-color: green"></div>
-                                    </div>
-                                </div>
-
-                                @* Info *@
-                                <div class="mt-2">
-                                    <span class="small text-secondary">23/45</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 mt-3">
-                            <div class="border border-secondary rounded p-3">
-                                @* Title *@
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h4>Khu C</h3>
-                                    <span class="bg-success text-white p-1 pe-2 ps-2 rounded">55%</span>
-                                </div>
-
-                                @* Progress *@
-                                <div class="mt-2">
-                                    <div class="progress">
-                                        <div class="progress-bar" style="width:55%; background-color: greeb"></div>
-                                    </div>
-                                </div>
-
-                                @* Info *@
-                                <div class="mt-2">
-                                    <span class="small text-secondary">194/350</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 mt-3">
-                            <div class="border border-secondary rounded p-3">
-                                @* Title *@
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h4>Khu D</h3>
-                                    <span class="bg-success text-white p-1 pe-2 ps-2 rounded">49%</span>
-                                </div>
-
-                                @* Progress *@
-                                <div class="mt-2">
-                                    <div class="progress">
-                                        <div class="progress-bar" style="width:49%; background-color: green"></div>
-                                    </div>
-                                </div>
-
-                                @* Info *@
-                                <div class="mt-2">
-                                    <span class="small text-secondary">68/140</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 mt-3">
-                            <div class="border border-secondary rounded p-3">
-                                @* Title *@
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h4>Khu E</h3>
-                                    <span class="bg-success text-white p-1 pe-2 ps-2 rounded">36%</span>
-                                </div>
-
-                                @* Progress *@
-                                <div class="mt-2">
-                                    <div class="progress">
-                                        <div class="progress-bar" style="width:36%; background-color: green"></div>
-                                    </div>
-                                </div>
-
-                                @* Info *@
-                                <div class="mt-2">
-                                    <span class="small text-secondary">79/220</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    
-                    </div>
-
-                    <div class="row mt-4 border border-secondary rounded">
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <h5>Chi tiết vị trí kho</h5>
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addLocationModal">
-                                <i class="bi bi-plus"></i>
-                                Thêm vị trí
-                            </button>
-                        </div>
-                        <table class="table mt-3">
-                            <thead>
-                                <tr>
-                                    <th>MÃ VỊ TRÍ</th>
-                                    <th>MÔ TẢ</th>
-                                    <th>LOẠI</th>
-                                    <th>SỨC CHỨA</th>
-                                    <th>ĐÃ DÙNG</th>
-                                    <th>TRỐNG</th>
-                                    <th>TỈ LỆ LÀM ĐẦY</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>A1</td>
-                                    <td>Khu vực CPU</td>
-
-                                    <td><span class="badge bg-secondary rounded-pill px-3 py-2">Thông thường</span></td>
-
-                                    <td>50</td>
-
-                                    <td>42</td>
-                                    <td>8</td>
-
-                                    <td>
-                                        <div class="progress">
-                                            <div class="progress-bar" style="width:84%; background-color: red">84%</div>
-                                        </div>
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-                                    <td>B1</td>
-                                    <td>Khu vực GPU cao cấp</td>
-
-                                    <td><span class="badge bg-danger rounded-pill px-3 py-2">Giá trị cao</span></td>
-
-                                    <td>25</td>
-
-                                    <td>15</td>
-                                    <td>10</td>
-
-                                    <td>
-                                        <div class="progress">
-                                            <div class="progress-bar" style="width:60%; background-color: green">60%</div>
-                                        </div>
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-                                    <td>D1</td>
-                                    <td>Khu vực Nguồn</td>
-
-                                    <td><span class="badge bg-warning rounded-pill px-3 py-2">Hàng nặng</span></td>
-
-                                    <td>60</td>
-
-                                    <td>28</td>
-                                    <td>32</td>
-
-                                    <td>
-                                        <div class="progress">
-                                            <div class="progress-bar" style="width:47%; background-color: green">47%</div>
-                                        </div>
-                                    </td>
-
-                                </tr>
-
-
-                                <tr>
-                                    <td>E1</td>
-                                    <td>Khu vực Màn hình</td>
-
-                                    <td><span class="badge bg-info rounded-pill px-3 py-2">Hàng lớn</span></td>
-
-                                    <td>20</td>
-
-                                    <td>2</td>
-                                    <td>18</td>
-
-                                    <td>
-                                        <div class="progress">
-                                            <div class="progress-bar" style="width:10%; background-color: green">10%</div>
-                                        </div>
-                                    </td>
-
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        <div class="modal fade" id="addLocationModal" tabindex="-1" aria-labelledby="addLocationModalLabel" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content border-0 shadow rounded-4">
-                                    
-                                    <div class="modal-header border-bottom border-light p-4">
-                                        <h5 class="modal-title fw-bold" id="addLocationModalLabel">Thêm vị trí kho mới</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-
-                                    <div class="modal-body p-4">
-                                        <form id="addLocationForm">
-                                            <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    <label for="locationCode" class="form-label fw-medium text-secondary small">Mã vị trí <span class="text-danger">*</span></label>
-                                                    <input type="text" class="form-control" id="locationCode" placeholder="VD: F1" required>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label for="capacity" class="form-label fw-medium text-secondary small">Sức chứa tối đa <span class="text-danger">*</span></label>
-                                                    <input type="number" class="form-control" id="capacity" placeholder="VD: 50" required>
-                                                </div>
-                                                <div class="col-12">
-                                                    <label for="locationType" class="form-label fw-medium text-secondary small">Loại khu vực <span class="text-danger">*</span></label>
-                                                    <select class="form-select" id="locationType" required>
-                                                        <option value="" selected disabled>-- Chọn loại phân khu --</option>
-                                                        <option value="normal">Thông thường</option>
-                                                        <option value="high_value">Giá trị cao</option>
-                                                        <option value="heavy">Hàng nặng</option>
-                                                        <option value="large">Hàng lớn</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-12">
-                                                    <label for="locationDesc" class="form-label fw-medium text-secondary small">Mô tả chi tiết</label>
-                                                    <textarea class="form-control" id="locationDesc" rows="2" placeholder="Ví dụ: Khu vực linh kiện dự phòng..."></textarea>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-
-                                    <div class="modal-footer border-top-0 p-4 pt-0">
-                                        <button type="button" class="btn btn-light border px-4 rounded-pill fw-medium" data-bs-dismiss="modal">Hủy</button>
-                                        <button type="button" class="btn btn-success px-4 rounded-pill fw-medium">Lưu vị trí</button>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
-
-            <div class="tab-pane container" id="menu3">            
-                <form action="" class="mt-4">
-                    <div class="d-flex align-items-center">
-                        <div class="search-wrapper flex-grow-1 bg-white">
-                            <span class="ps-3 pe-2 text-muted">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" class="form-control border-0 bg-transparent py-2 px-1" placeholder="Nhập mã đơn hàng (VD: PO-2026-002)...">
-                        </div>
-                    </div>
-                </form>
-
-                <div class="container mt-3">
-                    <div class="row">
-                        <div class="mt-4">
-                            <div class="card border border-secondary border-opacity-25 shadow-sm rounded-4 mb-4">
-                                <div class="card-header bg-white border-bottom border-light p-4 rounded-top-4">
-                                    <h5 class="mb-1 fw-bold">SO-2026-003</h5>
-                                    <small class="text-muted">Studio Gaming Pro · 3 mặt hàng</small>
-                                </div>
-                                
-                                <div class="card-body p-0">
-                                    <div class="d-flex align-items-center p-4 border-bottom border-light pick-row">
-                                        <div class="me-4">
-                                            <input class="form-check-input pick-checkbox cursor-pointer" type="checkbox" style="width: 1.8em; height: 1.8em;">
-                                        </div>
-                                        <div class="flex-grow-1 product-info">
-                                            <h6 class="mb-1 fw-bold">NVIDIA RTX 4090 24GB</h6>
-                                            <small class="text-muted">Vị trí: <span class="text-primary fw-bold">B2-01</span></small>
-                                        </div>
-                                        <div class="ms-3 text-center">
-                                            <span class="d-block fw-bold fs-5">2</span>
-                                            <small class="text-muted">cái</small>
-                                        </div>
-                                    </div>
-
-                                    <div class="d-flex align-items-center p-4 border-bottom border-light pick-row">
-                                        <div class="me-4">
-                                            <input class="form-check-input pick-checkbox cursor-pointer" type="checkbox" style="width: 1.8em; height: 1.8em;">
-                                        </div>
-                                        <div class="flex-grow-1 product-info">
-                                            <h6 class="mb-1 fw-bold">Intel Core i9-14900K</h6>
-                                            <small class="text-muted">Vị trí: <span class="text-primary fw-bold">A1-01</span></small>
-                                        </div>
-                                        <div class="ms-3 text-center">
-                                            <span class="d-block fw-bold fs-5">2</span>
-                                            <small class="text-muted">cái</small>
-                                        </div>
-                                    </div>
-
-                                    <div class="d-flex align-items-center p-4 pick-row">
-                                        <div class="me-4">
-                                            <input class="form-check-input pick-checkbox cursor-pointer" type="checkbox" style="width: 1.8em; height: 1.8em;">
-                                        </div>
-                                        <div class="flex-grow-1 product-info">
-                                            <h6 class="mb-1 fw-bold">ASUS ROG Z790</h6>
-                                            <small class="text-muted">Vị trí: <span class="text-primary fw-bold">A2-01</span></small>
-                                        </div>
-                                        <div class="ms-3 text-center">
-                                            <span class="d-block fw-bold fs-5">2</span>
-                                            <small class="text-muted">cái</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="card border border-secondary border-opacity-25 shadow-sm rounded-4 mb-4">
-                                <div class="card-header bg-white border-bottom border-light p-4 rounded-top-4">
-                                    <h5 class="mb-1 fw-bold">SO-2026-004</h5>
-                                    <small class="text-muted">Trường ĐH Bách Khoa · 2 mặt hàng</small>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="d-flex align-items-center p-4 border-bottom border-light pick-row">
-                                        <div class="me-4">
-                                            <input class="form-check-input pick-checkbox cursor-pointer" type="checkbox" style="width: 1.8em; height: 1.8em;">
-                                        </div>
-                                        <div class="flex-grow-1 product-info">
-                                            <h6 class="mb-1 fw-bold">RTX 4070 Ti</h6>
-                                            <small class="text-muted">Vị trí: <span class="text-primary fw-bold">B2-02</span></small>
-                                        </div>
-                                        <div class="ms-3 text-center">
-                                            <span class="d-block fw-bold fs-5">4</span>
-                                            <small class="text-muted">cái</small>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-center p-4 pick-row">
-                                        <div class="me-4">
-                                            <input class="form-check-input pick-checkbox cursor-pointer" type="checkbox" style="width: 1.8em; height: 1.8em;">
-                                        </div>
-                                        <div class="flex-grow-1 product-info">
-                                            <h6 class="mb-1 fw-bold">LG 27" 4K</h6>
-                                            <small class="text-muted">Vị trí: <span class="text-primary fw-bold">E1-01</span></small>
-                                        </div>
-                                        <div class="ms-3 text-center">
-                                            <span class="d-block fw-bold fs-5">4</span>
-                                            <small class="text-muted">cái</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                
-            </div>
-
-            <div class="tab-pane container" id="menu4">
-                <form action="" class="mt-4">
-                    <div class="d-flex align-items-center">
-                        <div class="search-wrapper flex-grow-1 bg-white">
-                            <span class="ps-3 pe-2 text-muted">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" class="form-control border-0 bg-transparent py-2 px-1" placeholder="Tìm sản phẩm...">
-                        </div>
-                        <button type="submit" class="btn btn-success ms-3 px-4 py-2">
-                            Xuất Excel
-                        </button>
-                    </div>
-                </form>
-
                 <div class="table-responsive">
-                    <table class="table table-borderless mt-4 align-middle">
-                        <thead>
+                    <table class="table table-hover align-middle">
+                        <thead class="bg-light text-muted small">
                             <tr>
-                                <th>SẢN PHẨM</th>
-                                <th>DANH MỤC</th>
-                                <th>VỊ TRÍ</th>
-                                <th>TỒN KHO</th>
-                                <th>TỒN TỐI THIỂU</th>
+                                <th>MÃ ĐƠN</th>
+                                <th>NHÀ CUNG CẤP</th>
+                                <th>NGÀY ĐẶT</th>
                                 <th>TRẠNG THÁI</th>
-                                <th></th>
+                                <th class="text-end">THAO TÁC</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="d-flex flex-column">
-                                    <h5 class="mb-0 fs-6 fw-bold">Intel Core i9-14900K</h5>
-                                    <span class="small text-muted">SP001</span>
-                                </td>
-                                <td>CPU</td>
-                                <td>A1-01</td>
-                                
-                                <td class="stock-cell" style="width: 150px;">
-                                    <span class="stock-text fs-6 fw-medium">24</span>
-                                    <input type="number" class="form-control form-control-sm stock-input d-none" value="24" style="width: 80px;">
-                                </td>
-                                
-                                <td>5</td>
-                                <td><span class="badge bg-secondary rounded-pill px-3 py-2 text-white">Đủ hàng</span></td>
-                                
-                                <td class="action-cell text-end">
-                                    <button class="btn btn-secondary btn-sm btn-edit">Điều chỉnh</button>
-                                    
-                                    <div class="edit-actions d-none">
-                                        <button class="btn btn-success btn-sm btn-save me-1">Lưu</button>
-                                        <button class="btn btn-outline-secondary btn-sm bg-white btn-cancel">Hủy</button>
-                                    </div>
-                                </td>
-                            </tr>
+                            @foreach (var po in Model.InboundOrders) {
+                                <tr>
+                                    <td class="fw-bold text-primary">#PO-@po.POID.ToString("D5")</td>
+                                    <td>@po.SupplierName</td>
+                                    <td class="text-muted small">@po.OrderDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <span class="badge @(po.Status == "Đang xử lý" ? "bg-warning" : "bg-primary") bg-opacity-10 text-@(po.Status == "Đang xử lý" ? "warning" : "primary") px-3">@po.Status</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm" onclick="showInboundConfirm(@po.POID)">Xử lý nhập</button>
+                                    </td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
-
             </div>
 
-            <div class="tab-pane container" id="menu5">
-                <div class="container">
-                    <div class="row border rounded-4 p-4 mt-4" style="background-color: rgb(174, 225, 255); color: blue;">
-                        <h5>Quy trình bàn giao xuất kho</h5>
-                        <span class="small">Thủ kho xác nhận bàn giao cho nhân viên vận chuyển trước khi xuất kho</span>
-                    </div>
-
-                    <div class="row mt-3">
-                        <div class="row mt-4">
-                            <div class="d-flex justify-content-between align-items-center border rounded-4 bg-white p-3">
-                                <div class="">
-                                    <h5 class="mb-0">SO-2026-003</h5>
-                                    <h6 class="text-secondary mb-0">Studio Gaming Pro</h6>
-                                    <span class="small text-secondary">4 kiện - 28kg - Tài xế: Võ Giao Hàng</span>
+            @* TAB 2: VÀNG *@
+            <div class="tab-pane" id="menu2">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Sơ đồ và Sức chứa Zone</h5>
+                    <button class="btn btn-sm btn-success rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addLocationModal">
+                        <i class="bi bi-plus-lg me-1"></i> Thêm vị trí mới
+                    </button>
+                </div>
+                <div class="row g-4">
+                    @foreach (var zone in Model.Zones) {
+                        <div class="col-md-4">
+                            <div class="card border rounded-3 p-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <h6 class="fw-bold mb-0">@zone.ZoneName</h6>
+                                    <span class="small fw-bold @(zone.OccupancyRate > 80 ? "text-danger" : "text-success")">@zone.OccupancyRate.ToString("0")%</span>
                                 </div>
-
-                                <div class="">
-                                    <button class="btn btn-success">
-                                        Bàn giao
-                                    </button>
+                                <div class="progress mb-2" style="height: 10px;">
+                                    <div class="progress-bar @(zone.OccupancyRate > 80 ? "bg-danger" : "bg-primary")" style="width: @zone.OccupancyRate%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between small text-muted">
+                                    <span>Sức chứa: @zone.TotalCapacity</span>
+                                    <span>Đã dùng: @zone.TotalUsed</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 </div>
             </div>
 
-            <div class="tab-pane container" id="menu6">
-                <div class="container">
-                    <div class="row border rounded-4 p-4 mt-4" style="background-color: rgb(255, 229, 205); color: orange;">
-                        <p class="pb-0 mb-0">Hàng hoàn/trả về sẽ được kiểm tra chất lượng trước khi nhập lại kho hoặc gửi cho nhà cung cấp.</p>
-                    </div>
+            @* TAB 3: SOẠN HÀNG *@
+            <div class="tab-pane" id="menu3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Danh sách soạn hàng (Picking List)</h5>
+                    <form asp-action="Category" method="get" class="d-flex gap-2">
+                        <input type="hidden" name="hash" value="#menu3" />
+                        <input type="text" name="searchPick" value="@ViewBag.SearchPick" class="form-control form-control-sm" placeholder="Mã SO hoặc khách hàng..." style="width: 250px;">
+                        <button type="submit" class="btn btn-primary btn-sm px-3">Tìm</button>
+                    </form>
+                </div>
+                <div class="accordion" id="pickAcc">
+                    @foreach (var so in Model.PickingOrders) {
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed py-3" type="button" data-bs-toggle="collapse" data-bs-target="#so-@so.SOID">
+                                    <strong class="text-dark me-3">#SO-@so.SOID.ToString("D5")</strong> - @so.CustomerName
+                                </button>
+                            </h2>
+                            <div id="so-@so.SOID" class="accordion-collapse collapse" data-bs-parent="#pickAcc">
+                                <div class="accordion-body bg-light">
+                                    <table class="table table-sm bg-white border">
+                                        <thead class="bg-light small">
+                                            <tr>
+                                                <th class="ps-3">Sản phẩm</th>
+                                                <th>SL</th>
+                                                <th>Vị trí gợi ý</th>
+                                                <th>Tồn kho tại chỗ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in so.Items) {
+                                                <tr>
+                                                    <td class="ps-3 py-2">@item.ProductName</td>
+                                                    <td class="fw-bold">@item.Quantity</td>
+                                                    <td><span class="badge bg-dark">@item.SuggestedLocationCode</span></td>
+                                                    <td>@item.StockAtLocation</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                    <div class="text-end mt-3">
+                                        <button class="btn btn-primary btn-sm px-4 shadow" onclick="showPickingConfirm(@so.SOID)">Hoàn tất soạn hàng</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
 
-                    <div class="row mt-3">
-                        <table class="table table-borderless mt-4 align-middle">
-                            <thead>
+            @* TAB 4: KIỂM KÊ *@
+            <div class="tab-pane" id="menu4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Kiểm kê tồn kho chi tiết</h5>
+                    <form asp-action="Category" method="get" class="d-flex gap-2">
+                        <input type="hidden" name="hash" value="#menu4" />
+                        <input type="text" name="searchInv" value="@ViewBag.SearchInv" class="form-control form-control-sm" placeholder="Sản phẩm hoặc mã vị trí..." style="width: 250px;">
+                        <button type="submit" class="btn btn-dark btn-sm px-3">Lọc</button>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle border">
+                        <thead class="bg-light text-muted small">
+                            <tr>
+                                <th class="ps-3 py-2">SẢN PHẨM</th>
+                                <th>VỊ TRÍ</th>
+                                <th>TỒN KHO THỰC TẾ</th>
+                                <th>TRẠNG THÁI</th>
+                                <th class="text-end pe-3">THAO TÁC</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var inv in Model.InventoryItems) {
                                 <tr>
-                                    <th>MÃ TRẢ HÀNG</th>
-                                    <th>ĐƠN HÀNG</th>
-                                    <th>KHÁCH HÀNG</th>
-                                    <th>SẢN PHẨM</th>
-                                    <th>LÝ DO</th>
-                                    <th>TRẠNG THÁI</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="text-primary">
-                                        RTN-001
-                                    </td>
-                                    <td>SO-2026-001</td>
-                                    <td>Công ty TNHH ABC Tech</td>
-                                    <td>Intel Core i9-14900k</td>
-                                    <td>Hàng bị lỗi - CPU không nhận</td>
-                                    <td><span class="badge bg-info rounded-pill px-3 py-2">Đang xử lý</span></td>
+                                    <td class="ps-3 py-2 fw-bold">@inv.ProductName</td>
+                                    <td><span class="badge bg-light text-dark border">@inv.LocationCode</span></td>
+                                    <td class="fw-bold text-primary">@inv.QuantityAvailable</td>
                                     <td>
-                                        <button class="btn btn-secondary">Kiểm tra CL</button>
+                                        <span class="badge @(inv.Status == "Sắp hết" ? "bg-danger" : "bg-success") px-3">@inv.Status</span>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <button class="btn btn-sm btn-outline-dark px-3 rounded-pill" onclick="showEditInventory(@inv.ProductID, @inv.LocationID, '@inv.ProductName', @inv.QuantityAvailable)">Sửa</button>
                                     </td>
                                 </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
+            @* TAB 5: BÀN GIAO *@
+            <div class="tab-pane" id="menu5">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Đơn hàng sẵn sàng bàn giao</h5>
+                    <form asp-action="Category" method="get" class="d-flex gap-2">
+                        <input type="hidden" name="hash" value="#menu5" />
+                        <input type="text" name="searchHandover" value="@ViewBag.SearchHandover" class="form-control form-control-sm" placeholder="Tìm SO..." style="width: 200px;">
+                        <button type="submit" class="btn btn-primary btn-sm px-3">Tìm</button>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover border">
+                        <thead class="bg-light small">
+                            <tr>
+                                <th class="ps-3">MÃ SO</th>
+                                <th>KHÁCH HÀNG</th>
+                                <th>SỐ LƯỢNG MẶT HÀNG</th>
+                                <th class="text-end pe-3">THAO TÁC</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rs in Model.HandoverOrders) {
                                 <tr>
-                                    <td class="text-primary">
-                                        RTN-003
-                                    </td>
-                                    <td>SO-2026-002</td>
-                                    <td>Nguyễn Hoàng Long</td>
-                                    <td>NVDIA RTX 4070 Ti</td>
-                                    <td>Giao nhầm hàng</td>
-                                    <td><span class="badge bg-warning rounded-pill px-3 py-2">Chờ xử lý</span></td>
-                                    <td>
-                                        <button class="btn btn-secondary">Kiểm tra CL</button>
+                                    <td class="ps-3 fw-bold">#SO-@rs.SOID.ToString("D5")</td>
+                                    <td class="fw-bold">@rs.CustomerName</td>
+                                    <td class="text-center">@rs.TotalItems</td>
+                                    <td class="text-end pe-3">
+                                        <form asp-action="HandoverSO" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="soid" value="@rs.SOID">
+                                            <button type="submit" class="btn btn-sm btn-primary px-4 shadow-sm fw-bold">Bàn giao</button>
+                                        </form>
                                     </td>
                                 </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div class="tab-pane container" id="menu7">
-                <div class="container mt-4">
-                    <div class="row">
-                        <div class="d-flex justify-content-end">
-                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createQcModal">
-                                <i class="bi bi-plus"></i>
-                                Tạo phiếu kiểm tra
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="row mt-3">
-                        <div class="container border border-secondary rounded">
-                            @* Title *@
-                            <div class="row border-bottom border-secondary">
-                                <div class="d-flex justify-content-between align-items-center p-3">
-                                    <div class="">
-                                        <h5>QC-001 - <span class="text-secondary">Nhập kho</span></h5>
-                                        <span class="small text-secondary">2026-03-22 - Kiểm tra:Nguyễn Thủ Kho</span>
-                                    </div>
-                                    <div class="">
-                                        <span class="badge bg-success rounded-pill px-3 py-2">Đạt</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            @* Content *@
-                            <div class="row border-bottom border-secondary">
-                                <div class="d-flex justify-content-between align-items-center p-3">
-                                    <div class="">
-                                        <h6>Core i9-14900K</h6>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-xl-4">
-                                            Nhận: 10
-                                        </div>
-
-                                        <div class="col-xl-4 text-success">
-                                            Đạt: 10
-                                        </div>
-
-                                        <div class="col-xl-4 text-danger">
-                                            Lỗi: 0
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-
-                            @* Footer *@
-                            <div class="row p-3">
-                                <span class="small text-muted">Ghi chú: Hàng nguyên seal, đủ số lượng</span>
-                            </div>
-                        </div>
-
-                        <div class="container border border-secondary rounded mt-3">
-                            @* Title *@
-                            <div class="row border-bottom border-secondary">
-                                <div class="d-flex justify-content-between align-items-center p-3">
-                                    <div class="">
-                                        <h5>QC-002 - <span class="text-secondary">Hàng Hoàn</span></h5>
-                                        <span class="small text-secondary">2026-03-22 - Kiểm tra:Nguyễn Thủ Kho</span>
-                                    </div>
-                                    <div class="">
-                                        <span class="badge bg-danger rounded-pill px-3 py-2">Không Đạt</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            @* Content *@
-                            <div class="row border-bottom border-secondary">
-                                <div class="d-flex justify-content-between align-items-center p-3">
-                                    <div class="">
-                                        <h6>Core i9-14900K</h6>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-xl-4">
-                                            Nhận: 1
-                                        </div>
-
-                                        <div class="col-xl-4 text-success">
-                                            Đạt: 0
-                                        </div>
-
-                                        <div class="col-xl-4 text-danger">
-                                            Lỗi: 1
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-
-                            @* Footer *@
-                            <div class="row p-3">
-                                <span class="small text-muted">Ghi chú: CPU cháy chân, hỏng hoàn toàn</span>
-                            </div>
-                        </div>
-
-                    </div>
+            @* TAB 6: HÀNG HOÀN *@
+            <div class="tab-pane" id="menu6">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Yêu cầu trả hàng/Hoàn hàng</h5>
+                    <form asp-action="Category" method="get" class="d-flex gap-2">
+                        <input type="hidden" name="hash" value="#menu6" />
+                        <input type="text" name="searchReturn" value="@ViewBag.SearchReturn" class="form-control form-control-sm" placeholder="Tìm RTN..." style="width: 200px;">
+                        <button type="submit" class="btn btn-primary btn-sm px-3">Tìm</button>
+                    </form>
                 </div>
-
-                <div class="modal fade" id="createQcModal" tabindex="-1" aria-labelledby="createQcModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg"> <div class="modal-content border-0 shadow rounded-4">
-                            
-                            <div class="modal-header border-bottom border-light p-4">
-                                <h5 class="modal-title fw-bold" id="createQcModalLabel">Tạo phiếu kiểm tra chất lượng</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-
-                            <div class="modal-body p-4">
-                                <form id="createQcForm">
-                                    <div class="row g-3">
-                                        
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-medium text-secondary small">Loại kiểm tra <span class="text-danger">*</span></label>
-                                            <select class="form-select" required>
-                                                <option value="" selected disabled>-- Chọn loại --</option>
-                                                <option value="nhap_kho">Nhập kho (Từ NCC)</option>
-                                                <option value="hang_hoan">Hàng hoàn (Từ Khách)</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-medium text-secondary small">Mã tham chiếu (PO / RTN) <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" placeholder="VD: PO-2026-005" required>
-                                        </div>
-
-                                        <div class="col-12">
-                                            <label class="form-label fw-medium text-secondary small">Sản phẩm kiểm tra <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" placeholder="Nhập tên hoặc mã sản phẩm..." required>
-                                        </div>
-
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-medium text-secondary small">Tổng thực nhận</label>
-                                            <input type="number" class="form-control" value="0" min="0">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-medium text-success small">Số lượng ĐẠT</label>
-                                            <input type="number" class="form-control border-success" value="0" min="0">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-medium text-danger small">Số lượng LỖI</label>
-                                            <input type="number" class="form-control border-danger" value="0" min="0">
-                                        </div>
-
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-medium text-secondary small">Kết luận <span class="text-danger">*</span></label>
-                                            <select class="form-select" required>
-                                                <option value="dat" class="text-success fw-bold">ĐẠT</option>
-                                                <option value="khong_dat" class="text-danger fw-bold">KHÔNG ĐẠT</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <label class="form-label fw-medium text-secondary small">Ghi chú tình trạng</label>
-                                            <input type="text" class="form-control" placeholder="Ví dụ: Nguyên seal / Móp vỏ hộp / Cháy chân pin...">
-                                        </div>
-
-                                    </div>
-                                </form>
-                            </div>
-
-                            <div class="modal-footer border-top-0 p-4 pt-0">
-                                <button type="button" class="btn btn-light border px-4 rounded-pill fw-medium" data-bs-dismiss="modal">Hủy</button>
-                                <button type="button" class="btn btn-success px-4 rounded-pill fw-medium">Lưu</button>
-                            </div>
-
-                        </div>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table border">
+                        <thead class="bg-light small">
+                            <tr>
+                                <th class="ps-3">MÃ RTN</th>
+                                <th>LIÊN QUAN</th>
+                                <th>LÝ DO</th>
+                                <th>TRẠNG THÁI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in Model.Returns) {
+                                <tr>
+                                    <td class="ps-3 fw-bold">RTN-@r.ReturnID.ToString("D3")</td>
+                                    <td class="small">SO-@r.SOID (@r.CustomerName)</td>
+                                    <td class="small text-muted">@r.Reason</td>
+                                    <td><span class="badge @(r.Status == "Hoàn thành" ? "bg-success" : "bg-warning")">@r.Status</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            
-            <div class="tab-pane container" id="menu8">
-                <table class="table table-borderless mt-4 align-middle">
-                    <thead>
-                        <tr>
-                            <th>SẢN PHẨM</th>
-                            <th>DANH MỤC</th>
-                            <th>BH (tháng)</th>
-                            <th>NGÀY NHẬP</th>
-                            <th>HẾT HẠN</th>
-                            <th>TRẠNG THÁI</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="">
-                                Intel Core i9-14900K
-                            </td>
-                            <td>CPU</td>
-                            <td>36</td>
-                            <td>2026-01-15</td>
-                            <td>2029-01-15</td>
-                            <td><span class="badge bg-success rounded-pill px-3 py-2">Còn bảo hành</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+
+            @* TAB 7: QC *@
+            <div class="tab-pane" id="menu7">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Kiểm soát chất lượng (QC)</h5>
+                    <div class="d-flex gap-2">
+                        <form asp-action="Category" method="get" class="d-flex gap-2">
+                            <input type="hidden" name="hash" value="#menu7" />
+                            <input type="text" name="searchQC" value="@ViewBag.SearchQC" class="form-control form-control-sm" placeholder="Tham chiếu...">
+                            <button type="submit" class="btn btn-primary btn-sm px-3">Tìm</button>
+                        </form>
+                        <button class="btn btn-sm btn-info text-white px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#createQCModal">Tạo phiếu QC</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover border">
+                        <thead class="bg-light small fw-bold">
+                            <tr>
+                                <th>THAM CHIẾU</th>
+                                <th>SẢN PHẨM</th>
+                                <th class="text-center">KẾT QUẢ</th>
+                                <th>NGÀY KIỂM</th>
+                                <th>CÁN BỘ KIỂM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var qc in Model.QCRecords) {
+                                <tr>
+                                    <td class="fw-bold">@qc.ReferenceID</td>
+                                    <td class="text-info fw-bold">@qc.ProductName</td>
+                                    <td class="text-center"><span class="badge @(qc.Result == "Đạt" ? "bg-success" : "bg-danger") px-3">@qc.Result</span></td>
+                                    <td class="small">@qc.CheckDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="small text-muted">@qc.InspectorName</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+@* MODALS *@
+<div class="modal fade" id="confirmActionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white border-0 py-3">
+                <h5 class="modal-title fw-bold" id="confirmActionTitle">Xác nhận thao tác</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="fs-5 mb-0" id="confirmActionBody">...</p>
+            </div>
+            <div class="modal-footer border-0 p-3 pt-0 justify-content-center">
+                <button type="button" class="btn btn-light px-4 border" data-bs-dismiss="modal">Hủy bỏ</button>
+                <button type="button" class="btn btn-primary px-5 fw-bold shadow-sm" onclick="executeConfirmedAction()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editInventoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form asp-action="UpdateInventory" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="productId" id="editInvProductId">
+                <input type="hidden" name="locationId" id="editInvLocationId">
+                <div class="modal-header bg-dark text-white border-0">
+                    <h5 class="modal-title fw-bold">Điều chỉnh tồn kho</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-2 small text-muted text-uppercase fw-bold">Sản phẩm điều chỉnh</div>
+                    <h6 class="fw-bold mb-4 p-2 bg-light border rounded" id="editInvProductName">...</h6>
+                    <div>
+                        <label class="form-label small fw-bold">Số lượng khả dụng mới *</label>
+                        <input type="number" name="quantity" id="editInvQuantity" class="form-control form-control-lg border-primary shadow-sm" required min="0">
+                        <small class="text-muted mt-1 d-block">Lưu ý: Thay đổi này sẽ ảnh hưởng trực tiếp đến dữ liệu bán hàng.</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createQCModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <form asp-action="CreateQCRecord" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-info text-white border-0 p-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-shield-check me-2"></i>Lập phiếu kiểm định chất lượng (QC)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase">Sản phẩm cần kiểm định *</label>
+                            <select name="productId" class="form-select border-0 shadow-sm" required>
+                                <option value="">-- Chọn sản phẩm --</option>
+                                @foreach (var p in Model.AllProducts) {
+                                    <option value="@p.ProductID">@p.ProductName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase">Mã tham chiếu (PO/SO/RTN) *</label>
+                            <input type="text" name="referenceId" class="form-control border-0 shadow-sm" required placeholder="Ví dụ: PO-00001">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase">Kết quả đánh giá</label>
+                            <div class="d-flex gap-4 mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="result" value="Đạt" checked id="qcOk">
+                                    <label class="form-check-label fw-bold text-success" for="qcOk">Đạt tiêu chuẩn</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="result" value="Không đạt" id="qcFail">
+                                    <label class="form-check-label fw-bold text-danger" for="qcFail">Lỗi/Không đạt</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase">Ghi chú chi tiết</label>
+                            <textarea name="notes" class="form-control border-0 shadow-sm" rows="3" placeholder="Mô tả tình trạng hàng hóa..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-4 border-0 bg-white">
+                    <button type="button" class="btn btn-light px-4 border" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-info text-white px-5 fw-bold shadow-sm">Lưu phiếu QC</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addLocationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered text-start">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <form asp-action="AddLocation" method="post">
+                <div class="modal-header bg-success text-white border-0 p-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-square me-2"></i>Thêm Vị trí lưu kho mới</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Mã vị trí (VD: A-01-01) *</label>
+                            <input type="text" name="code" class="form-control border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Sức chứa tối đa (Thùng/SP) *</label>
+                            <input type="number" name="capacity" class="form-control border-0 shadow-sm" value="100" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Loại khu vực</label>
+                            <select name="type" class="form-select border-0 shadow-sm">
+                                <option>Thông thường</option>
+                                <option>Yêu cầu nhiệt độ</option>
+                                <option>Hàng giá trị cao</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-4 border-0">
+                    <button type="submit" class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow">Tạo vị trí</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            
-            // 1. Hàm đồng bộ Tab và Sidebar
-            function syncPurchaseUI() {
-                let hash = window.location.hash || "#menu1"; 
-                
-                // Mở Tab tương ứng
-                let targetTab = document.querySelector('.nav-tabs a[href="' + hash + '"]');
-                if (targetTab) {
-                    new bootstrap.Tab(targetTab).show();
-                }
+            // Restore Tab selection from Hash
+            let hash = window.location.hash || "#menu1";
+            let triggerEl = document.querySelector('.nav-link[href="' + hash + '"]');
+            if (triggerEl) bootstrap.Tab.getOrCreateInstance(triggerEl).show();
 
-                // Reset toàn bộ màu của menu Mua Hàng về màu xám
-                document.querySelectorAll('#quanLyKhoMenu .sidebar-link').forEach(link => {
-                    link.classList.remove('bg-success', 'text-white');
-                    link.classList.add('text-secondary');
-                });
-
-                // Tìm và tô màu xanh cho thẻ a khớp với hash hiện tại
-                let activeSidebarLink = document.querySelector('#quanLyKhoMenu a[href$="' + hash + '"]');
-                if (activeSidebarLink) {
-                    activeSidebarLink.classList.remove('text-secondary');
-                    activeSidebarLink.classList.add('bg-success', 'text-white', 'rounded');
-                }
-            }
-
-            // 2. Chạy lần đầu khi load trang
-            syncPurchaseUI();
-
-            // 3. Khi bấm Tab trên màn hình -> Cập nhật URL và Sidebar
-            document.querySelectorAll('.nav-tabs a[data-bs-toggle="tab"]').forEach(function (tab) {
-                tab.addEventListener('shown.bs.tab', function (event) {
-                    let currentHash = event.target.getAttribute('href');
-                    history.replaceState(null, null, currentHash);
-                    syncPurchaseUI(); 
-                });
-            });
-
-            // 4. Khi bấm link trên Sidebar -> Đồng bộ lại Tab
-            window.addEventListener('hashchange', function() {
-                syncPurchaseUI();
-            });
-
-            
-            let checkboxes = document.querySelectorAll('.pick-checkbox');
-            
-            checkboxes.forEach(function(checkbox) {
-                // Lắng nghe sự kiện khi người dùng click vào checkbox
-                checkbox.addEventListener('change', function() {
-                    // Tìm ngược lên thẻ div bọc ngoài cùng của sản phẩm đó (class pick-row)
-                    let row = this.closest('.pick-row');
-                    
-                    // Nếu được tick -> thêm class làm mờ chữ, Nếu bỏ tick -> xóa class
-                    if(this.checked) {
-                        row.classList.add('item-completed');
-                    } else {
-                        row.classList.remove('item-completed');
-                    }
+            document.querySelectorAll('.nav-link[data-bs-toggle="tab"]').forEach(tab => {
+                tab.addEventListener('shown.bs.tab', e => {
+                    location.hash = tab.getAttribute('href');
                 });
             });
         });
 
-        
-        document.querySelectorAll('.btn-edit').forEach(btn => {
-            btn.addEventListener('click', function() {
-                let tr = this.closest('tr'); // Tìm dòng <tr> chứa nút này
-                
-                // Ẩn chữ tĩnh, hiện ô input
-                tr.querySelector('.stock-text').classList.add('d-none');
-                tr.querySelector('.stock-input').classList.remove('d-none');
-                
-                // Ẩn nút "Điều chỉnh", hiện cụm "Lưu/Hủy"
-                tr.querySelector('.btn-edit').classList.add('d-none');
-                tr.querySelector('.edit-actions').classList.remove('d-none');
-                
-                // Tự động focus (nháy con trỏ chuột) vào ô input cho tiện gõ
-                tr.querySelector('.stock-input').focus();
-            });
-        });
+        let currentConfirmAction = null;
 
-        document.querySelectorAll('.btn-cancel').forEach(btn => {
-            btn.addEventListener('click', function() {
-                let tr = this.closest('tr');
-                
-                // Khôi phục lại giá trị của input bằng với con số cũ (đề phòng user đã gõ bậy)
-                let originalValue = tr.querySelector('.stock-text').innerText;
-                tr.querySelector('.stock-input').value = originalValue;
+        function showInboundConfirm(id) { 
+            currentConfirmAction = () => { 
+                let f = document.createElement('form'); 
+                f.method='POST'; 
+                f.action='/Storage/ProcessReceipt'; 
+                let i = document.createElement('input'); 
+                i.name='poid'; 
+                i.value=id; 
+                f.appendChild(i); 
+                let t = document.querySelector('input[name="__RequestVerificationToken"]').cloneNode(); 
+                f.appendChild(t); 
+                document.body.appendChild(f); 
+                f.submit(); 
+            };
+            document.getElementById('confirmActionTitle').innerText = "Xử lý nhập kho";
+            document.getElementById('confirmActionBody').innerText = "Bạn xác nhận nhập đơn hàng PO-" + id.toString().padStart(5,'0') + " vào kho ?";
+            new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
+        }
 
-                // Ẩn input, hiện lại chữ tĩnh
-                tr.querySelector('.stock-text').classList.remove('d-none');
-                tr.querySelector('.stock-input').classList.add('d-none');
-                
-                // Ẩn cụm "Lưu/Hủy", hiện lại "Điều chỉnh"
-                tr.querySelector('.btn-edit').classList.remove('d-none');
-                tr.querySelector('.edit-actions').classList.add('d-none');
-            });
-        });
+        function showPickingConfirm(id) {
+            currentConfirmAction = () => { 
+                $.ajax({ 
+                    url: '/Storage/MarkAsPicked', 
+                    type: 'POST', 
+                    data: { soid: id }, 
+                    headers: { "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value }, 
+                    success: () => { 
+                        window.location.hash="#menu5"; 
+                        location.reload(); 
+                    } 
+                });
+            };
+            document.getElementById('confirmActionTitle').innerText = "Hoàn tất soạn hàng";
+            document.getElementById('confirmActionBody').innerText = "Xác nhận đã soạn đủ hàng cho đơn SO-" + id.toString().padStart(5,'0') + ". Chuyển sang trạng thái chờ bàn giao ?";
+            new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
+        }
 
+        function executeConfirmedAction() { 
+            if(currentConfirmAction) currentConfirmAction(); 
+        }
 
-        document.querySelectorAll('.btn-save').forEach(btn => {
-            btn.addEventListener('click', function() {
-                let tr = this.closest('tr');
-                
-                // Lấy con số mới mà user vừa gõ vào
-                let newValue = tr.querySelector('.stock-input').value;
-                
-                // Cập nhật con số đó lên giao diện chữ tĩnh
-                tr.querySelector('.stock-text').innerText = newValue;
-
-                // Trả giao diện về trạng thái ban đầu
-                tr.querySelector('.stock-text').classList.remove('d-none');
-                tr.querySelector('.stock-input').classList.add('d-none');
-                
-                tr.querySelector('.btn-edit').classList.remove('d-none');
-                tr.querySelector('.edit-actions').classList.add('d-none');
-                
-                // (Tương lai khi nối Backend: Chỗ này em sẽ dùng fetch/ajax để gửi newValue xuống C# lưu vào Database)
-            });
-        });
-
+        function showEditInventory(pid, lid, name, qty) {
+            document.getElementById('editInvProductId').value = pid;
+            document.getElementById('editInvLocationId').value = lid;
+            document.getElementById('editInvProductName').innerText = name;
+            document.getElementById('editInvQuantity').value = qty;
+            new bootstrap.Modal(document.getElementById('editInventoryModal')).show();
+        }
     </script>
 }

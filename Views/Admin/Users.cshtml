@@ -1,4 +1,7 @@
-@{ViewData["Title"] = "Quản trị hệ thống";}
+@model SCM_System.Models.ViewModels.AdminUserViewModel
+@{
+    ViewData["Title"] = "Quản trị hệ thống";
+}
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
@@ -8,356 +11,265 @@
 </div>
 
 <ul class="nav nav-tabs mb-4">
-    <li class="nav-item"><a class="nav-link active" href="/Admin/Users"><i class="bi bi-person-vcard me-1"></i>Tài khoản & Phân quyền</a></li>
-    <li class="nav-item"><a class="nav-link" href="/Admin/Config"><i class="bi bi-sliders me-1"></i>Cấu hình hệ thống</a></li>
-    <li class="nav-item"><a class="nav-link" href="/Admin/Reports"><i class="bi bi-bar-chart-line me-1"></i>Báo cáo tổng quan</a></li>
+    <li class="nav-item"><a class="nav-link active" asp-action="Users"><i class="bi bi-person-vcard me-1"></i>Tài khoản & Phân quyền</a></li>
+    <li class="nav-item"><a class="nav-link" asp-action="Config"><i class="bi bi-sliders me-1"></i>Cấu hình hệ thống</a></li>
+    <li class="nav-item"><a class="nav-link" asp-action="Reports"><i class="bi bi-bar-chart-line me-1"></i>Báo cáo tổng quan</a></li>
 </ul>
 
 <div class="tab-content">
-<div class="tab-pane active">
+    <div class="tab-pane active">
 
-    <!-- FILTER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="d-flex gap-2">
-            <input type="text" class="form-control form-control-sm" style="width:250px;" placeholder="Tìm theo tên, email...">
-            <select class="form-select form-select-sm" style="width:180px;">
-                <option>Tất cả vai trò</option>
-                <option>Quản trị viên</option>
-                <option>Nhân viên mua hàng</option>
-                <option>Quản lý kho</option>
-                <option>Nhân viên bán hàng</option>
-                <option>Nhân viên vận chuyển</option>
-            </select>
-        </div>
-        <a href="/Account/Register" class="btn btn-sm btn-primary">
-            <i class="bi bi-person-plus me-1"></i>Thêm tài khoản
-        </a>
-    </div>
-
-    <!-- TABLE -->
-    <div class="card border-0 shadow-sm">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="bg-light">
-                    <tr class="text-muted small ">
-                        <th>NHÂN VIÊN</th>
-                        <th>TÊN ĐĂNG NHẬP</th>
-                        <th>VAI TRÒ</th>
-                        <th>LIÊN HỆ</th>
-                        <th>TRẠNG THÁI</th>
-                        <th></th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    <!-- ITEM -->
-                    <tr class="border-top">
-                        <td class="ps-4 py-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-semibold"
-                                     style="width:36px;height:36px;">
-                                    AD
-                                </div>
-                                <div>
-                                    <div class="fw-semibold text-dark">Admin Hệ Thống</div>
-                                </div>
-                            </div>
-                        </td>
-
-                        <td class="text-muted small">admin</td>
-
-                        <td>
-                            <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger px-3 py-1">
-                                Quản trị viên
-                            </span>
-                        </td>
-
-                        <td class="text-muted small">
-                            admin@scm.vn
-                        </td>
-
-                        <td>
-                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">
-                                Đang hoạt động
-                            </span>
-                        </td>
-
-                        <td>
-                            <button class="btn btn-sm btn-light border me-1">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-light border text-danger">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <!-- ITEM -->
-                    <tr class="border-top">
-                        <td class="ps-4 py-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-semibold"
-                                     style="width:36px;height:36px;">
-                                    NK
-                                </div>
-                                <div>
-                                    <div class="fw-semibold text-dark">Nguyễn Văn Khánh</div>
-                                </div>
-                            </div>
-                        </td>
-
-                        <td class="text-muted small">nvkhanh</td>
-
-                        <td>
-                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">
-                                Quản lý kho
-                            </span>
-                        </td>
-
-                        <td class="text-muted small">nvkhanh@scm.vn</td>
-
-                        <td>
-                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">
-                                Đang hoạt động
-                            </span>
-                        </td>
-
-                        <td>
-                            <button class="btn btn-sm btn-light border me-1">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-light border text-danger">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <!-- ITEM -->
-                    <tr class="border-top">
-                        <td class="ps-4 py-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center fw-semibold"
-                                     style="width:36px;height:36px;">
-                                    TL
-                                </div>
-                                <div>
-                                    <div class="fw-semibold text-dark">Trần Thị Lan</div>
-                                </div>
-                            </div>
-                        </td>
-
-                        <td class="text-muted small">ttlan</td>
-
-                        <td>
-                            <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning px-3 py-1">
-                                NV Bán hàng
-                            </span>
-                        </td>
-
-                        <td class="text-muted small">ttlan@scm.vn</td>
-
-                        <td>
-                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">
-                                Đang hoạt động
-                            </span>
-                        </td>
-
-                        <td>
-                            <button class="btn btn-sm btn-light border me-1">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-light border text-danger">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <!-- ITEM -->
-                    <tr class="border-top">
-                        <td class="ps-4 py-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center fw-semibold"
-                                     style="width:36px;height:36px;">
-                                    VC
-                                </div>
-                                <div>
-                                    <div class="fw-semibold text-dark">Trần Văn Cường</div>
-                                </div>
-                            </div>
-                        </td>
-
-                        <td class="text-muted small">tvcuong</td>
-
-                        <td>
-                            <span class="badge rounded-pill bg-info bg-opacity-10 text-info px-3 py-1">
-                                NV Vận chuyển
-                            </span>
-                        </td>
-
-                        <td class="text-muted small">tvcuong@scm.vn</td>
-
-                        <td>
-                            <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary px-3 py-1">
-                                Chờ duyệt
-                            </span>
-                        </td>
-
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary me-1">
-                                <i class="bi bi-check2"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-x"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- PERMISSION MATRIX -->
-    <div class="card border-0 shadow-sm mt-4">
-        <div class="p-3 border-bottom">
-            <h6 class="mb-0 fw-bold bi bi-shield" >Ma trận phân quyền</h6>
+        <!-- FILTER -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex gap-2">
+                <input type="text" class="form-control form-control-sm" style="width:250px;" placeholder="Tìm theo tên, email...">
+                <select class="form-select form-select-sm" style="width:180px;">
+                    <option>Tất cả vai trò</option>
+                    @foreach (var role in Model.Roles)
+                    {
+                        <option>@role.RoleName</option>
+                    }
+                </select>
+            </div>
+            <a href="/Account/Register" class="btn btn-sm btn-primary shadow-sm">
+                <i class="bi bi-person-plus me-1"></i> Thêm tài khoản
+            </a>
         </div>
 
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="bg-light">
-                    <tr class="text-muted small">
-                        <th>CHỨC NĂNG</th>
-                        <th class="text-center">Quản trị viên</th>
-                        <th class="text-center">Mua hàng</th>
-                        <th class="text-center">Quản lý kho</th>
-                        <th class="text-center">Vận chuyển</th>
-                        <th class="text-center">Bán hàng</th>
-                    </tr>
-                </thead>
-
-                <tbody class="small">
-
-                    <tr>
-                        <td>Xem Dashboard</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                    </tr>
-
-                    <tr>
-                        <td>Quản lý NCC</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                    </tr>
-
-                    <tr>
-                        <td>Tạo đơn nhập hàng</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                    </tr>
-
-                    <tr>
-                        <td>Nhập kho</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                    </tr>
-
-                    <tr>
-                        <td>Kiểm kê kho</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                    </tr>
-
-                    <tr>
-                        <td>Soạn/Đóng gói</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                    </tr>
-
-                    <tr>
-                        <td>Tạo đơn bán</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                    </tr>
-
-                    <tr>
-                        <td>Điều phối vận chuyển</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                    </tr>
-
-                    <tr>
-                        <td>Cập nhật trạng thái GH</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                    </tr>
-
-                    <tr>
-                        <td>Xem báo cáo</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                    </tr>
-
-                    <tr>
-                        <td>Quản lý tài khoản</td>
-                        <td class="text-center text-success"><i class="bi bi-check-lg text-success"></i></td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                        <td class="text-center">—</td>
-                    </tr>
-
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-</div>
-</div>
-
-<script>
-document.querySelectorAll(".toggle-permission").forEach(btn => {
-    btn.addEventListener("click", function () {
-        let enabled = this.getAttribute("data-enabled") === "true";
-
-        if (enabled) {
-            this.innerHTML = '<i class="bi bi-x-lg text-muted"></i>';
-            this.setAttribute("data-enabled", "false");
-        } else {
-            this.innerHTML = '<i class="bi bi-check-lg text-success"></i>';
-            this.setAttribute("data-enabled", "true");
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         }
-    });
-});
-</script>
+
+        <!-- TABLE -->
+        <div class="card border-0 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 table-hover">
+                    <thead class="bg-light">
+                        <tr class="text-muted small">
+                            <th class="ps-4 py-3">NHÂN VIÊN</th>
+                            <th class="py-3">TÊN ĐĂNG NHẬP</th>
+                            <th class="py-3">VAI TRÒ</th>
+                            <th class="py-3">LIÊN HỆ</th>
+                            <th class="py-3">TRẠNG THÁI</th>
+                            <th class="text-end pe-4 py-3">THAO TÁC</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var u in Model.Users)
+                        {
+                            <tr class="border-top">
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                                             style="width:38px;height:38px;font-size: 0.85rem;">
+                                            @u.FullName.Substring(0, Math.Min(2, u.FullName.Length)).ToUpper()
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">@u.FullName</div>
+                                            <div class="text-muted small" style="font-size: 0.75rem;">ID: #@u.UserID.ToString("D3")</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="text-muted small fw-semibold">@u.Username</td>
+
+                                <td>
+                                    @if (u.RoleName == "Quản trị viên")
+                                    {
+                                        <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger px-3 py-1">@u.RoleName</span>
+                                    }
+                                    else if (u.RoleName == "Quản lý kho")
+                                    {
+                                        <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">@u.RoleName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-info bg-opacity-10 text-info px-3 py-1">@u.RoleName</span>
+                                    }
+                                </td>
+
+                                <td class="text-muted small">@u.Email</td>
+
+                                <td>
+                                    @if (u.Status == "Chờ duyệt")
+                                    {
+                                        <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning px-3 py-1">
+                                            <i class="bi bi-clock-history me-1"></i> @u.Status
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">
+                                            <i class="bi bi-check-circle me-1"></i> @u.Status
+                                        </span>
+                                    }
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <div class="btn-group">
+                                        @if (u.Status == "Chờ duyệt")
+                                        {
+                                            <form asp-action="ApproveUser" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@u.UserID" />
+                                                <button type="submit" class="btn btn-sm btn-outline-success me-1" title="Duyệt tài khoản">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        <button class="btn btn-sm btn-light border text-primary me-1 btn-edit-user" 
+                                                data-id="@u.UserID" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-light border text-danger btn-delete-user" 
+                                                data-id="@u.UserID" data-name="@u.FullName" title="Xóa">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PERMISSION MATRIX -->
+        <div class="card border-0 shadow-sm mt-4 overflow-hidden">
+            <div class="p-3 border-bottom bg-light d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-shield-check me-2"></i>Ma trận phân quyền hệ thống</h6>
+                <span class="badge bg-white text-muted border fw-normal">Xem trước thiết lập</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 table-sm">
+                    <thead class="bg-light">
+                        <tr class="text-muted small">
+                            <th class="ps-4">CHỨC NĂNG</th>
+                            <th class="text-center">Quản trị viên</th>
+                            <th class="text-center">Mua hàng</th>
+                            <th class="text-center">Quản lý kho</th>
+                            <th class="text-center">Vận chuyển</th>
+                            <th class="text-center">Bán hàng</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        <tr><td class="ps-4">Quản lý NCC & Đơn nhập</td><td class="text-center text-success"><i class="bi bi-check-lg"></i></td><td class="text-center text-success"><i class="bi bi-check-lg"></i></td><td></td><td></td><td></td></tr>
+                        <tr><td class="ps-4">Quản lý Kho & Tồn kho</td><td class="text-center text-success"><i class="bi bi-check-lg"></i></td><td></td><td class="text-center text-success"><i class="bi bi-check-lg"></i></td><td></td><td></td></tr>
+                        <tr><td class="ps-4">Quản lý Đơn bán & Đổi trả</td><td class="text-center text-success"><i class="bi bi-check-lg"></i></td><td></td><td></td><td></td><td class="text-center text-success"><i class="bi bi-check-lg"></i></td></tr>
+                        <tr><td class="ps-4">Điều phối Vận chuyển</td><td class="text-center text-success"><i class="bi bi-check-lg"></i></td><td></td><td></td><td class="text-center text-success"><i class="bi bi-check-lg"></i></td><td></td></tr>
+                        <tr><td class="ps-4">Quản trị Hệ thống</td><td class="text-center text-success"><i class="bi bi-check-lg"></i></td><td></td><td></td><td></td><td></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal Chỉnh sửa User -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white p-4">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Chỉnh sửa tài khoản</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="UpdateUser" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="userId" id="editUserId" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Họ và tên</label>
+                        <input type="text" name="fullName" id="editFullName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Tên đăng nhập (ID: <span id="displayUsername" class="text-primary"></span>)</label>
+                        <input type="text" class="form-control bg-light" id="editUsername" readonly disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Email</label>
+                        <input type="email" name="email" id="editEmail" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Số điện thoại / Mã kích hoạt</label>
+                        <input type="text" name="phone" id="editPhone" class="form-control">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold">Vai trò / Phân quyền</label>
+                        <select name="roleId" id="editRoleId" class="form-select shadow-sm border-primary border-opacity-25" required>
+                            @foreach (var role in Model.Roles)
+                            {
+                                <option value="@role.RoleID">@role.RoleName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer p-4 border-0">
+                    <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 shadow-sm"><i class="bi bi-save me-1"></i> Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác nhận xóa -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body p-4 text-center">
+                <div class="display-4 text-danger mb-3"><i class="bi bi-exclamation-octagon"></i></div>
+                <h5 class="fw-bold">Xác nhận xóa?</h5>
+                <p class="text-muted small">Bạn có chắc chắn muốn xóa tài khoản <span id="deleteUserName" class="fw-bold text-dark"></span>? Hành động này không thể hoàn tác.</p>
+                
+                <form asp-action="DeleteUser" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="userId" id="deleteUserId" />
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-danger">Xóa tài khoản</button>
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Hủy bỏ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Xử lý mở modal Edit
+            $('.btn-edit-user').on('click', function () {
+                const id = $(this).data('id');
+                
+                $.get('/Admin/GetUser/' + id, function (data) {
+                    $('#editUserId').val(data.userId);
+                    $('#editFullName').val(data.fullName);
+                    $('#editUsername').val(data.username);
+                    $('#displayUsername').text(data.username);
+                    $('#editEmail').val(data.email);
+                    $('#editPhone').val(data.phone);
+                    $('#editRoleId').val(data.roleId);
+                    
+                    $('#editUserModal').modal('show');
+                }).fail(function() {
+                    alert('Không thể tải thông tin người dùng.');
+                });
+            });
+
+            // Xử lý mở modal Delete
+            $('.btn-delete-user').on('click', function () {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                
+                $('#deleteUserId').val(id);
+                $('#deleteUserName').text(name);
+                $('#deleteUserModal').modal('show');
+            });
+        });
+    </script>
+}

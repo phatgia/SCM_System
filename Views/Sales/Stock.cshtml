@@ -1,31 +1,100 @@
-@{ViewData["Title"] = "Bán hàng & Xuất kho";}
+@model SCM_System.Models.ViewModels.SalesStockViewModel
+@{
+    ViewData["Title"] = "Bán hàng & Xuất kho - Tồn kho";
+}
+
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <div><h4 class="fw-bold mb-1">Bán hàng & Xuất kho</h4><p class="text-muted small mb-0">Tạo đơn, tra cứu tồn kho và xử lý đổi trả</p></div>
+    <div>
+        <h4 class="fw-bold mb-1">Bán hàng & Xuất kho</h4>
+        <p class="text-muted small mb-0">Tạo đơn, tra cứu tồn kho và xử lý đổi trả</p>
+    </div>
 </div>
+
 <ul class="nav nav-tabs mb-4">
-    <li class="nav-item"><a class="nav-link" href="/Sales/Create"><i class="bi bi-receipt me-1"></i>Tạo đơn bán</a></li>
-    <li class="nav-item"><a class="nav-link" href="/Sales/Orders"><i class="bi bi-cart-plus me-1"></i>Đơn bán hàng</a></li>
-    <li class="nav-item"><a class="nav-link active" href="/Sales/Stock"><i class="bi bi-boxes me-1"></i>Tra cứu tồn kho</a></li>
-    <li class="nav-item"><a class="nav-link" href="/Sales/Returns"><i class="bi bi-arrow-left-right me-1"></i>Đổi trả hàng</a></li>
+    <li class="nav-item"><a class="nav-link" asp-action="Create"><i class="bi bi-receipt me-1"></i>Tạo đơn bán</a></li>
+    <li class="nav-item"><a class="nav-link" asp-action="Orders"><i class="bi bi-cart-plus me-1"></i>Đơn bán hàng</a></li>
+    <li class="nav-item"><a class="nav-link active" asp-action="Stock"><i class="bi bi-boxes me-1"></i>Tra cứu tồn kho</a></li>
+    <li class="nav-item"><a class="nav-link" asp-action="Returns"><i class="bi bi-arrow-left-right me-1"></i>Đổi trả hàng</a></li>
 </ul>
 
 <div class="tab-content">
-    <!-- TRA CỨU TỒN KHO -->
-    <div class="tab-pane active" id="tab-tracuu">
-        <div class="card border-0 shadow-sm mb-3"><div class="card-body p-3"><div class="row g-3 align-items-end">
-            <div class="col-md-6"><label class="form-label small fw-semibold">Tên / Mã linh kiện</label><div class="input-group"><input type="text" class="form-control" placeholder="Tìm theo tên, mã hoặc mã vạch..."><button class="btn btn-primary"><i class="bi bi-search"></i></button></div></div>
-            <div class="col-md-3"><label class="form-label small fw-semibold">Danh mục</label><select class="form-select"><option>Tất cả danh mục</option><option>CPU</option><option>GPU</option><option>RAM</option><option>SSD</option><option>Mainboard</option></select></div>
-        </div></div></div>
-        <div class="card border-0 shadow-sm"><div class="card-body p-0"><div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light"><tr><th class="ps-4 py-2 small text-muted border-0">SẢN PHẨM</th><th class="py-2 small text-muted border-0">DANH MỤC</th><th class="py-2 small text-muted border-0">TỒN THỰC TẾ</th><th class="py-2 small text-muted border-0">ĐANG GIỮ CHỖ</th><th class="py-2 small text-muted border-0">KHẢ DỤNG</th><th class="py-2 small text-muted border-0">VỊ TRÍ</th></tr></thead>
-                <tbody>
-                    <tr><td class="ps-4 py-2"><div class="small fw-semibold">Intel Core i9-13900K</div><div class="small text-muted">SKU: CPU-I9-13K</div></td><td class="py-2 small">CPU</td><td class="py-2 small fw-semibold">15</td><td class="py-2 small text-warning">3</td><td class="py-2"><span class="badge bg-danger px-2 fw-semibold">2</span></td><td class="py-2 small text-muted">A-01</td></tr>
-                    <tr><td class="ps-4 py-2"><div class="small fw-semibold">NVIDIA RTX 4090 24GB</div><div class="small text-muted">SKU: GPU-4090-24G</div></td><td class="py-2 small">GPU</td><td class="py-2 small fw-semibold">8</td><td class="py-2 small text-warning">2</td><td class="py-2"><span class="badge bg-warning px-2 fw-semibold">6</span></td><td class="py-2 small text-muted">B-02</td></tr>
-                    <tr><td class="ps-4 py-2"><div class="small fw-semibold">Corsair Vengeance DDR5 32GB</div><div class="small text-muted">SKU: RAM-DDR5-32G</div></td><td class="py-2 small">RAM</td><td class="py-2 small fw-semibold">45</td><td class="py-2 small text-warning">5</td><td class="py-2"><span class="badge bg-success px-2 fw-semibold">40</span></td><td class="py-2 small text-muted">C-01</td></tr>
-                    <tr><td class="ps-4 py-2"><div class="small fw-semibold">Samsung 990 Pro 2TB</div><div class="small text-muted">SKU: SSD-990P-2T</div></td><td class="py-2 small">SSD</td><td class="py-2 small fw-semibold">20</td><td class="py-2 small text-warning">4</td><td class="py-2"><span class="badge bg-success px-2 fw-semibold">16</span></td><td class="py-2 small text-muted">A-02</td></tr>
-                </tbody>
-            </table>
-        </div></div></div>
+    <div class="tab-pane active">
+        <!-- FILTER -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-3">
+                <form asp-action="Stock" method="get">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Tên / Mã linh kiện</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="search" value="@ViewBag.SearchTerm" class="form-control" placeholder="Tìm theo tên linh kiện...">
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Tìm kiếm</button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">Danh mục</label>
+                            <select name="categoryId" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="">Tất cả danh mục</option>
+                                @foreach (var cat in Model.Categories)
+                                {
+                                    <option value="@cat.CategoryID" selected="@(ViewBag.CategoryId == cat.CategoryID)">@cat.CategoryName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-action="Stock" class="btn btn-sm btn-outline-secondary">Xóa lọc</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- STOCK TABLE -->
+        <div class="card border-0 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light">
+                        <tr class="text-muted small">
+                            <th class="ps-4 py-3 border-0">SẢN PHẨM</th>
+                            <th class="py-3 border-0">DANH MỤC</th>
+                            <th class="py-3 border-0 text-center">TỒN THỰC TẾ</th>
+                            <th class="py-3 border-0 text-center">ĐANG GIỮ CHỖ</th>
+                            <th class="py-3 border-0 text-center">KHẢ DỤNG</th>
+                            <th class="py-3 border-0">VỊ TRÍ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Stocks.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted small">Không tìm thấy sản phẩm nào trong kho.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model.Stocks)
+                            {
+                                <tr>
+                                    <td class="ps-4 py-2">
+                                        <div class="small fw-bold text-dark">@item.ProductName</div>
+                                        <div class="small text-muted">@item.SKU</div>
+                                    </td>
+                                    <td class="py-2 small text-muted">@item.CategoryName</td>
+                                    <td class="py-2 text-center fw-bold small">@item.PhysicalStock</td>
+                                    <td class="py-2 text-center text-warning small">@item.ReservedStock</td>
+                                    <td class="py-2 text-center">
+                                        @{
+                                            var badgeClass = item.AvailableStock <= 5 ? "bg-danger" : (item.AvailableStock <= 15 ? "bg-warning" : "bg-success");
+                                        }
+                                        <span class="badge @badgeClass px-2 fw-semibold">@item.AvailableStock</span>
+                                    </td>
+                                    <td class="py-2 small text-muted"><i class="bi bi-geo-alt me-1"></i>@item.LocationName</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>

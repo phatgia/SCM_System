@@ -1,0 +1,67 @@
+@model SCM_System.Models.PurchaseOrder
+@{
+    bool isVND = ViewBag.CurrencySymbol == "₫";
+    string format = isVND ? "N0" : "N2";
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 bg-light p-3 shadow-sm h-100">
+            <p class="fw-bold mb-2 text-primary text-uppercase small"><i class="bi bi-building me-2"></i>NHÀ CUNG CẤP</p>
+            <p class="mb-1 fw-bold">@Model.Supplier.SupplierName</p>
+            <p class="mb-1 text-muted small"><i class="bi bi-geo-alt me-1"></i>@Model.Supplier.Address</p>
+            <p class="mb-0 text-muted small"><i class="bi bi-person me-1"></i>@Model.Supplier.ContactPerson — @Model.Supplier.Phone</p>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 bg-light p-3 shadow-sm h-100">
+            <p class="fw-bold mb-2 text-primary text-uppercase small"><i class="bi bi-info-circle me-2"></i>THÔNG TIN ĐƠN HÀNG</p>
+            <p class="mb-1"><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+            <p class="mb-1"><strong>Dự kiến giao:</strong> @(Model.ExpectedDeliveryDate?.ToString("dd/MM/yyyy") ?? "Chưa rõ")</p>
+            <p class="mb-0"><strong>Nhân viên:</strong> @Model.User.FullName</p>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle border-top">
+        <thead class="bg-white">
+            <tr class="small text-muted border-0">
+                <th class="ps-3 py-3">SẢN PHẨM</th>
+                <th class="text-center">SỐ LƯỢNG</th>
+                <th class="text-end">ĐƠN GIÁ (@ViewBag.CurrencySymbol)</th>
+                <th class="text-end pe-3">THÀNH TIỀN (@ViewBag.CurrencySymbol)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var detail in Model.PurchaseOrderDetails)
+            {
+                <tr>
+                    <td class="ps-3 py-2 fw-semibold">@detail.Product.ProductName</td>
+                    <td class="text-center">@detail.Quantity</td>
+                    <td class="text-end">@ViewBag.CurrencySymbol@detail.UnitPrice.ToString(format)</td>
+                    <td class="text-end pe-3 fw-bold text-dark">@ViewBag.CurrencySymbol@((detail.Quantity * detail.UnitPrice).ToString(format))</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot class="table-light">
+            <tr class="fw-bold border-0">
+                <td colspan="3" class="text-end py-3 text-uppercase small">TỔNG CỘNG:</td>
+                <td class="text-end pe-3 py-3 text-primary fs-5">@ViewBag.CurrencySymbol@Model.TotalAmount.ToString(format)</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Status))
+{
+    <div class="mt-2 d-flex justify-content-between align-items-center p-3 rounded bg-light border-start border-primary border-4">
+        <div>
+            <span class="text-muted small">Trạng thái hiện tại:</span>
+            <span class="badge bg-primary rounded-pill px-3 ms-2">@Model.Status</span>
+        </div>
+        <div class="text-muted small italic">
+            <i class="bi bi-clock me-1"></i>Cập nhật lúc @DateTime.Now.ToString("HH:mm dd/MM")
+        </div>
+    </div>
+}

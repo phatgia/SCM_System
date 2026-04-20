@@ -1,122 +1,103 @@
-@{ViewData["Title"] = "Quản trị hệ thống";}
+@model SCM_System.Models.ViewModels.AdminConfigViewModel
+@{
+    ViewData["Title"] = "Quản trị hệ thống - Cấu hình";
+}
+
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <div><h4 class="fw-bold mb-1">Quản trị hệ thống</h4><p class="text-muted small mb-0">Quản lý tài khoản, phân quyền, cấu hình và báo cáo</p></div>
+    <div>
+        <h4 class="fw-bold mb-1">Quản trị hệ thống</h4>
+        <p class="text-muted small mb-0">Quản lý tài khoản, phân quyền, cấu hình và báo cáo</p>
+    </div>
 </div>
+
 <ul class="nav nav-tabs mb-4">
-    <li class="nav-item"><a class="nav-link" href="/Admin/Users"><i class="bi bi-person-vcard me-1"></i>Tài khoản & Phân quyền</a></li>
-    <li class="nav-item"><a class="nav-link active" href="/Admin/Config"><i class="bi bi-sliders me-1"></i>Cấu hình hệ thống</a></li>
-    <li class="nav-item"><a class="nav-link" href="/Admin/Reports"><i class="bi bi-bar-chart-line me-1"></i>Báo cáo tổng quan</a></li>
+    <li class="nav-item"><a class="nav-link" asp-action="Users"><i class="bi bi-person-vcard me-1"></i>Tài khoản & Phân quyền</a></li>
+    <li class="nav-item"><a class="nav-link active" asp-action="Config"><i class="bi bi-sliders me-1"></i>Cấu hình hệ thống</a></li>
+    <li class="nav-item"><a class="nav-link" asp-action="Reports"><i class="bi bi-bar-chart-line me-1"></i>Báo cáo tổng quan</a></li>
 </ul>
 
 <div class="tab-content">
-    <!-- CẤU HÌNH -->
-    <div class="container" style="max-width:900px;">
-
-    <!-- THÔNG TIN DOANH NGHIỆP -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <h6 class="fw-bold mb-3">
-                <i class="bi bi-gear me-2"></i>Thông tin doanh nghiệp
-            </h6>
-
-            <div class="row g-3">
-
-                <div class="col-12">
-                    <label class="form-label small">Tên công ty</label>
-                    <input class="form-control form-control-sm" value="Công ty TNHH Linh Kiện PC Pro">
-                </div>
-
-                <div class="col-12">
-                    <label class="form-label small">Địa chỉ</label>
-                    <input class="form-control form-control-sm" value="123 Nguyễn Thị Minh Khai, Q.3, TP.HCM">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small">Số điện thoại</label>
-                    <input class="form-control form-control-sm" value="028 1234 5678">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small">Email</label>
-                    <input class="form-control form-control-sm" value="info@pcpro.vn">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small">Mã số thuế</label>
-                    <input class="form-control form-control-sm" value="0123456789">
-                </div>
-
+    <div class="container" style="max-width:800px;">
+        
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-        </div>
+        }
+
+        <form asp-action="SaveConfig" method="post">
+            @Html.AntiForgeryToken()
+
+            <!-- CÀI ĐẶT KHO -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-box-seam me-2 text-primary"></i>Cài đặt kho hàng
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label small fw-semibold">Ngưỡng tồn kho thấp</label>
+                            <input type="number" asp-for="LowStockThreshold" class="form-control shadow-sm" placeholder="VD: 5">
+                            <div class="form-text small">Hệ thống sẽ cảnh báo khi số lượng dưới mức này.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THÔNG BÁO & HỆ THỐNG -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-bell me-2 text-warning"></i>Thông báo & Hệ thống
+                    </h6>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" asp-for="AutoBackup" id="swBackup">
+                                <label class="form-check-label ms-2" for="swBackup">Sao lưu dữ liệu tự động hằng ngày</label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" asp-for="EnableEmail" id="swEmail">
+                                <label class="form-check-label ms-2" for="swEmail">Gửi Email thông báo đơn hàng</label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" asp-for="EnableSMS" id="swSms">
+                                <label class="form-check-label ms-2" for="swSms">Gửi SMS cho mã xác thực PIN</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Đơn vị tiền tệ</label>
+                            <select asp-for="Currency" class="form-select shadow-sm">
+                                <option value="VND">VND (vnđ)</option>
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Múi giờ hệ thống</label>
+                            <select asp-for="TimeZone" class="form-select shadow-sm">
+                                <option value="Asia/Ho_Chi_Minh">Asia/Ho_Chi_Minh (GMT+7)</option>
+                                <option value="UTC">UTC (Universal Time)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="d-flex justify-content-end gap-2 mb-5">
+                <button type="reset" class="btn btn-light border px-4">Khôi phục</button>
+                <button type="submit" class="btn btn-primary px-4 shadow">
+                    <i class="bi bi-save me-1"></i> Lưu cấu hình
+                </button>
+            </div>
+        </form>
+
     </div>
-
-    <!-- CÀI ĐẶT KHO -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <h6 class="fw-bold mb-3">Cài đặt kho hàng</h6>
-
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label small">Ngưỡng tồn kho thấp</label>
-                    <input type="number" class="form-control form-control-sm" value="5">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small">Cảnh báo bảo hành (ngày)</label>
-                    <input type="number" class="form-control form-control-sm" value="30">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- HỆ THỐNG -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <h6 class="fw-bold mb-3">Thông báo & Hệ thống</h6>
-
-            <!-- SWITCH -->
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" checked>
-                <label class="form-check-label">Sao lưu dữ liệu tự động</label>
-            </div>
-
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" checked>
-                <label class="form-check-label">Gửi Email</label>
-            </div>
-
-            <div class="form-check form-switch mb-3">
-                <input class="form-check-input" type="checkbox">
-                <label class="form-check-label">Gửi SMS</label>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label small">Tiền tệ</label>
-                    <select class="form-select form-select-sm">
-                        <option>VND</option>
-                        <option>USD</option>
-                    </select>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small">Múi giờ</label>
-                    <select class="form-select form-select-sm">
-                        <option>Asia/Ho_Chi_Minh</option>
-                        <option>UTC</option>
-                    </select>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- BUTTON -->
-    <div class="text-end">
-        <button class="btn btn-primary">
-            <i class="bi bi-save me-1"></i>Lưu cấu hình
-        </button>
-    </div>
-
-</div>
 </div>

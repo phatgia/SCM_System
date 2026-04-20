@@ -1,0 +1,74 @@
+@model SCM_System.Models.SaleOrder
+@{
+    bool isVND = ViewBag.CurrencySymbol == "₫";
+    string format = isVND ? "N0" : "N2";
+}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <div class="card border bg-light p-3 small h-100">
+            <p class="fw-bold mb-2 text-primary text-uppercase">KHÁCH HÀNG</p>
+            <p class="mb-1"><strong>Tên:</strong> @Model.Customer.Name</p>
+            <p class="mb-1"><strong>SĐT:</strong> @Model.Customer.Phone</p>
+            <p class="mb-0"><strong>Địa chỉ:</strong> @Model.Customer.ShippingAddress</p>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border bg-light p-3 small h-100">
+            <p class="fw-bold mb-2 text-primary text-uppercase">TIẾN ĐỘ ĐƠN HÀNG</p>
+            <div class="d-flex align-items-center mb-1">
+                <span class="badge bg-success me-2 rounded-circle" style="width:20px;height:20px;padding:2px">✓</span>
+                <span>Tạo đơn — @Model.OrderDate.ToString("dd/MM HH:mm")</span>
+            </div>
+            <div class="d-flex align-items-center mb-1">
+                @{
+                    var step2Status = (Model.Status != "Đang xử lý" && Model.Status != "Đã hủy") ? "bg-success" : "bg-secondary opacity-50";
+                }
+                <span class="badge @step2Status me-2 rounded-circle" style="width:20px;height:20px;padding:2px">✓</span>
+                <span>Xuất kho / Giao hàng</span>
+            </div>
+            <div class="d-flex align-items-center">
+                @{
+                    var step3Status = (Model.Status == "Hoàn thành") ? "bg-success" : "bg-secondary opacity-50";
+                }
+                <span class="badge @step3Status me-2 rounded-circle" style="width:20px;height:20px;padding:2px">✓</span>
+                <span>Hoàn thành / Thanh toán</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="table table-sm border align-middle">
+    <thead class="table-light">
+        <tr class="small text-muted">
+            <th class="ps-3">SẢN PHẨM</th>
+            <th class="text-center">SL</th>
+            <th>ĐƠN GIÁ</th>
+            <th class="text-end pe-3">THÀNH TIỀN</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var detail in Model.SaleOrderDetails)
+        {
+            <tr>
+                <td class="ps-3 small">@detail.Product.ProductName</td>
+                <td class="text-center small">@detail.Quantity</td>
+                <td class="small">@ViewBag.CurrencySymbol@detail.UnitPrice.ToString(format)</td>
+                <td class="text-end pe-3 small fw-bold">@ViewBag.CurrencySymbol@((detail.Quantity * detail.UnitPrice).ToString(format))</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr class="border-top">
+            <td colspan="3" class="text-end fw-bold py-2">Tổng cộng:</td>
+            <td class="text-end pe-3 fw-bold text-primary fs-5 py-2">@ViewBag.CurrencySymbol@Model.TotalAmount.ToString(format)</td>
+        </tr>
+    </tfoot>
+</table>
+
+@if (!string.IsNullOrEmpty(Model.Status))
+{
+    <div class="mt-3 p-2 rounded bg-light border small text-muted italic text-center">
+        Trạng thái hiện tại: <span class="fw-bold">@Model.Status</span>
+    </div>
+}

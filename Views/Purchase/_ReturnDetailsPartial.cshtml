@@ -1,0 +1,57 @@
+@model SCM_System.Models.PurchaseReturn
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="p-3 bg-light rounded-3 border">
+            <h6 class="fw-bold text-muted small text-uppercase mb-3">Thông tin phiếu trả</h6>
+            <div class="mb-2"><strong>Mã yêu cầu:</strong> <span class="text-danger fw-bold ms-2">RTN-@Model.PurchaseReturnID.ToString("D3")</span></div>
+            <div class="mb-2"><strong>Liên quan đơn:</strong> <span class="fw-bold ms-2">PO-@Model.POID.ToString("D5")</span></div>
+            <div class="mb-2"><strong>Nhà cung cấp:</strong> <span class="fw-bold ms-2">@Model.PurchaseOrder.Supplier.SupplierName</span></div>
+            <div class="mb-0"><strong>Ngày lập:</strong> <span class="ms-2">@Model.ReturnDate.ToString("dd/MM/yyyy HH:mm")</span></div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="p-3 bg-light rounded-3 border">
+            <h6 class="fw-bold text-muted small text-uppercase mb-3">Trạng thái & Nhân viên</h6>
+            <div class="mb-2"><strong>Trạng thái:</strong> 
+                <span class="badge @(Model.Status == "Hoàn thành" ? "bg-success" : "bg-warning") bg-opacity-10 @(Model.Status == "Hoàn thành" ? "text-success" : "text-warning") ms-2 px-3">@Model.Status</span>
+            </div>
+            <div class="mb-2"><strong>Số tiền hoàn:</strong> <span class="text-primary fw-bold ms-2">@ViewBag.CurrencySymbol@Model.Amount.ToString("N0")</span></div>
+            <div class="mb-0"><strong>Người lập:</strong> <span class="ms-2">@Model.User.FullName</span></div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="p-3 bg-white rounded-3 border">
+            <h6 class="fw-bold text-muted small text-uppercase mb-2">Lý do trả hàng</h6>
+            <p class="mb-0 text-dark">@Model.Reason</p>
+        </div>
+    </div>
+</div>
+
+<h6 class="fw-bold mb-3"><i class="bi bi-box me-2"></i>Danh sách sản phẩm trong đơn gốc</h6>
+<div class="table-responsive">
+    <table class="table table-sm align-middle border">
+        <thead class="bg-light small">
+            <tr>
+                <th class="ps-3">Sản phẩm</th>
+                <th class="text-center">Số lượng</th>
+                <th class="text-end pe-3">Đơn giá (@ViewBag.CurrencySymbol)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model.PurchaseOrder.PurchaseOrderDetails)
+            {
+                <tr>
+                    <td class="ps-3 py-2 fw-medium">@d.Product.ProductName</td>
+                    <td class="text-center py-2">@d.Quantity</td>
+                    <td class="text-end pe-3 py-2">@d.UnitPrice.ToString("N0")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-4 p-3 border-start border-4 border-info bg-info bg-opacity-10 rounded-end">
+    <div class="small fw-bold text-info mb-1"><i class="bi bi-info-circle me-1"></i> Ghi chú chuyển kho</div>
+    <p class="small mb-0 text-secondary">Yêu cầu hoàn trả này sẽ được bộ phận Kho kiểm định trước khi khấu trừ tồn kho và tất toán tiền với nhà cung cấp.</p>
+</div>

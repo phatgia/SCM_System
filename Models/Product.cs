@@ -19,13 +19,14 @@ namespace SCM_System.Models
         [StringLength(30)]
         public string? Unit { get; set; }
 
-        public int? WarrantyMonths { get; set; }
+        
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal BasePrice { get; set; }
 
         // Navigation
         public virtual Category Category { get; set; } = null!;
         public virtual ICollection<PurchaseOrderDetail> PurchaseOrderDetails { get; set; } = new List<PurchaseOrderDetail>();
         public virtual ICollection<SaleOrderDetail> SaleOrderDetails { get; set; } = new List<SaleOrderDetail>();
-        public virtual ICollection<ProductSerial> ProductSerials { get; set; } = new List<ProductSerial>();
         public virtual ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
     }
 }
