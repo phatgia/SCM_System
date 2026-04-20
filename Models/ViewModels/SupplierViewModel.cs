@@ -35,6 +35,7 @@ namespace SCM_System.Models.ViewModels
         public string? Reason { get; set; }
         public decimal Amount { get; set; }
         public string Status { get; set; } = string.Empty;
+        public int POID { get; set; }
         public DateTime Date { get; set; }
     }
 
@@ -45,7 +46,9 @@ namespace SCM_System.Models.ViewModels
         public List<PurchaseReturnViewModel> ReturnOrders { get; set; } = new();
         public List<Product> AvailableProducts { get; set; } = new();
         
-        public string? SearchTerm { get; set; }
+        public string? SearchSupplier { get; set; }
+        public string? SearchPO { get; set; }
+        public string? SearchReturn { get; set; }
         public SupplierFormViewModel Form { get; set; } = new();
         public string CurrencySymbol { get; set; } = "₫";
     }

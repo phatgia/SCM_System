@@ -17,7 +17,6 @@ namespace SCM_System.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<PurchaseOrderDetail> PurchaseOrderDetails { get; set; }
-        public DbSet<ProductSerial> ProductSerials { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<SaleOrder> SaleOrders { get; set; }
         public DbSet<SaleOrderDetail> SaleOrderDetails { get; set; }
@@ -25,10 +24,24 @@ namespace SCM_System.Data
         public DbSet<ReturnOrder> ReturnOrders { get; set; }
         public DbSet<PurchaseReturn> PurchaseReturns { get; set; }
         public DbSet<SystemSetting> SystemSettings { get; set; }
+        public DbSet<QualityControl> QualityControls { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // ===== QualityControl -> Product/User (restrict) =====
+            modelBuilder.Entity<QualityControl>()
+                .HasOne(q => q.Product)
+                .WithMany()
+                .HasForeignKey(q => q.ProductID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<QualityControl>()
+                .HasOne(q => q.User)
+                .WithMany()
+                .HasForeignKey(q => q.UserID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // ===== Inventory: Composite Primary Key =====
             modelBuilder.Entity<Inventory>()
@@ -78,19 +91,6 @@ namespace SCM_System.Data
                 .HasForeignKey(r => r.UserID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ProductSerial -> ProductLocation (restrict)
-            modelBuilder.Entity<ProductSerial>()
-                .HasOne(ps => ps.ProductLocation)
-                .WithMany(pl => pl.ProductSerials)
-                .HasForeignKey(ps => ps.LocationID)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // ProductSerial -> PurchaseOrder (restrict)
-            modelBuilder.Entity<ProductSerial>()
-                .HasOne(ps => ps.PurchaseOrder)
-                .WithMany(po => po.ProductSerials)
-                .HasForeignKey(ps => ps.POID)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // Inventory -> ProductLocation (restrict)
             modelBuilder.Entity<Inventory>()

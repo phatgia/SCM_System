@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SCM_System.Data;
 
@@ -11,9 +12,11 @@ using SCM_System.Data;
 namespace SCM_System.Migrations
 {
     [DbContext(typeof(SCMDbContext))]
-    partial class SCMDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260420084147_AddBasePriceToProductV3")]
+    partial class AddBasePriceToProductV3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -150,6 +153,9 @@ namespace SCM_System.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<int?>("WarrantyMonths")
+                        .HasColumnType("int");
+
                     b.HasKey("ProductID");
 
                     b.HasIndex("CategoryID");
@@ -185,6 +191,47 @@ namespace SCM_System.Migrations
                     b.HasKey("LocationID");
 
                     b.ToTable("ProductLocation");
+                });
+
+            modelBuilder.Entity("SCM_System.Models.ProductSerial", b =>
+                {
+                    b.Property<int>("SerialID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SerialID"));
+
+                    b.Property<int>("LocationID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("POID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SerialNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime?>("WarrantyEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("SerialID");
+
+                    b.HasIndex("LocationID");
+
+                    b.HasIndex("POID");
+
+                    b.HasIndex("ProductID");
+
+                    b.ToTable("ProductSerial");
                 });
 
             modelBuilder.Entity("SCM_System.Models.PurchaseOrder", b =>
@@ -515,6 +562,9 @@ namespace SCM_System.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int>("WarrantyAlertDays")
+                        .HasColumnType("int");
+
                     b.HasKey("SettingID");
 
                     b.ToTable("SystemSettings");
@@ -611,6 +661,33 @@ namespace SCM_System.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("SCM_System.Models.ProductSerial", b =>
+                {
+                    b.HasOne("SCM_System.Models.ProductLocation", "ProductLocation")
+                        .WithMany("ProductSerials")
+                        .HasForeignKey("LocationID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SCM_System.Models.PurchaseOrder", "PurchaseOrder")
+                        .WithMany("ProductSerials")
+                        .HasForeignKey("POID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SCM_System.Models.Product", "Product")
+                        .WithMany("ProductSerials")
+                        .HasForeignKey("ProductID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ProductLocation");
+
+                    b.Navigation("PurchaseOrder");
                 });
 
             modelBuilder.Entity("SCM_System.Models.PurchaseOrder", b =>
@@ -771,6 +848,8 @@ namespace SCM_System.Migrations
                 {
                     b.Navigation("Inventories");
 
+                    b.Navigation("ProductSerials");
+
                     b.Navigation("PurchaseOrderDetails");
 
                     b.Navigation("SaleOrderDetails");
@@ -779,10 +858,14 @@ namespace SCM_System.Migrations
             modelBuilder.Entity("SCM_System.Models.ProductLocation", b =>
                 {
                     b.Navigation("Inventories");
+
+                    b.Navigation("ProductSerials");
                 });
 
             modelBuilder.Entity("SCM_System.Models.PurchaseOrder", b =>
                 {
+                    b.Navigation("ProductSerials");
+
                     b.Navigation("PurchaseOrderDetails");
                 });
 

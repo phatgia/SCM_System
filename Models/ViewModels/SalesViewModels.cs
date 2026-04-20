@@ -11,7 +11,7 @@ namespace SCM_System.Models.ViewModels
     public class SaleOrderListItem
     {
         public int SOID { get; set; }
-        public string OrderCode => $"SO-{SOID:D4}";
+        public string OrderCode => $"SO-{SOID:D5}";
         public string CustomerName { get; set; } = string.Empty;
         public string CustomerPhone { get; set; } = string.Empty;
         public string ProductSummary { get; set; } = string.Empty;

@@ -31,7 +31,7 @@ namespace SCM_System.Controllers
                     FullName = u.FullName,
                     Username = u.Username,
                     RoleName = u.Role.RoleName,
-                    Email = u.Email,
+                    Email = u.Email ?? "",
                     Status = string.IsNullOrEmpty(u.PhoneNumber) ? "Chờ duyệt" : "Đang hoạt động"
                 })
                 .ToListAsync();
@@ -127,7 +127,6 @@ namespace SCM_System.Controllers
             var vm = new AdminConfigViewModel
             {
                 LowStockThreshold = settings.LowStockThreshold,
-                WarrantyAlertDays = settings.WarrantyAlertDays,
                 AutoBackup = settings.AutoBackup,
                 EnableEmail = settings.EnableEmail,
                 EnableSMS = settings.EnableSMS,
@@ -146,7 +145,6 @@ namespace SCM_System.Controllers
             if (settings == null) settings = new SystemSetting();
 
             settings.LowStockThreshold = model.LowStockThreshold;
-            settings.WarrantyAlertDays = model.WarrantyAlertDays;
             settings.AutoBackup = model.AutoBackup;
             settings.EnableEmail = model.EnableEmail;
             settings.EnableSMS = model.EnableSMS;

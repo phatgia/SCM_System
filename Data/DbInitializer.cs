@@ -65,7 +65,7 @@ namespace SCM_System.Data
                 var productFaker = new Faker<Product>("vi")
                     .RuleFor(p => p.ProductName, f => f.Commerce.ProductName())
                     .RuleFor(p => p.Unit, f => f.PickRandom(new[] { "Cái", "Chiếc", "Hộp", "Bộ" }))
-                    .RuleFor(p => p.WarrantyMonths, f => f.Random.Int(6, 36))
+                    .RuleFor(p => p.BasePrice, f => f.Random.Decimal(500000, 15000000))
                     .RuleFor(p => p.CategoryID, f => f.PickRandom(categoryIds));
                 
                 var products = productFaker.Generate(20);
@@ -244,6 +244,53 @@ namespace SCM_System.Data
                     context.SaveChanges();
                 }
             }
+
+            // 10. Seed ProductLocations
+            if (!context.ProductLocations.Any())
+            {
+                var locations = new List<ProductLocation>
+                {
+                    new ProductLocation { LocationCode = "A1", Description = "Khu vực CPU", Capacity = 100, LocationType = "Thông thường" },
+                    new ProductLocation { LocationCode = "A2", Description = "Khu vực RAM", Capacity = 150, LocationType = "Thông thường" },
+                    new ProductLocation { LocationCode = "B1", Description = "Khu vực GPU Cao Cấp", Capacity = 50, LocationType = "Giá trị cao" },
+                    new ProductLocation { LocationCode = "B2", Description = "Khu vực GPU Phổ Thông", Capacity = 100, LocationType = "Thông thường" },
+                    new ProductLocation { LocationCode = "C1", Description = "Khu vực Mainboard", Capacity = 200, LocationType = "Thông thường" },
+                    new ProductLocation { LocationCode = "D1", Description = "Khu vực Nguồn (PSU)", Capacity = 80, LocationType = "Hàng nặng" },
+                    new ProductLocation { LocationCode = "E1", Description = "Khu vực Màn hình", Capacity = 40, LocationType = "Hàng lớn" }
+                };
+                context.ProductLocations.AddRange(locations);
+                context.SaveChanges();
+            }
+
+            // 11. Seed Inventory
+            if (!context.Inventories.Any())
+            {
+                var products = context.Products.ToList();
+                var locations = context.ProductLocations.ToList();
+                var rnd = new Random();
+
+                foreach (var p in products)
+                {
+                    // Assign each product to 1 location to avoid overflow
+                    var loc = locations[rnd.Next(locations.Count)];
+                    
+                    context.Inventories.Add(new Inventory
+                    {
+                        ProductID = p.ProductID,
+                        LocationID = loc.LocationID,
+                        QuantityAvailable = rnd.Next(5, 20) // Smaller initial quantity
+                    });
+                }
+                context.SaveChanges();
+            }
+
+            // 12. Update some SaleOrders to "Đã soạn xong" for handover testing
+            var pendingOrders = context.SaleOrders.Where(o => o.Status == "Đang xử lý").Take(5).ToList();
+            foreach (var o in pendingOrders)
+            {
+                if (o.SOID % 2 == 0) o.Status = "Đã soạn xong";
+            }
+            context.SaveChanges();
         }
     }
 }

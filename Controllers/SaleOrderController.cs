@@ -76,7 +76,7 @@ namespace SCM_System.Controllers
                 _context.SaleOrders.Add(order);
                 await _context.SaveChangesAsync();
 
-                // 2. Create Details & Update Inventory
+                // 2. Create Details
                 foreach (var item in request.Items)
                 {
                     var detail = new SaleOrderDetail
@@ -87,16 +87,6 @@ namespace SCM_System.Controllers
                         UnitPrice = item.UnitPrice
                     };
                     _context.SaleOrderDetails.Add(detail);
-
-                    // Update Inventory (Subtract from total stock)
-                    // Simplified: just update the first location that has the product
-                    var inventory = await _context.Inventories.FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
-                    if (inventory != null)
-                    {
-                        inventory.QuantityAvailable -= item.Quantity;
-                        if (inventory.QuantityAvailable < 0) inventory.QuantityAvailable = 0; 
-                        _context.Update(inventory);
-                    }
                 }
 
                 await _context.SaveChangesAsync();
@@ -114,18 +104,28 @@ namespace SCM_System.Controllers
         // =====================================================================
         // GET: /Sales/Orders
         // =====================================================================
-        public async Task<IActionResult> Orders()
+        public async Task<IActionResult> Orders(string? search)
         {
-            var orders = await _context.SaleOrders
+            var query = _context.SaleOrders
                 .Include(so => so.Customer)
                 .Include(so => so.SaleOrderDetails)
                 .ThenInclude(d => d.Product)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(o => 
+                    o.Customer.Name.Contains(search) || 
+                    o.SOID.ToString().Contains(search));
+            }
+
+            var orders = await query
                 .OrderByDescending(so => so.OrderDate)
                 .Select(so => new SaleOrderListItem
                 {
                     SOID = so.SOID,
                     CustomerName = so.Customer.Name,
-                    CustomerPhone = so.Customer.Phone,
+                    CustomerPhone = so.Customer.Phone ?? "",
                     TotalAmount = so.TotalAmount,
                     OrderDate = so.OrderDate,
                     Status = so.Status,
@@ -133,7 +133,6 @@ namespace SCM_System.Controllers
                 })
                 .ToListAsync();
 
-            // 5. Get Currency Symbol and Rate
             var settings = await _context.SystemSettings.FirstOrDefaultAsync() ?? new SystemSetting();
             decimal rate = 1;
             if (settings.Currency == "USD") rate = 25000;
@@ -142,6 +141,7 @@ namespace SCM_System.Controllers
 
             foreach (var o in orders) o.TotalAmount /= rate;
 
+            ViewBag.SearchTerm = search;
             return View(new SalesOrdersViewModel { Orders = orders, CurrencySymbol = symbol });
         }
 
@@ -177,24 +177,39 @@ namespace SCM_System.Controllers
         // =====================================================================
         // GET: /Sales/Stock
         // =====================================================================
-        public async Task<IActionResult> Stock()
+        public async Task<IActionResult> Stock(string? search, int? categoryId)
         {
-            var stocks = await _context.Inventories
-                .Include(i => i.Product)
-                .ThenInclude(p => p.Category)
+            var query = _context.Inventories
+                .Include(i => i.Product).ThenInclude(p => p.Category)
                 .Include(i => i.ProductLocation)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(i => i.Product.ProductName.Contains(search));
+            }
+
+            if (categoryId.HasValue && categoryId > 0)
+            {
+                query = query.Where(i => i.Product.CategoryID == categoryId);
+            }
+
+            var stocks = await query
                 .Select(i => new StockItemViewModel
                 {
                     ProductID = i.ProductID,
                     ProductName = i.Product.ProductName,
                     CategoryName = i.Product.Category.CategoryName,
                     PhysicalStock = i.QuantityAvailable,
-                    ReservedStock = 0, // In real app, calculate from pending SOs
+                    ReservedStock = 0,
                     LocationName = i.ProductLocation.LocationCode
                 })
                 .ToListAsync();
 
             var categories = await _context.Categories.ToListAsync();
+
+            ViewBag.SearchTerm = search;
+            ViewBag.CategoryId = categoryId;
 
             return View(new SalesStockViewModel { Stocks = stocks, Categories = categories });
         }
@@ -202,18 +217,28 @@ namespace SCM_System.Controllers
         // =====================================================================
         // GET: /Sales/Returns
         // =====================================================================
-        public async Task<IActionResult> Returns()
+        public async Task<IActionResult> Returns(string? search)
         {
-            var returns = await _context.ReturnOrders
+            var query = _context.ReturnOrders
                 .Include(r => r.SaleOrder)
                 .ThenInclude(so => so.Customer)
                 .Include(r => r.SaleOrder.SaleOrderDetails)
                 .ThenInclude(d => d.Product)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(r => 
+                    r.SaleOrder.Customer.Name.Contains(search) || 
+                    r.SOID.ToString().Contains(search));
+            }
+
+            var returns = await query
                 .OrderByDescending(r => r.ReturnID)
                 .Select(r => new ReturnOrderViewModel
                 {
                     ReturnID = r.ReturnID,
-                    SaleOrderCode = $"SO-{r.SOID:D4}",
+                    SaleOrderCode = $"SO-{r.SOID:D5}",
                     CustomerName = r.SaleOrder.Customer.Name,
                     ProductSummary = string.Join(", ", r.SaleOrder.SaleOrderDetails.Select(d => d.Product.ProductName).Take(2)),
                     Settlement = r.Settlement ?? "N/A",

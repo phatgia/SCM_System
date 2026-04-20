@@ -37,15 +37,10 @@
                         <i class="bi bi-box-seam me-2 text-primary"></i>Cài đặt kho hàng
                     </h6>
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label class="form-label small fw-semibold">Ngưỡng tồn kho thấp</label>
                             <input type="number" asp-for="LowStockThreshold" class="form-control shadow-sm" placeholder="VD: 5">
                             <div class="form-text small">Hệ thống sẽ cảnh báo khi số lượng dưới mức này.</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Cảnh báo bảo hành (ngày)</label>
-                            <input type="number" asp-for="WarrantyAlertDays" class="form-control shadow-sm" placeholder="VD: 30">
-                            <div class="form-text small">Thông báo trước khi hết hạn bảo hành.</div>
                         </div>
                     </div>
                 </div>

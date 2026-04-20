@@ -16,8 +16,12 @@ namespace SCM_System.Models
         [StringLength(255)]
         public string? Description { get; set; }
 
+        public int Capacity { get; set; } = 100;
+
+        [StringLength(50)]
+        public string LocationType { get; set; } = "Thông thường";
+
         // Navigation
-        public virtual ICollection<ProductSerial> ProductSerials { get; set; } = new List<ProductSerial>();
         public virtual ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
     }
 }

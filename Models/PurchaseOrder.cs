@@ -30,6 +30,5 @@ namespace SCM_System.Models
         public virtual Supplier Supplier { get; set; } = null!;
         public virtual User User { get; set; } = null!;
         public virtual ICollection<PurchaseOrderDetail> PurchaseOrderDetails { get; set; } = new List<PurchaseOrderDetail>();
-        public virtual ICollection<ProductSerial> ProductSerials { get; set; } = new List<ProductSerial>();
     }
 }

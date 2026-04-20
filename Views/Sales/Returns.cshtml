@@ -20,11 +20,24 @@
 <div class="tab-content">
     <!-- ĐỔI TRẢ HÀNG -->
     <div class="tab-pane active" id="tab-doitra">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0">Yêu cầu đổi trả hàng</h6>
-            <button class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalDoiTra">
-                <i class="bi bi-plus me-1"></i> Tạo yêu cầu đổi trả
-            </button>
+        <div class="d-flex justify-content-between align-items-center mb-4 px-3 py-2 bg-white rounded-3 shadow-sm border">
+            <div>
+                <h6 class="fw-bold mb-0 text-primary">Yêu cầu đổi trả & Hoàn hàng</h6>
+                <p class="text-muted small mb-0">Tra cứu và xử lý các yêu cầu từ khách hàng</p>
+            </div>
+            <div class="d-flex gap-3">
+                <form asp-action="Returns" method="get" class="d-flex gap-2">
+                    <input type="text" name="search" value="@ViewContext.HttpContext.Request.Query["search"]" class="form-control form-control-sm border-0 bg-light rounded-pill px-4" placeholder="Tìm Mã SO hoặc Khách..." style="min-width: 280px;">
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm fw-bold">Tìm</button>
+                    @if (!string.IsNullOrEmpty(ViewContext.HttpContext.Request.Query["search"]))
+                    {
+                        <a href="/Sales/Returns" class="btn btn-link btn-sm text-decoration-none text-secondary">Xóa</a>
+                    }
+                </form>
+                <button class="btn btn-sm btn-dark rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalDoiTra">
+                    <i class="bi bi-plus-lg me-1"></i> Tạo mới
+                </button>
+            </div>
         </div>
 
         @if (TempData["SuccessMessage"] != null)

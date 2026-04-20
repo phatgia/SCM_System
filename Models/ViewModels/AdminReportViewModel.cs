@@ -5,7 +5,6 @@ namespace SCM_System.Models.ViewModels
     public class AdminConfigViewModel
     {
         public int LowStockThreshold { get; set; }
-        public int WarrantyAlertDays { get; set; }
         public bool AutoBackup { get; set; }
         public bool EnableEmail { get; set; }
         public bool EnableSMS { get; set; }

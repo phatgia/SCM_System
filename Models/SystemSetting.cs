@@ -10,7 +10,6 @@ namespace SCM_System.Models
         public int SettingID { get; set; }
 
         public int LowStockThreshold { get; set; } = 5;
-        public int WarrantyAlertDays { get; set; } = 30;
 
         public bool AutoBackup { get; set; } = true;
         public bool EnableEmail { get; set; } = true;

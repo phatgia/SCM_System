@@ -21,19 +21,19 @@ namespace SCM_System.Controllers
         // =====================================================================
         // GET: /Purchase/Supplier
         // =====================================================================
-        public async Task<IActionResult> Supplier(string? search)
+        public async Task<IActionResult> Supplier(string? searchSupplier, string? searchPO, string? searchReturn)
         {
             // 1. Fetch Suppliers
             var supplierQuery = _context.Suppliers
                 .Include(s => s.PurchaseOrders)
                 .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(search))
+ 
+            if (!string.IsNullOrWhiteSpace(searchSupplier))
                 supplierQuery = supplierQuery.Where(s =>
-                    s.SupplierName.Contains(search) ||
-                    (s.ContactPerson != null && s.ContactPerson.Contains(search)) ||
-                    (s.Phone != null && s.Phone.Contains(search)));
-
+                    s.SupplierName.Contains(searchSupplier) ||
+                    (s.ContactPerson != null && s.ContactPerson.Contains(searchSupplier)) ||
+                    (s.Phone != null && s.Phone.Contains(searchSupplier)));
+ 
             var suppliers = await supplierQuery
                 .Select(s => new SupplierViewModel
                 {
@@ -48,10 +48,18 @@ namespace SCM_System.Controllers
                 })
                 .OrderBy(s => s.SupplierName)
                 .ToListAsync();
-
+ 
             // 2. Fetch Purchase Orders
-            var pos = await _context.PurchaseOrders
+            var poQuery = _context.PurchaseOrders
                 .Include(p => p.Supplier)
+                .AsQueryable();
+ 
+            if (!string.IsNullOrWhiteSpace(searchPO))
+                poQuery = poQuery.Where(p => 
+                    p.Supplier.SupplierName.Contains(searchPO) || 
+                    p.POID.ToString().Contains(searchPO));
+ 
+            var pos = await poQuery
                 .OrderByDescending(p => p.POID)
                 .Select(p => new PurchaseOrderViewModel
                 {
@@ -63,53 +71,65 @@ namespace SCM_System.Controllers
                     Status = p.Status
                 })
                 .ToListAsync();
-
+ 
             // 3. Fetch Returns
-            var returns = await _context.PurchaseReturns
+            var returnQuery = _context.PurchaseReturns
                 .Include(r => r.PurchaseOrder)
                 .ThenInclude(po => po.Supplier)
                 .Include(r => r.PurchaseOrder.PurchaseOrderDetails)
                 .ThenInclude(pod => pod.Product)
-                .Include(r => r.User) // Include user details
+                .Include(r => r.User)
+                .AsQueryable();
+ 
+            if (!string.IsNullOrWhiteSpace(searchReturn))
+                returnQuery = returnQuery.Where(r => 
+                    r.PurchaseOrder.Supplier.SupplierName.Contains(searchReturn) || 
+                    r.PurchaseOrder.POID.ToString().Contains(searchReturn) ||
+                    (r.Reason != null && r.Reason.Contains(searchReturn)));
+ 
+            var returns = await returnQuery
                 .OrderByDescending(r => r.ReturnDate)
                 .Select(r => new PurchaseReturnViewModel
                 {
                     ReturnID = r.PurchaseReturnID,
                     SupplierName = r.PurchaseOrder.Supplier.SupplierName,
-                    StaffName = r.User.FullName, // Set staff name
+                    StaffName = r.User.FullName,
                     ProductSummary = string.Join(", ", r.PurchaseOrder.PurchaseOrderDetails.Select(d => d.Product.ProductName).Take(2)),
                     Reason = r.Reason,
                     Amount = r.Amount,
                     Status = r.Status,
-                    Date = r.ReturnDate
+                    Date = r.ReturnDate,
+                    POID = r.POID
                 })
                 .ToListAsync();
-
+ 
             // 4. Fetch Products for dropdown
             var products = await _context.Products.ToListAsync();
-
+ 
             // 5. Get Currency Symbol and Rate
             var settings = await _context.SystemSettings.FirstOrDefaultAsync() ?? new SystemSetting();
             decimal rate = 1;
             if (settings.Currency == "USD") rate = 25000;
             else if (settings.Currency == "EUR") rate = 27000;
             string symbol = settings.Currency == "VND" ? "₫" : (settings.Currency == "USD" ? "$" : "€");
-
+ 
             // Apply rate to list data
             foreach (var s in suppliers) s.TotalPurchased /= rate;
             foreach (var po in pos) po.TotalAmount /= rate;
             foreach (var r in returns) r.Amount /= rate;
-
+ 
             var vm = new SupplierPageViewModel
             {
                 Suppliers = suppliers,
                 PurchaseOrders = pos,
                 ReturnOrders = returns,
                 AvailableProducts = products,
-                SearchTerm = search,
+                SearchSupplier = searchSupplier,
+                SearchPO = searchPO,
+                SearchReturn = searchReturn,
                 CurrencySymbol = symbol
             };
-
+ 
             return View(vm);
         }
 
@@ -299,6 +319,35 @@ namespace SCM_System.Controllers
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Đã xóa nhà cung cấp.";
             return RedirectToAction("Supplier");
+        }
+
+        // =====================================================================
+        // GET: /Purchase/ReturnDetails/{id}
+        // =====================================================================
+        [HttpGet]
+        public async Task<IActionResult> ReturnDetails(int id)
+        {
+            var ret = await _context.PurchaseReturns
+                .Include(r => r.PurchaseOrder).ThenInclude(p => p.Supplier)
+                .Include(r => r.PurchaseOrder).ThenInclude(p => p.PurchaseOrderDetails).ThenInclude(d => d.Product)
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.PurchaseReturnID == id);
+
+            if (ret == null) return NotFound();
+
+            var settings = await _context.SystemSettings.FirstOrDefaultAsync() ?? new SystemSetting();
+            decimal rate = 1;
+            if (settings.Currency == "USD") rate = 25000;
+            else if (settings.Currency == "EUR") rate = 27000;
+            ViewBag.CurrencySymbol = settings.Currency == "VND" ? "₫" : (settings.Currency == "USD" ? "$" : "€");
+
+            ret.Amount /= rate;
+            foreach (var detail in ret.PurchaseOrder.PurchaseOrderDetails)
+            {
+                detail.UnitPrice /= rate;
+            }
+
+            return PartialView("_ReturnDetailsPartial", ret);
         }
     }
 }
