@@ -302,6 +302,29 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            function highlightSidebar() {
+                const currentPath = window.location.pathname + window.location.hash;
+                $('.sidebar-link').each(function() {
+                    const linkPath = $(this).attr('href');
+                    if (linkPath === currentPath || (window.location.hash === "" && linkPath === window.location.pathname + "#menu1")) {
+                        $(this).removeClass('text-secondary').addClass('text-white fw-bold');
+                        // Expand parent if it's a sub-menu
+                        $(this).closest('.collapse').addClass('show');
+                        $(this).closest('.nav-item').find('> .sidebar-link').addClass('text-white fw-bold');
+                    } else if (!$(this).hasClass('active')) {
+                        // Don't mess with the "Tổng quan" active state if it's explicitly set
+                        if (linkPath && linkPath !== "/") $(this).removeClass('text-white fw-bold').addClass('text-secondary');
+                    }
+                });
+            }
+
+            highlightSidebar();
+            window.addEventListener('hashchange', highlightSidebar);
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

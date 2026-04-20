@@ -302,7 +302,9 @@
             if (triggerEl) bootstrap.Tab.getOrCreateInstance(triggerEl).show();
 
             document.querySelectorAll('.nav-link[data-bs-toggle="tab"]').forEach(tab => {
-                tab.addEventListener('shown.bs.tab', e => history.replaceState(null, null, tab.getAttribute('href')));
+                tab.addEventListener('shown.bs.tab', e => {
+                    location.hash = tab.getAttribute('href');
+                });
             });
 
             addPOItemRow();
