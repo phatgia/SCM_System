@@ -460,6 +460,17 @@
                 syncPurchaseUI();
             });
         });
+
+
+        document.getElementById('editSupplierModal').addEventListener('show.bs.modal', function (event) {
+            const btn = event.relatedTarget;
+            document.getElementById('editSupplierID').value = btn.getAttribute('data-id');
+            document.getElementById('editSupplierName').value = btn.getAttribute('data-name');
+            document.getElementById('editContactPerson').value = btn.getAttribute('data-contact') || '';
+            document.getElementById('editPhone').value = btn.getAttribute('data-phone') || '';
+            document.getElementById('editEmail').value = btn.getAttribute('data-email') || '';
+            document.getElementById('editAddress').value = btn.getAttribute('data-address') || '';
+        });
     </script>
 }
 @* ========== MODAL THÊM NHÀ CUNG CẤP ========== *@
@@ -548,18 +559,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        // Điền data vào modal Edit khi bấm nút sửa
-        document.getElementById('editSupplierModal').addEventListener('show.bs.modal', function (event) {
-            const btn = event.relatedTarget;
-            document.getElementById('editSupplierID').value = btn.getAttribute('data-id');
-            document.getElementById('editSupplierName').value = btn.getAttribute('data-name');
-            document.getElementById('editContactPerson').value = btn.getAttribute('data-contact') || '';
-            document.getElementById('editPhone').value = btn.getAttribute('data-phone') || '';
-            document.getElementById('editEmail').value = btn.getAttribute('data-email') || '';
-            document.getElementById('editAddress').value = btn.getAttribute('data-address') || '';
-        });
-    </script>
-}
