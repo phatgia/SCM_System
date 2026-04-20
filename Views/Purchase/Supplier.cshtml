@@ -297,17 +297,33 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            let hash = window.location.hash || "#menu1";
-            let triggerEl = document.querySelector('.nav-link[href="' + hash + '"]');
-            if (triggerEl) bootstrap.Tab.getOrCreateInstance(triggerEl).show();
+            function forceSwitchTab() {
+                let hash = window.location.hash || "#menu1";
+                let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
+                
+                if (tabLink) {
+                    let tab = new bootstrap.Tab(tabLink);
+                    tab.show();
+                }
+            }
 
-            document.querySelectorAll('.nav-link[data-bs-toggle="tab"]').forEach(tab => {
-                tab.addEventListener('shown.bs.tab', e => {
-                    location.hash = tab.getAttribute('href');
-                });
+            forceSwitchTab();
+            window.addEventListener('hashchange', function() {
+                forceSwitchTab();
             });
 
-            addPOItemRow();
+            let tabs = document.querySelectorAll('.nav-tabs a[data-bs-toggle="tab"]');
+            tabs.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function (e) {
+                    let targetHash = tab.getAttribute('href');
+                
+                    if (window.location.hash !== targetHash) {
+                        history.pushState(null, null, targetHash);
+                        
+                        window.dispatchEvent(new Event('hashchange')); 
+                    }
+                });
+            });
         });
 
         function viewPODetail(id) {
@@ -362,12 +378,30 @@
         window.submitPurchaseOrder = async function() {
             const sId = document.getElementById('poSupplierID').value;
             if(!sId) return alert('Chọn NCC');
+            
             const items = [];
             document.querySelectorAll('#poItemsTable tbody tr').forEach(r => {
                 const pId = r.querySelector('.item-p').value;
-                if(pId) items.push({ ProductID: parseInt(pId), Quantity: parseInt(r.querySelector('.item-q').value), Price: parseFloat(r.querySelector('.item-pr').value) * rate });
+                if(pId) items.push({ 
+                    ProductID: parseInt(pId), 
+                    Quantity: parseInt(r.querySelector('.item-q').value), 
+                    Price: parseFloat(r.querySelector('.item-pr').value) * rate 
+                });
+            }); 
+                        
+            if(!items.length) return alert('Chọn SP');
+            
+            const res = await fetch('/Purchase/CreatePurchaseOrder', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() 
+                },
+                body: JSON.stringify({ SupplierID: parseInt(sId), Items: items })
             });
-        });
+            
+            if(res.ok) location.reload();
+        };
 
 
         document.getElementById('editSupplierModal').addEventListener('show.bs.modal', function (event) {
@@ -381,6 +415,8 @@
         });
     </script>
 }
+
+
 @* ========== MODAL THÊM NHÀ CUNG CẤP ========== *@
 <div class="modal fade" id="addSupplierModal" tabindex="-1">
     <div class="modal-dialog">
@@ -467,20 +503,4 @@
         </div>
     </div>
 </div>
-            if(!items.length) return alert('Chọn SP');
-            const res = await fetch('/Purchase/CreatePurchaseOrder', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
-                body: JSON.stringify({ SupplierID: parseInt(sId), Items: items })
-            });
-            if(res.ok) location.reload();
-        };
 
-        $('#editSupplierModal').on('show.bs.modal', function(e) {
-            const b = e.relatedTarget;
-            $('#editSupplierID').val(b.dataset.id);
-            $('#editSupplierName').val(b.dataset.name);
-            $('#editAddress').val(b.dataset.address);
-        });
-    </script>
-}
