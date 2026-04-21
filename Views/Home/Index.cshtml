@@ -1,433 +1,399 @@
+@model SCM_System.Models.ViewModels.DashboardViewModel
 @{
-    ViewData["Title"] = "Trang chủ";
+    ViewData["Title"] = "Tổng quan";
+    string format = ViewBag.Format ?? "N0";
 }
 
-<style>
-    .detail{
-        font-size: small;
-    }
-    .title{
-        font-size:small;
-        margin:0;
-        margin-top:2em
-    }
-
-    .total-price-and-amount{
-        margin:0;
-        font-size: large;
-        font-weight: bold;
-    }
-</style>
-
-<div class="container-fluid" style="padding:20px 20px;">
-    <div class="row">
-        <h1>Tổng quan hệ thống</h1>
-    </div>
-    <div class="row g-3 mt-4">
-        <div class="col-xl-3">
-            <div class="border border-secondary rounded p-3 h-100 bg-white shadow-sm">
-                <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #e0e7ff; color: #4f46e5;">
-                    <i class="bi bi-graph-up-arrow fs-4"></i>
-                </div>
-                <p class="title">Doanh thu tháng 3</p>
-                <p class="total-price-and-amount">892.500.000 ₫</p>
-            </div>
-        </div>
-
-        <div class="col-xl-3">
-            <div class="border border-secondary rounded p-3 h-100 bg-white shadow-sm">
-                <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #f3e8ff; color: #7c3aed;">
-                    <i class="bi bi-cart3 fs-4"></i>
-                </div>
-                <p class="title">Tổng đơn hàng</p>
-                <p class="total-price-and-amount">156</p>
-            </div>
-        </div>
-
-        <div class="col-xl-3">
-            <div class="border border-secondary rounded p-3 h-100 bg-white shadow-sm">
-                <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #dcfce7; color: #16a34a;">
-                    <i class="bi bi-box fs-4"></i>
-                </div>
-                <p class="title">Giá trị tồn kho</p>
-                <p class="total-price-and-amount">2.340.000.000 ₫</p>
-                <p class="detail">15 danh mục</p>
-            </div>
-
-        </div>
-
-        <div class="col-xl-3">
-            <div class="border border-secondary rounded p-3 h-100 bg-white shadow-sm">
-                <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 48px; height: 48px; background-color: #ffedd5; color: #ea580c;">
-                    <i class="bi bi-truck fs-4"></i>
-                </div>
-                <p class="title">Đang vận chuyển</p>
-                <p class="total-price-and-amount">4</p>
-                <p class="detail">đơn đang giao</p>   
-            </div>
+<div class="container-fluid py-4 bg-light">
+    <div class="row align-items-center mb-4">
+        <div class="col">
+            <h2 class="fw-bold mb-0 text-dark">Tổng quan hệ thống</h2>
+            <p class="text-muted small mb-0">Theo dõi hoạt động kinh doanh và vận hành thời gian thực</p>
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-xl-8  ">
-            <div class="border border-secondary rounded p-5 h-100">
-                <h2>Doanh thu & Chi phí</h2>
-                <p class="detail">6 tháng gần nhất</p>
-                <div style="height: 320px; width: 100%;">
-                    <canvas id="revenueCostChart"></canvas>
+    <!-- STATS CARDS -->
+    <div class="row g-3 mb-4">
+        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên bán hàng"))
+        {
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-3 text-primary me-3">
+                                <i class="bi bi-graph-up-arrow fs-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-secondary small fw-bold text-uppercase mb-1">Doanh thu @Model.MonthLabel</p>
+                                <h4 class="fw-bold mb-0">@Model.MonthlyRevenue.ToString(format) @Model.CurrencySymbol</h4>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-3 text-success me-3">
+                                <i class="bi bi-cart3 fs-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-secondary small fw-bold text-uppercase mb-1">Đơn hàng mới</p>
+                                <h4 class="fw-bold mb-0">@Model.TotalOrders</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Quản lý kho"))
+        {
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-3 text-warning me-3">
+                                <i class="bi bi-box fs-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-secondary small fw-bold text-uppercase mb-1">Giá trị tồn kho</p>
+                                <h4 class="fw-bold mb-0">@Model.InventoryValue.ToString(format) @Model.CurrencySymbol</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên vận chuyển"))
+        {
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info bg-opacity-10 p-3 rounded-3 text-info me-3">
+                                <i class="bi bi-truck fs-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-secondary small fw-bold text-uppercase mb-1">Đang vận chuyển</p>
+                                <h4 class="fw-bold mb-0">@Model.ActiveDeliveriesCount</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- CHARTS (Line & Donut) -->
+    <div class="row g-4 mb-4">
+        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên mua hàng") || User.IsInRole("Nhân viên bán hàng"))
+        {
+            <div class="col-xl-8">
+                <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-1">Biến động Doanh thu & Chi phí</h5>
+                                <p class="text-muted small mb-0">Dữ liệu 6 tháng gần nhất (triệu @Model.CurrencySymbol)</p>
+                            </div>
+                        </div>
+                        <div style="height: 350px;">
+                            <canvas id="revenueCostChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên bán hàng"))
+        {
+            <div class="col-xl-4">
+                <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-1">Trạng thái đơn hàng</h5>
+                        <p class="text-muted small mb-4">Phân bổ trong @Model.MonthLabel</p>
+                        <div style="height: 250px;" class="mb-4">
+                            <canvas id="orderStatusChart"></canvas>
+                        </div>
+                        <div class="mt-4 pt-2">
+                            @for (int i = 0; i < Model.OrderStatusLabels.Count; i++)
+                            {
+                                var colors = new[] { "#10b981", "#3b82f6", "#f59e0b", "#6366f1", "#ef4444" };
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <span class="rounded-circle me-3" style="width: 10px; height: 10px; background-color: @colors[i % colors.Length];"></span>
+                                        <span class="text-secondary small fw-medium">@Model.OrderStatusLabels[i]</span>
+                                    </div>
+                                    <span class="fw-bold small">@Model.OrderStatusCounts[i]</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- RECENT ORDERS & WARNINGS -->
+    <div class="row g-4 mb-4">
+        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên bán hàng"))
+        {
+            <div class="col-xl-8">
+                <div class="card border-0 shadow-sm rounded-4 bg-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <h5 class="fw-bold mb-0">Đơn hàng gần đây</h5>
+                            <a href="/Sales/Orders" class="btn btn-sm btn-link text-decoration-none fw-bold">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="bg-light text-muted small fw-bold">
+                                    <tr>
+                                        <th>MÃ ĐƠN</th>
+                                        <th>KHÁCH HÀNG</th>
+                                        <th class="text-end">TỔNG TIỀN</th>
+                                        <th>TRẠNG THÁI</th>
+                                        <th>NGÀY</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model.RecentOrders)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold py-3">@order.OrderCode</td>
+                                            <td class="small">@order.CustomerName</td>
+                                            <td class="text-end fw-bold">@order.TotalAmount.ToString(format) @Model.CurrencySymbol</td>
+                                            <td>
+                                                @{
+                                                    var badgeClass = order.Status switch {
+                                                        "Hoàn thành" => "bg-success",
+                                                        "Đang giao hàng" => "bg-primary",
+                                                        "Đã hủy" => "bg-danger",
+                                                        _ => "bg-warning"
+                                                    };
+                                                }
+                                                <span class="badge @badgeClass bg-opacity-10 text-@badgeClass.Replace("bg-", "") px-3 rounded-pill">@order.Status</span>
+                                            </td>
+                                            <td class="text-muted small">@order.Date.ToString("dd/MM/yyyy")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
 
         <div class="col-xl-4">
-            <div class=" border border-secondary rounded p-5 h-100">
-                <h2>Trạng thái đơn hàng</h2>
-                <p class="detail">tháng này</p>
-                <div style="height: 220px; position: relative;" class="mb-4">
-                    <canvas id="orderStatusChart"></canvas>
-                </div>
-
-                <div class="mt-4">
-                    <div class="d-flex justify-content-between  align-items-center mb-2">
-                        <div class="d-flex align-items-center">
-                            <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #10b981;"></span>
-                            <span class="text-muted small">Đã giao</span>
+            @if (User.IsInRole("Quản trị viên") || User.IsInRole("Quản lý kho"))
+            {
+                <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                            <h6 class="fw-bold mb-0">Cảnh báo tồn kho thấp</h6>
                         </div>
-                        <span class="small">89</span>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="d-flex align-items-center">
-                            <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #3b82f6;"></span>
-                            <span class="text-muted small">Đang giao</span>
+                        <div class="list-group list-group-flush">
+                            @if (!Model.LowStockWarnings.Any()) {
+                                <p class="text-muted small py-3 mb-0">Tồn kho hiện tại ở mức an toàn.</p>
+                            }
+                            @foreach (var alert in Model.LowStockWarnings)
+                            {
+                                <div class="list-group-item px-0 py-3 border-0 border-bottom border-light">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-bold mb-0 text-dark">@alert.ProductName</div>
+                                            <small class="text-muted">@alert.CategoryName</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="text-danger fw-bold">@alert.CurrentStock</div>
+                                            <small class="text-muted">Min: @alert.Threshold</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                         </div>
-                        <span class="small">12</span>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="d-flex align-items-center">
-                            <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #f59e0b;"></span>
-                            <span class="text-muted small">Đang xử lý</span>
-                        </div>
-                        <span class="small">28</span>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="d-flex align-items-center">
-                            <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #6366f1;"></span>
-                            <span class="text-muted small">Mới tạo</span>
-                        </div>
-                        <span class="small">15</span>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <span class="rounded-circle me-2" style="width: 8px; height: 8px; background-color: #ef4444;"></span>
-                            <span class="text-muted small">Đã hủy</span>
-                        </div>
-                        <span class="small">12</span>
                     </div>
                 </div>
-            </div>
+            }
+
+            @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên vận chuyển"))
+            {
+                <div class="card border-0 shadow-sm rounded-4 bg-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-clock-history text-primary me-2"></i>
+                            <h6 class="fw-bold mb-0">Hoạt động vận chuyển</h6>
+                        </div>
+                        @if (!Model.ActiveDeliveries.Any()) {
+                            <p class="text-muted small py-3 mb-0">Hiện không có đơn hàng đang giao.</p>
+                        }
+                        @foreach (var delivery in Model.ActiveDeliveries)
+                        {
+                            <div class="mb-4 last-child-mb-0">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="fw-bold small text-primary">@delivery.OrderCode</span>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary small px-2">Đang giao</span>
+                                </div>
+                                <div class="small text-dark fw-medium">@delivery.CustomerName</div>
+                                <div class="text-muted x-small">Tài xế: @delivery.ShipperName</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-xl-8 ">
-            <div class="border border-secondary rounded p-5 h-100">
-                <div class="d-flex align-items-center justify-content-between">
-                    <h2>Đơn hàng gần đây</h2>
-                    <a href="#">
-                        Xem tất cả
-                        <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
-
-                <div class="mt-4">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Mã đơn</th>
-                                <th>Khách hàng</th>
-                                <th>Tổng tiền</th>
-                                <th>Trạng thái</th>
-                                <th>Ngày</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>SO-2026-001</td>
-                                <td>Công ty TNHH ABC Tech</td>
-                                <td>56.300.000 ₫</td>
-                                <td><span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span></td>
-                                <td>2026-03-20</td>
-                            </tr>
-
-                            <tr>
-                                <td>SO-2026-001</td>
-                                <td>Công ty TNHH ABC Tech</td>
-                                <td>56.300.000 ₫</td>
-                                <td><span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span></td>
-                                <td>2026-03-20</td>
-                            </tr>
-
-                            <tr>
-                                <td>SO-2026-001</td>
-                                <td>Công ty TNHH ABC Tech</td>
-                                <td>56.300.000 ₫</td>
-                                <td><span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span></td>
-                                <td>2026-03-20</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-4">
-            <div class="row">
-                <div class="border border-secondary rounded p-2">
-                    <div class="d-flex align-items-center ">
-                        <i class="bi bi-exclamation-triangle me-2" style="background-color: #e0e7ff; color: orange;"></i>
-                        <span class="text-orange">Cảnh báo tồn kho</span>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="d-flex flex-column">
-                            <span>MSI MEG X670E ACE</span>
-                            <span class="small">Bo mạch chủ</span>
-                        </div>
-                        <div class="d-flex flex-column">
-                            <span class="text-danger">12</span>
-                            <span class="small">Min: 5</span>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="d-flex flex-column">
-                            <span>MSI MEG X670E ACE</span>
-                            <span class="small">Bo mạch chủ</span>
-                        </div>
-                        <div class="d-flex flex-column">
-                            <span class="text-danger">12</span>
-                            <span class="small">Min: 5</span>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
-
-            <div class="row mt-4">
-                <div class="border border-secondary rounded p-2">
-                    <div class="d-flex align-items-center ">
-                        <i class="bi bi-clock me-2" style="background-color: #e0e7ff; color: blue;"></i>
-                        <span>Đang vận chuyển</span>
-                    </div>
-                
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="d-flex flex-column">
-                            <span>SO-2026-002</span>
-                            <span>Nguyễn Hoàng Long</span>
-                            <span>Tài xế: Trần Tài Xế</span>
-                        </div>
-                        <div class="">
-                            <span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="d-flex flex-column">
-                            <span>SO-2026-002</span>
-                            <span>Nguyễn Hoàng Long</span>
-                            <span>Tài xế: Trần Tài Xế</span>
-                        </div>
-                        <div class="">
-                            <span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="d-flex flex-column">
-                            <span>SO-2026-002</span>
-                            <span>Nguyễn Hoàng Long</span>
-                            <span>Tài xế: Trần Tài Xế</span>
-                        </div>
-                        <div class="">
-                            <span class="badge bg-primary rounded-pill px-3 py-2">Đang giao</span>
+    @if (User.IsInRole("Quản trị viên") || User.IsInRole("Quản lý kho"))
+    {
+        <!-- INVENTORY BY CATEGORY -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4 bg-white">
+                    <div class="card-body p-5">
+                        <h5 class="fw-bold mb-1">Cơ cấu tồn kho theo danh mục</h5>
+                        <p class="text-muted small mb-4">Tổng số lượng sản phẩm hiện có</p>
+                        <div style="height: 350px;">
+                            <canvas id="inventoryCategoryChart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-    </div>
-
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="border border-secondary rounded p-5">
-                <h5 class="fw-bold mb-1">Tồn kho theo danh mục</h5>
-                <p class="text-muted small mb-4">Số lượng hiện tại</p>
-                
-                <div style="height: 300px; width: 100%;">
-                    <canvas id="inventoryCategoryChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    }
 </div>
 
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const ctxLine = document.getElementById('revenueCostChart').getContext('2d');
-            new Chart(ctxLine, {
-                type: 'line',
-                data: {
-                    labels: ['T10/25', 'T11/25', 'T12/25', 'T1/26', 'T2/26', 'T3/26'],
-                    datasets: [
-                        {
-                            label: 'Doanh thu',
-                            data: [610, 720, 980, 710, 680, 890],
-                            borderColor: '#3b82f6', // Màu xanh dương
-                            borderWidth: 2,
-                            tension: 0.4, // Uốn cong đường kẻ
-                            pointRadius: 0, // Ẩn điểm tròn
-                            pointHoverRadius: 6
-                        },
-                        {
-                            label: 'Chi phí',
-                            data: [510, 620, 810, 590, 560, 740],
-                            borderColor: '#10b981', // Màu xanh lá
-                            borderWidth: 2,
-                            tension: 0.4,
-                            pointRadius: 0,
-                            pointHoverRadius: 6
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { color: '#f3f4f6', drawBorder: false } },
-                        y: {
-                            min: 0, max: 1000,
-                            ticks: {
-                                stepSize: 250,
-                                callback: function(value) { return value + 'M'; }
+            @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên mua hàng") || User.IsInRole("Nhân viên bán hàng"))
+            {
+                <text>
+                // Line Chart: Revenue & Cost
+                const ctxLine = document.getElementById('revenueCostChart').getContext('2d');
+                new Chart(ctxLine, {
+                    type: 'line',
+                    data: {
+                        labels: @Html.Raw(Json.Serialize(Model.MonthlyLabels)),
+                        datasets: [
+                            {
+                                label: 'Doanh thu',
+                                data: @Html.Raw(Json.Serialize(Model.MonthlyRevenues)),
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 3,
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#fff',
+                                pointBorderColor: '#3b82f6'
                             },
-                            grid: { color: '#f3f4f6', borderDash: [5, 5], drawBorder: false }
-                        }
-                    }
-                }
-            });
-
-            const ctxDonut = document.getElementById('orderStatusChart').getContext('2d');
-            new Chart(ctxDonut, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Đã giao', 'Đang giao', 'Đang xử lý', 'Mới tạo', 'Đã hủy'],
-                    datasets: [{
-                        data: [89, 12, 28, 15, 12], // Số liệu thực tế
-                        backgroundColor: [
-                            '#10b981', // Xanh lá
-                            '#3b82f6', // Xanh dương
-                            '#f59e0b', // Cam
-                            '#6366f1', // Tím
-                            '#ef4444'  // Đỏ
-                        ],
-                        borderWidth: 3, // Độ dày của viền trắng giữa các miếng
-                        borderColor: '#ffffff', // Viền trắng
-                        hoverOffset: 4 // Hiệu ứng đẩy miếng bánh ra ngoài khi rê chuột
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%', // Bí kíp: Đục lỗ ở giữa to ra (70%) để thành Donut mảnh
-                    plugins: {
-                        legend: { 
-                            display: false // Ẩn chú thích gốc vì mình đã tự code HTML ở trên
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) { label += ': '; }
-                                    if (context.parsed !== null) {
-                                        label += context.parsed + ' đơn'; // Nối thêm chữ "đơn" vào tooltip
-                                    }
-                                    return label;
-                                }
+                            {
+                                label: 'Chi phí (Nhập hàng)',
+                                data: @Html.Raw(Json.Serialize(Model.MonthlyCosts)),
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                                borderWidth: 3,
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#fff',
+                                pointBorderColor: '#10b981'
                             }
-                        }
-                    }
-                }
-            });
-            
-            const ctxBar = document.getElementById('inventoryCategoryChart').getContext('2d');
-            new Chart(ctxBar, {
-                type: 'bar', // Chỉ định loại biểu đồ cột
-                data: {
-                    labels: ['CPU', 'GPU', 'RAM', 'SSD', 'Bo mạch', 'Phụ kiện'],
-                    datasets: [{
-                        label: 'Số lượng',
-                        data: [42, 22, 96, 96, 15, 165], // Dữ liệu giả lập theo ảnh
-                        backgroundColor: [
-                            '#2563eb', // Xanh dương (CPU)
-                            '#8b5cf6', // Tím (GPU)
-                            '#16a34a', // Xanh lá (RAM)
-                            '#0ea5e9', // Xanh ngọc (SSD)
-                            '#d97706', // Cam (Bo mạch)
-                            '#6b7280'  // Xám (Phụ kiện)
-                        ],
-                        borderRadius: 4, // BÍ KÍP 1: Bo tròn 4px ở đỉnh cột cho mềm mại
-                        borderSkipped: false, // Giữ bo góc cân đối
-                        barThickness: 60 // Độ rộng (mập) của mỗi cột, có thể tăng giảm tùy ý
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false // Ẩn chú thích (Legend) vì trục X đã có tên rồi
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return ' ' + context.parsed.y + ' cái';
-                                }
-                            }
-                        }
+                        ]
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false, // BÍ KÍP 2: Ẩn các đường kẻ lưới dọc cho giao diện thoáng hơn
-                                drawBorder: false
-                            }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', align: 'end', labels: { boxWidth: 12, usePointStyle: true, font: { size: 12 } } },
+                            tooltip: { backgroundColor: '#1e293b', titleFont: { size: 14 }, bodyFont: { size: 13 }, padding: 12 }
                         },
-                        y: {
-                            min: 0,
-                            max: 180, // Set max 180 để cột cao nhất (165) không đụng nóc
-                            ticks: {
-                                stepSize: 40 // Bước nhảy của trục Y (0, 40, 80, 120, 160)
-                            },
-                            grid: {
-                                color: '#f3f4f6',
-                                borderDash: [5, 5], // Kẻ đường gạch đứt
-                                drawBorder: false
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { 
+                                beginAtZero: true,
+                                grid: { color: '#f1f5f9', borderDash: [5, 5] },
+                                ticks: { callback: value => value + 'M' }
                             }
                         }
                     }
-                }
-            });
-                
+                });
+                </text>
+            }
+
+            @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên bán hàng"))
+            {
+                <text>
+                // Donut Chart: Order Status
+                const ctxDonut = document.getElementById('orderStatusChart').getContext('2d');
+                new Chart(ctxDonut, {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Html.Raw(Json.Serialize(Model.OrderStatusLabels)),
+                        datasets: [{
+                            data: @Html.Raw(Json.Serialize(Model.OrderStatusCounts)),
+                            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#6366f1', '#ef4444'],
+                            borderWidth: 5,
+                            borderColor: '#ffffff',
+                            hoverOffset: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '75%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { backgroundColor: '#1e293b' }
+                        }
+                    }
+                });
+                </text>
+            }
+
+            @if (User.IsInRole("Quản trị viên") || User.IsInRole("Quản lý kho"))
+            {
+                <text>
+                // Bar Chart: Inventory Category
+                const ctxBar = document.getElementById('inventoryCategoryChart').getContext('2d');
+                new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: @Html.Raw(Json.Serialize(Model.InventoryCategoryLabels)),
+                        datasets: [{
+                            label: 'Số lượng hàng',
+                            data: @Html.Raw(Json.Serialize(Model.InventoryCategoryQuantities)),
+                            backgroundColor: '#6366f1',
+                            borderRadius: 8,
+                            barThickness: 50
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { backgroundColor: '#1e293b' }
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: '#f1f5f9' },
+                                ticks: { stepSize: 50 }
+                            }
+                        }
+                    }
+                });
+                </text>
+            }
         });
     </script>
 }

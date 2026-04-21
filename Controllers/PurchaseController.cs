@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace SCM_System.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Quản trị viên,Nhân viên mua hàng")]
     public class PurchaseController : Controller
     {
         private readonly SCMDbContext _context;
