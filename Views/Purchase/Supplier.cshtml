@@ -305,7 +305,17 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             function forceSwitchTab() {
-                let hash = window.location.hash || "#menu1";
+                let hash = window.location.hash;
+
+                if(!hash){
+                    let urlParams = new URLSearchParams(window.location.search);
+                    hash = urlParams.get('hash');
+
+                    if(hash){history.replaceState(null, null, window.location.pathname+window.location.search+ hash);}
+                }
+                
+                hash = hash || "#menu1";
+
                 let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
                 
                 if (tabLink) {
@@ -345,7 +355,7 @@
             new bootstrap.Modal(document.getElementById('modalReturnDetail')).show();
         }
 
-        const symbol = '@Model.CurrencySymbol';
+        const symbol = '@Html.Raw(Model.CurrencySymbol)';
         const rate = symbol === '₫' ? 1 : (symbol === '$' ? 25000 : 27000);
         const products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AvailableProducts.Select(p => new { p.ProductID, p.ProductName, p.BasePrice })));
 
