@@ -19,10 +19,12 @@ namespace SCM_System.Controllers
         }
 
         // =====================================================================
-        // USERS MANAGEMENT
+        // TRANG CHÍNH: GỘP 3 TAB (TÀI KHOẢN, CẤU HÌNH, BÁO CÁO)
         // =====================================================================
-        public async Task<IActionResult> Users()
+        [HttpGet]
+        public async Task<IActionResult> Admin(string reportType = "summary", DateTime? fromDate = null, DateTime? toDate = null)
         {
+            // --- 1. LẤY DỮ LIỆU TAB TÀI KHOẢN ---
             var users = await _context.Users
                 .Include(u => u.Role)
                 .Select(u => new UserViewModel
@@ -37,85 +39,10 @@ namespace SCM_System.Controllers
                 .ToListAsync();
 
             var roles = await _context.Roles.ToListAsync();
+            var userVM = new AdminUserViewModel { Users = users, Roles = roles };
 
-            var vm = new AdminUserViewModel
-            {
-                Users = users,
-                Roles = roles
-            };
 
-            return View(vm);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> ApproveUser(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return NotFound();
-            user.PhoneNumber = "ACT-001"; // Generic activation code to mark as active
-            _context.Update(user);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = $"Đã duyệt kích hoạt tài khoản {user.Username}!";
-            return RedirectToAction("Users");
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetUser(int id)
-        {
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.UserID == id);
-            
-            if (user == null) return NotFound();
-
-            return Json(new {
-                userId = user.UserID,
-                fullName = user.FullName,
-                username = user.Username,
-                email = user.Email,
-                phone = user.PhoneNumber,
-                roleId = user.RoleID
-            });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateUser(int userId, string fullName, string email, string phone, int roleId)
-        {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null) return NotFound();
-
-            user.FullName = fullName;
-            user.Email = email;
-            user.PhoneNumber = phone;
-            user.RoleID = roleId;
-
-            _context.Update(user);
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Cập nhật tài khoản thành công!";
-            return RedirectToAction("Users");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteUser(int userId)
-        {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null) return NotFound();
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Xóa tài khoản thành công!";
-            return RedirectToAction("Users");
-        }
-
-        // =====================================================================
-        // CONFIGURATION
-        // =====================================================================
-        public async Task<IActionResult> Config()
-        {
+            // --- 2. LẤY DỮ LIỆU TAB CẤU HÌNH ---
             var settings = await _context.SystemSettings.FirstOrDefaultAsync();
             if (settings == null)
             {
@@ -124,7 +51,7 @@ namespace SCM_System.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            var vm = new AdminConfigViewModel
+            var configVM = new AdminConfigViewModel
             {
                 LowStockThreshold = settings.LowStockThreshold,
                 AutoBackup = settings.AutoBackup,
@@ -134,40 +61,10 @@ namespace SCM_System.Controllers
                 TimeZone = settings.TimeZone
             };
 
-            return View(vm);
-        }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveConfig(AdminConfigViewModel model)
-        {
-            var settings = await _context.SystemSettings.FirstOrDefaultAsync();
-            if (settings == null) settings = new SystemSetting();
-
-            settings.LowStockThreshold = model.LowStockThreshold;
-            settings.AutoBackup = model.AutoBackup;
-            settings.EnableEmail = model.EnableEmail;
-            settings.EnableSMS = model.EnableSMS;
-            settings.Currency = model.Currency;
-            settings.TimeZone = model.TimeZone;
-
-            _context.Update(settings);
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Cấu hình hệ thống đã được cập nhật thành công!";
-            return RedirectToAction("Config");
-        }
-
-        // =====================================================================
-        // REPORTS
-        // =====================================================================
-        public async Task<IActionResult> Reports(string reportType = "summary", DateTime? fromDate = null, DateTime? toDate = null)
-        {
-            // 0. Get Settings for Currency
-            var settings = await _context.SystemSettings.FirstOrDefaultAsync() ?? new SystemSetting();
+            // --- 3. LẤY DỮ LIỆU TAB BÁO CÁO ---
             string symbol = settings.Currency == "VND" ? "₫" : (settings.Currency == "USD" ? "$" : "€");
 
-            // 1. Basic Stats (Filter by date if provided)
             var saleQuery = _context.SaleOrders.AsQueryable();
             var purchaseQuery = _context.PurchaseOrders.AsQueryable();
             var deliveryQuery = _context.Deliveries.AsQueryable();
@@ -209,7 +106,6 @@ namespace SCM_System.Controllers
                 ? (double)returns.Count / saleOrders.Count * 100 
                 : 0;
 
-            // 2. Chart Data (Current month and 5 previous ones)
             var chartLabels = new List<string>();
             var chartRevenue = new List<decimal>();
             var chartExpense = new List<decimal>();
@@ -232,16 +128,13 @@ namespace SCM_System.Controllers
                 chartExpense.Add(monthlyExp);
             }
 
-            // 3. Currency conversion logic
             decimal rate = 1;
             if (settings.Currency == "USD") rate = 25000;
             else if (settings.Currency == "EUR") rate = 27000;
 
-            // Apply rate to chart data
             var chartRevConverted = chartRevenue.Select(v => v / rate).ToList();
             var chartExpConverted = chartExpense.Select(v => v / rate).ToList();
 
-            // Format strings for top cards
             string revStr, expStr;
             if (settings.Currency == "VND")
             {
@@ -254,7 +147,7 @@ namespace SCM_System.Controllers
                 expStr = (totalExpense / rate).ToString("N0");
             }
 
-            var vm = new AdminReportViewModel
+            var reportVM = new AdminReportViewModel
             {
                 TotalRevenue = revStr,
                 TotalExpense = expStr,
@@ -268,7 +161,106 @@ namespace SCM_System.Controllers
                 ReportType = reportType
             };
 
-            return View(vm);
+            // --- 4. GỘP CHUNG VÀ TRẢ VỀ VIEW ---
+            var combinedModel = new AdminCombinedViewModel
+            {
+                UserVM = userVM,
+                ConfigVM = configVM,
+                ReportVM = reportVM
+            };
+
+            return View(combinedModel);
+        }
+
+        // =====================================================================
+        // CÁC HÀM XỬ LÝ DỮ LIỆU (POST / API)
+        // =====================================================================
+
+        [HttpPost]
+        public async Task<IActionResult> ApproveUser(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound();
+            user.PhoneNumber = "ACT-001"; 
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = $"Đã duyệt kích hoạt tài khoản {user.Username}!";
+            
+            // Redirect về trang Admin, nhảy vào tab #menu1
+            return RedirectToAction("Admin", "Admin", null, "menu1");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUser(int id)
+        {
+            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserID == id);
+            if (user == null) return NotFound();
+
+            return Json(new {
+                userId = user.UserID,
+                fullName = user.FullName,
+                username = user.Username,
+                email = user.Email,
+                phone = user.PhoneNumber,
+                roleId = user.RoleID
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateUser(int userId, string fullName, string email, string phone, int roleId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound();
+
+            user.FullName = fullName;
+            user.Email = email;
+            user.PhoneNumber = phone;
+            user.RoleID = roleId;
+
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Cập nhật tài khoản thành công!";
+            return RedirectToAction("Admin", "Admin", null, "menu1");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteUser(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound();
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Xóa tài khoản thành công!";
+            return RedirectToAction("Admin", "Admin", null, "menu1");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveConfig(AdminCombinedViewModel combinedModel)
+        {
+            var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+            if (settings == null) settings = new SystemSetting();
+
+            // Chú ý: Vì dùng CombinedModel, ta phải truy cập qua thuộc tính ConfigVM
+            settings.LowStockThreshold = combinedModel.ConfigVM.LowStockThreshold;
+            settings.AutoBackup = combinedModel.ConfigVM.AutoBackup;
+            settings.EnableEmail = combinedModel.ConfigVM.EnableEmail;
+            settings.EnableSMS = combinedModel.ConfigVM.EnableSMS;
+            settings.Currency = combinedModel.ConfigVM.Currency;
+            settings.TimeZone = combinedModel.ConfigVM.TimeZone;
+
+            _context.Update(settings);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Cấu hình hệ thống đã được cập nhật thành công!";
+            
+            // Redirect về trang Admin, nhảy vào tab #menu2
+            return RedirectToAction("Admin", "Admin", null, "menu2");
         }
     }
 }
