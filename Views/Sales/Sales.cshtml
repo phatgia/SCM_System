@@ -1,0 +1,415 @@
+@model SCM_System.Models.ViewModels.SalesCombinedViewModel
+@{
+    ViewData["Title"] = "Bán hàng & Xuất kho";
+    bool isVND = Model.OrdersVM?.CurrencySymbol == "₫";
+    string format = isVND ? "N0" : "N2";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Bán hàng & Xuất kho</h4>
+        <p class="text-muted small mb-0">Tạo đơn, tra cứu tồn kho và xử lý đổi trả</p>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#menu1"><i class="bi bi-receipt me-1"></i>Tạo đơn bán</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#menu2"><i class="bi bi-cart-plus me-1"></i>Đơn bán hàng</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#menu3"><i class="bi bi-boxes me-1"></i>Tra cứu tồn kho</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#menu4"><i class="bi bi-arrow-left-right me-1"></i>Đổi trả hàng</a></li>
+</ul>
+
+<div class="tab-content">
+    
+    <div class="tab-pane active" id="menu1">
+        <form id="createOrderForm">
+            @Html.AntiForgeryToken()
+            <div class="row g-4">
+                <div class="col-xl-8">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
+                            <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-person-badge me-2"></i>Thông tin khách hàng</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Chọn khách hàng có sẵn</label>
+                                <select id="customerSelect" class="form-select shadow-sm" onchange="toggleCustomerType()">
+                                    <option value="0">-- Khách hàng mới --</option>
+                                    @if(Model.CreateVM?.Customers != null)
+                                    {
+                                        foreach (var c in Model.CreateVM.Customers)
+                                        {
+                                            <option value="@c.CustomerID" data-name="@c.Name" data-phone="@c.Phone" data-email="@c.Email" data-addr="@c.ShippingAddress">
+                                                @c.Name (@c.Phone)
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div id="newCustomerFields" class="row g-3">
+                                <div class="col-md-6"><label class="form-label small fw-semibold">Họ tên *</label><input type="text" id="custName" class="form-control" placeholder="Nhập tên..."></div>
+                                <div class="col-md-6"><label class="form-label small fw-semibold">SĐT *</label><input type="text" id="custPhone" class="form-control" placeholder="09########"></div>
+                                <div class="col-md-6"><label class="form-label small fw-semibold">Email</label><input type="email" id="custEmail" class="form-control" placeholder="email@example.com"></div>
+                                <div class="col-md-6"><label class="form-label small fw-semibold">Địa chỉ *</label><input type="text" id="custAddr" class="form-control" placeholder="Nhập địa chỉ..."></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-0 pt-3 pb-0 px-4 d-flex align-items-center justify-content-between">
+                            <h6 class="fw-bold mb-0 text-success"><i class="bi bi-cart4 me-2"></i>Danh sách sản phẩm</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary shadow-sm" onclick="addProductRow()"><i class="bi bi-plus-lg me-1"></i>Thêm dòng</button>
+                        </div>
+                        <div class="card-body p-0 mt-3">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="productTable">
+                                    <thead class="bg-light">
+                                        <tr class="small text-muted"><th class="ps-4 border-0">SẢN PHẨM</th><th class="border-0 text-center">SỐ LƯỢNG</th><th class="border-0">ĐƠN GIÁ</th><th class="border-0">THÀNH TIỀN</th><th class="border-0 pe-4"></th></tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="p-4 border-top bg-light">
+                                <div class="d-flex justify-content-end align-items-center gap-3">
+                                    <span class="text-muted fw-semibold">TỔNG CỘNG:</span>
+                                    <h3 class="fw-bold text-primary mb-0" id="grandTotal">0 ₫</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4">
+                    <div class="card border-0 shadow-sm sticky-top" style="top: 1rem;">
+                        <div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0"><i class="bi bi-check2-square me-2"></i>Xác nhận</h6></div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Ghi chú đơn hàng</label>
+                                <textarea id="orderNote" class="form-control shadow-sm" rows="4" placeholder="Nhập ghi chú..."></textarea>
+                            </div>
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="button" class="btn btn-primary btn-lg shadow fw-bold" onclick="submitOrder()"><i class="bi bi-cart-check-fill me-2"></i>TẠO ĐƠN</button>
+                                <button type="button" class="btn btn-light border" onclick="location.reload()">Làm lại</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="tab-pane" id="menu2">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-3">
+                <form asp-action="Sales" method="get" onsubmit="this.action += '#menu2'">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Tìm kiếm</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="searchOrder" value="@ViewBag.SearchOrderTerm" class="form-control" placeholder="Mã đơn hoặc tên khách...">
+                                <button type="submit" class="btn btn-primary px-3 shadow-sm"><i class="bi bi-search me-1"></i>Tìm</button>
+                            </div>
+                        </div>
+                        <div class="col-md-3"><a asp-action="Sales" fragment="menu2" class="btn btn-sm btn-outline-secondary">Xóa lọc</a></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light">
+                        <tr class="text-muted small">
+                            <th class="ps-4 py-3 border-0">MÃ ĐƠN</th><th class="py-3 border-0">KHÁCH HÀNG</th><th class="py-3 border-0">SẢN PHẨM</th><th class="py-3 border-0">TỔNG TIỀN</th><th class="py-3 border-0">NGÀY TẠO</th><th class="py-3 border-0">TRẠNG THÁI</th><th class="py-3 border-0 text-center">CHI TIẾT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.OrdersVM?.Orders == null || !Model.OrdersVM.Orders.Any())
+                        {
+                            <tr><td colspan="7" class="text-center py-5 text-muted small">Chưa có đơn hàng nào.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var order in Model.OrdersVM.Orders)
+                            {
+                                <tr>
+                                    <td class="ps-4 py-2 fw-bold small text-primary">@order.OrderCode</td>
+                                    <td class="py-2"><div class="small fw-bold text-dark">@order.CustomerName</div><div class="small text-muted">@order.CustomerPhone</div></td>
+                                    <td class="py-2 small text-muted">@order.ProductSummary</td>
+                                    <td class="py-2 small fw-bold text-dark">@Model.OrdersVM.CurrencySymbol@order.TotalAmount.ToString(format)</td>
+                                    <td class="py-2 small text-muted">@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="py-2">
+                                        @{ var badgeClass = order.Status switch { "Hoàn thành" => "bg-success", "Đang xử lý" => "bg-info", "Đã hủy" => "bg-danger", _ => "bg-secondary" }; }
+                                        <span class="badge @badgeClass bg-opacity-10 text-@badgeClass.Replace("bg-", "") fw-semibold px-2">@order.Status</span>
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        <button class="btn btn-sm btn-light border btn-view-details" data-id="@order.SOID" data-code="@order.OrderCode" data-bs-toggle="modal" data-bs-target="#modalChiTiet"><i class="bi bi-eye"></i></button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane" id="menu3">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-3">
+                <form asp-action="Sales" method="get" onsubmit="this.action += '#menu3'">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Tên / Mã linh kiện</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="searchStock" value="@ViewBag.SearchStockTerm" class="form-control" placeholder="Tìm theo tên linh kiện...">
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Tìm kiếm</button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">Danh mục</label>
+                            <select name="categoryId" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="">Tất cả danh mục</option>
+                                @if(Model.StockVM?.Categories != null)
+                                {
+                                    foreach (var cat in Model.StockVM.Categories)
+                                    {
+                                        <option value="@cat.CategoryID" selected="@(ViewBag.CategoryId == cat.CategoryID)">@cat.CategoryName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3"><a asp-action="Sales" fragment="menu3" class="btn btn-sm btn-outline-secondary">Xóa lọc</a></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light">
+                        <tr class="text-muted small"><th class="ps-4 py-3 border-0">SẢN PHẨM</th><th class="py-3 border-0">DANH MỤC</th><th class="py-3 border-0 text-center">TỒN THỰC TẾ</th><th class="py-3 border-0 text-center">KHẢ DỤNG</th><th class="py-3 border-0">VỊ TRÍ</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.StockVM?.Stocks == null || !Model.StockVM.Stocks.Any())
+                        {
+                            <tr><td colspan="5" class="text-center py-5 text-muted small">Không có sản phẩm.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model.StockVM.Stocks)
+                            {
+                                <tr>
+                                    <td class="ps-4 py-2"><div class="small fw-bold text-dark">@item.ProductName</div><div class="small text-muted">@item.SKU</div></td>
+                                    <td class="py-2 small text-muted">@item.CategoryName</td>
+                                    <td class="py-2 text-center fw-bold small">@item.PhysicalStock</td>
+                                    <td class="py-2 text-center">
+                                        @{ var badgeClassStock = item.AvailableStock <= 5 ? "bg-danger" : "bg-success"; }
+                                        <span class="badge @badgeClassStock px-2 fw-semibold">@item.AvailableStock</span>
+                                    </td>
+                                    <td class="py-2 small text-muted"><i class="bi bi-geo-alt me-1"></i>@item.LocationName</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane" id="menu4">
+        <div class="d-flex justify-content-between align-items-center mb-4 px-3 py-2 bg-white rounded-3 shadow-sm border">
+            <div>
+                <h6 class="fw-bold mb-0 text-primary">Yêu cầu đổi trả</h6>
+            </div>
+            <div class="d-flex gap-3">
+                <form asp-action="Sales" method="get" class="d-flex gap-2" onsubmit="this.action += '#menu4'">
+                    <input type="text" name="searchReturn" value="@ViewBag.SearchReturnTerm" class="form-control form-control-sm border-0 bg-light rounded-pill px-4" placeholder="Tìm Mã SO...">
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm fw-bold">Tìm</button>
+                    <a asp-action="Sales" fragment="menu4" class="btn btn-link btn-sm text-secondary">Xóa</a>
+                </form>
+                <button class="btn btn-sm btn-dark rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalDoiTra"><i class="bi bi-plus-lg me-1"></i> Tạo mới</button>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr class="text-muted small"><th class="ps-4 py-2 border-0">MÃ YÊU CẦU</th><th class="py-2 border-0">ĐƠN GỐC</th><th class="py-2 border-0">KHÁCH HÀNG</th><th class="py-2 border-0">XỬ LÝ</th><th class="py-2 border-0">TRẠNG THÁI</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.ReturnVM?.Returns == null || !Model.ReturnVM.Returns.Any())
+                        {
+                            <tr><td colspan="5" class="text-center py-5 text-muted small">Chưa có yêu cầu.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var r in Model.ReturnVM.Returns)
+                            {
+                                <tr>
+                                    <td class="ps-4 py-2 fw-semibold small text-primary">@r.RequestCode</td>
+                                    <td class="py-2 small fw-bold">@r.SaleOrderCode</td>
+                                    <td class="py-2 small">@r.CustomerName</td>
+                                    <td class="py-2 small"><span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary">@r.Settlement</span></td>
+                                    <td class="py-2">
+                                        @{ var bClass = r.Status == "Đang xử lý" ? "bg-warning" : "bg-success"; }
+                                        <span class="badge @bClass bg-opacity-10 text-@bClass.Replace("bg-", "") px-2">@r.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalChiTiet" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 bg-light p-4"><h5 class="modal-title fw-bold" id="modalTitle">Chi tiết đơn hàng</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4" id="modalBody"><div class="text-center py-4"><div class="spinner-border text-primary"></div></div></div>
+            <div class="modal-footer border-0 p-4"><button class="btn btn-light border px-4" data-bs-dismiss="modal">Đóng</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDoiTra" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form asp-action="CreateReturn" method="post">
+                <div class="modal-header border-0"><h5 class="modal-title fw-bold">Tạo yêu cầu đổi trả</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Đơn hàng gốc *</label>
+                        <select name="SOID" class="form-select shadow-sm" required>
+                            <option value="">-- Chọn đơn hàng --</option>
+                            @if(Model.ReturnVM?.SaleOrders != null)
+                            {
+                                foreach (var so in Model.ReturnVM.SaleOrders)
+                                {
+                                    <option value="@so.SOID">SO-@so.SOID.ToString("D4") - @so.Customer.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Hình thức xử lý *</label>
+                        <select name="Settlement" class="form-select shadow-sm" required><option value="Đổi mới">Đổi mới</option><option value="Hoàn tiền">Hoàn tiền</option><option value="Bảo hành">Bảo hành</option></select>
+                    </div>
+                    <div class="mb-3"><label class="form-label small fw-semibold">Lý do *</label><textarea name="Reason" class="form-control" rows="3" required></textarea></div>
+                </div>
+                <div class="modal-footer border-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary">Xác nhận</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 1. DATA VÀ LOGIC TẠO ĐƠN (Từ Tab 1)
+        const products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            (Model.CreateVM?.Products ?? new List<SCM_System.Models.Product>())
+            .Select(p => new {
+                ProductID = p.ProductID,
+                ProductName = p.ProductName
+            })
+        ));
+        function toggleCustomerType() {
+            const select = document.getElementById('customerSelect');
+            const isNew = select.value === "0";
+            const fields = document.getElementById('newCustomerFields');
+            ['custName', 'custPhone', 'custEmail', 'custAddr'].forEach(id => {
+                const el = document.getElementById(id);
+                el.readOnly = !isNew;
+                if (!isNew) {
+                    const opt = select.options[select.selectedIndex];
+                    el.value = opt.dataset[id.replace('cust', '').toLowerCase()] || '';
+                } else {
+                    el.value = '';
+                }
+            });
+            fields.classList.toggle('opacity-50', !isNew);
+        }
+
+        function addProductRow() {
+            const tbody = document.querySelector('#productTable tbody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="ps-4">
+                    <select class="form-select form-select-sm prod-select shadow-sm" onchange="updateRow(this)">
+                        <option value="0">-- Chọn sản phẩm --</option>
+                        ${products.map(p => `<option value="${p.ProductID}" data-price="${(p.ProductID * 500000) + 1000000}"> ${p.ProductName} </option>`).join('')}
+                    </select>
+                </td>
+                <td><input type="number" class="form-control form-control-sm text-center mx-auto prod-qty shadow-sm" style="width:70px" value="1" min="1" onchange="calcTotal()"></td>
+                <td><input type="text" class="form-control form-control-sm prod-price shadow-sm" style="width:130px" placeholder="0 ₫" onchange="calcTotal()"></td>
+                <td class="fw-bold text-dark subtotal small">0 ₫</td>
+                <td class="pe-4 text-end"><button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="this.closest('tr').remove(); calcTotal();"><i class="bi bi-trash"></i></button></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function updateRow(select) {
+            const opt = select.options[select.selectedIndex];
+            if (opt.value !== "0") {
+                select.closest('tr').querySelector('.prod-price').value = parseInt(opt.dataset.price) || 1250000;
+            }
+            calcTotal();
+        }
+
+        function calcTotal() {
+            let grandTotal = 0;
+            document.querySelectorAll('#productTable tbody tr').forEach(row => {
+                const qty = parseInt(row.querySelector('.prod-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.prod-price').value.replace(/[^0-9]/g, '')) || 0;
+                grandTotal += qty * price;
+                row.querySelector('.subtotal').innerText = (qty * price).toLocaleString('vi-VN') + ' ₫';
+            });
+            document.getElementById('grandTotal').innerText = grandTotal.toLocaleString('vi-VN') + ' ₫';
+        }
+
+        async function submitOrder() {
+            // (Giữ nguyên logic fetch POST CreateOrder của bạn ở file cũ)
+            alert("Giữ nguyên logic Fetch JS của bạn ở đây");
+        }
+
+        // 2. LOGIC MODAL CHI TIẾT ĐƠN HÀNG (AJAX)
+        $(document).ready(function () {
+            $('.btn-view-details').on('click', function () {
+                const orderId = $(this).data('id');
+                $('#modalTitle').text('Chi tiết đơn hàng — ' + $(this).data('code'));
+                $('#modalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 small text-muted">Đang tải...</p></div>');
+                
+                // Gọi tới Endpoint trả về Partial View _OrderDetailPartial
+                $.get('/Sales/OrderDetails/' + orderId, function (data) {
+                    $('#modalBody').html(data);
+                });
+            });
+        });
+
+        // 3. LOGIC CHUYỂN TAB TỰ ĐỘNG
+        function forceSwitchTab() {
+            let hash = window.location.hash || "#menu1";
+            let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
+            if (tabLink) new bootstrap.Tab(tabLink).show();
+        }
+        
+        document.addEventListener("DOMContentLoaded", function () {
+            addProductRow(); // Khởi tạo 1 dòng sản phẩm rỗng cho Tab 1
+            forceSwitchTab();
+            window.addEventListener('hashchange', forceSwitchTab);
+
+            document.querySelectorAll('.nav-tabs a[data-bs-toggle="tab"]').forEach(el => {
+                el.addEventListener('shown.bs.tab', function (e) {
+                    history.replaceState(null, null, e.target.getAttribute('href')); 
+                    window.dispatchEvent(new Event('hashchange')); 
+                });
+            });
+        });
+    </script>
+}

@@ -19,17 +19,148 @@ namespace SCM_System.Controllers
         }
 
         // =====================================================================
-        // GET: /Sales/Create
+        // TRANG CHÍNH: GỘP 4 TAB (TẠO ĐƠN, ĐƠN BÁN, TỒN KHO, ĐỔI TRẢ)
         // =====================================================================
-        public async Task<IActionResult> Create()
-        {
-            var vm = new SalesCreateViewModel
+        [HttpGet]
+        public async Task<IActionResult> Sales(string? searchOrder, string? searchStock, int? categoryId, string? searchReturn)        {
+            // Lấy cài đặt tiền tệ dùng chung
+            var settings = await _context.SystemSettings.FirstOrDefaultAsync() ?? new SystemSetting();
+            decimal rate = 1;
+            if (settings.Currency == "USD") rate = 25000;
+            else if (settings.Currency == "EUR") rate = 27000;
+            string symbol = settings.Currency == "VND" ? "₫" : (settings.Currency == "USD" ? "$" : "€");
+
+            // --- 1. LẤY DỮ LIỆU TAB TẠO ĐƠN (CREATE) ---
+            var createVM = new SalesCreateViewModel
             {
                 Products = await _context.Products.ToListAsync(),
                 Customers = await _context.Customers.ToListAsync()
             };
-            return View(vm);
+
+            // --- 2. LẤY DỮ LIỆU TAB ĐƠN BÁN HÀNG (ORDERS) ---
+            var orderQuery = _context.SaleOrders
+                .Include(so => so.Customer)
+                .Include(so => so.SaleOrderDetails)
+                .ThenInclude(d => d.Product)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchOrder))
+            {
+                orderQuery = orderQuery.Where(o => 
+                    o.Customer.Name.Contains(searchOrder) || 
+                    o.SOID.ToString().Contains(searchOrder));
+            }
+
+            var orders = await orderQuery
+                .OrderByDescending(so => so.OrderDate)
+                .Select(so => new SaleOrderListItem
+                {
+                    SOID = so.SOID,
+                    CustomerName = so.Customer.Name,
+                    CustomerPhone = so.Customer.Phone ?? "",
+                    TotalAmount = so.TotalAmount / rate, // Quy đổi tiền tệ
+                    OrderDate = so.OrderDate,
+                    Status = so.Status,
+                    ProductSummary = string.Join(", ", so.SaleOrderDetails.Select(d => d.Product.ProductName).Take(2))
+                })
+                .ToListAsync();
+
+            var ordersVM = new SalesOrdersViewModel { Orders = orders, CurrencySymbol = symbol };
+
+            // --- 3. LẤY DỮ LIỆU TAB TỒN KHO (STOCK) ---
+            var stockQuery = _context.Inventories
+                .Include(i => i.Product).ThenInclude(p => p.Category)
+                .Include(i => i.ProductLocation)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchStock))
+            {
+                stockQuery = stockQuery.Where(i => i.Product.ProductName.Contains(searchStock));
+            }
+
+            if (categoryId.HasValue && categoryId > 0)
+            {
+                stockQuery = stockQuery.Where(i => i.Product.CategoryID == categoryId);
+            }
+
+            var stocks = await stockQuery
+                .Select(i => new StockItemViewModel
+                {
+                    ProductID = i.ProductID,
+                    ProductName = i.Product.ProductName,
+                    CategoryName = i.Product.Category.CategoryName,
+                    PhysicalStock = i.QuantityAvailable,
+                    ReservedStock = 0,
+                    LocationName = i.ProductLocation.LocationCode
+                })
+                .ToListAsync();
+
+            var stockVM = new SalesStockViewModel 
+            { 
+                Stocks = stocks, 
+                Categories = await _context.Categories.ToListAsync() 
+            };
+
+            // --- 4. LẤY DỮ LIỆU TAB ĐỔI TRẢ (RETURNS) ---
+            var returnQuery = _context.ReturnOrders
+                .Include(r => r.SaleOrder)
+                .ThenInclude(so => so.Customer)
+                .Include(r => r.SaleOrder.SaleOrderDetails)
+                .ThenInclude(d => d.Product)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchReturn))
+            {
+                returnQuery = returnQuery.Where(r => 
+                    r.SaleOrder.Customer.Name.Contains(searchReturn) || 
+                    r.SOID.ToString().Contains(searchReturn));
+            }
+
+            var returns = await returnQuery
+                .OrderByDescending(r => r.ReturnID)
+                .Select(r => new ReturnOrderViewModel
+                {
+                    ReturnID = r.ReturnID,
+                    SaleOrderCode = $"SO-{r.SOID:D5}",
+                    CustomerName = r.SaleOrder.Customer.Name,
+                    ProductSummary = string.Join(", ", r.SaleOrder.SaleOrderDetails.Select(d => d.Product.ProductName).Take(2)),
+                    Settlement = r.Settlement ?? "N/A",
+                    Status = r.Status
+                })
+                .ToListAsync();
+
+            var recentSaleOrders = await _context.SaleOrders
+                .Include(so => so.Customer)
+                .OrderByDescending(so => so.OrderDate)
+                .Take(50)
+                .ToListAsync();
+
+            var returnVM = new SalesReturnViewModel
+            {
+                Returns = returns,
+                SaleOrders = recentSaleOrders
+            };
+
+            // --- 5. ĐÓNG GÓI VÀ TRẢ VỀ VIEW ---
+            ViewBag.SearchOrderTerm = searchOrder;
+            ViewBag.SearchStockTerm = searchStock;
+            ViewBag.CategoryId = categoryId;
+            ViewBag.SearchReturnTerm = searchReturn;
+
+            var combinedModel = new SalesCombinedViewModel
+            {
+                CreateVM = createVM,
+                OrdersVM = ordersVM,
+                StockVM = stockVM,
+                ReturnVM = returnVM
+            };
+
+            return View(combinedModel);
         }
+
+        // =====================================================================
+        // CÁC HÀM XỬ LÝ DỮ LIỆU (POST / AJAX)
+        // =====================================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -51,7 +182,6 @@ namespace SCM_System.Controllers
                 }
                 else
                 {
-                    // Create new customer
                     var newCustomer = new Customer
                     {
                         Name = request.CustomerName ?? "Khách lẻ",
@@ -64,7 +194,6 @@ namespace SCM_System.Controllers
                     customerId = newCustomer.CustomerID;
                 }
 
-                // 1. Create SaleOrder
                 var order = new SaleOrder
                 {
                     CustomerID = customerId,
@@ -76,7 +205,6 @@ namespace SCM_System.Controllers
                 _context.SaleOrders.Add(order);
                 await _context.SaveChangesAsync();
 
-                // 2. Create Details
                 foreach (var item in request.Items)
                 {
                     var detail = new SaleOrderDetail
@@ -101,50 +229,6 @@ namespace SCM_System.Controllers
             }
         }
 
-        // =====================================================================
-        // GET: /Sales/Orders
-        // =====================================================================
-        public async Task<IActionResult> Orders(string? search)
-        {
-            var query = _context.SaleOrders
-                .Include(so => so.Customer)
-                .Include(so => so.SaleOrderDetails)
-                .ThenInclude(d => d.Product)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                query = query.Where(o => 
-                    o.Customer.Name.Contains(search) || 
-                    o.SOID.ToString().Contains(search));
-            }
-
-            var orders = await query
-                .OrderByDescending(so => so.OrderDate)
-                .Select(so => new SaleOrderListItem
-                {
-                    SOID = so.SOID,
-                    CustomerName = so.Customer.Name,
-                    CustomerPhone = so.Customer.Phone ?? "",
-                    TotalAmount = so.TotalAmount,
-                    OrderDate = so.OrderDate,
-                    Status = so.Status,
-                    ProductSummary = string.Join(", ", so.SaleOrderDetails.Select(d => d.Product.ProductName).Take(2))
-                })
-                .ToListAsync();
-
-            var settings = await _context.SystemSettings.FirstOrDefaultAsync() ?? new SystemSetting();
-            decimal rate = 1;
-            if (settings.Currency == "USD") rate = 25000;
-            else if (settings.Currency == "EUR") rate = 27000;
-            string symbol = settings.Currency == "VND" ? "₫" : (settings.Currency == "USD" ? "$" : "€");
-
-            foreach (var o in orders) o.TotalAmount /= rate;
-
-            ViewBag.SearchTerm = search;
-            return View(new SalesOrdersViewModel { Orders = orders, CurrencySymbol = symbol });
-        }
-
         [HttpGet]
         public async Task<IActionResult> OrderDetails(int id)
         {
@@ -164,108 +248,22 @@ namespace SCM_System.Controllers
 
             ViewBag.CurrencySymbol = symbol;
 
-            // Divide for display
             order.TotalAmount /= rate;
             foreach (var detail in order.SaleOrderDetails)
             {
                 detail.UnitPrice /= rate;
             }
 
+            // Trả về PartialView hiển thị chi tiết (bạn giữ nguyên file _OrderDetailsPartial.cshtml là được)
             return PartialView("_OrderDetailsPartial", order);
-        }
-
-        // =====================================================================
-        // GET: /Sales/Stock
-        // =====================================================================
-        public async Task<IActionResult> Stock(string? search, int? categoryId)
-        {
-            var query = _context.Inventories
-                .Include(i => i.Product).ThenInclude(p => p.Category)
-                .Include(i => i.ProductLocation)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                query = query.Where(i => i.Product.ProductName.Contains(search));
-            }
-
-            if (categoryId.HasValue && categoryId > 0)
-            {
-                query = query.Where(i => i.Product.CategoryID == categoryId);
-            }
-
-            var stocks = await query
-                .Select(i => new StockItemViewModel
-                {
-                    ProductID = i.ProductID,
-                    ProductName = i.Product.ProductName,
-                    CategoryName = i.Product.Category.CategoryName,
-                    PhysicalStock = i.QuantityAvailable,
-                    ReservedStock = 0,
-                    LocationName = i.ProductLocation.LocationCode
-                })
-                .ToListAsync();
-
-            var categories = await _context.Categories.ToListAsync();
-
-            ViewBag.SearchTerm = search;
-            ViewBag.CategoryId = categoryId;
-
-            return View(new SalesStockViewModel { Stocks = stocks, Categories = categories });
-        }
-
-        // =====================================================================
-        // GET: /Sales/Returns
-        // =====================================================================
-        public async Task<IActionResult> Returns(string? search)
-        {
-            var query = _context.ReturnOrders
-                .Include(r => r.SaleOrder)
-                .ThenInclude(so => so.Customer)
-                .Include(r => r.SaleOrder.SaleOrderDetails)
-                .ThenInclude(d => d.Product)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                query = query.Where(r => 
-                    r.SaleOrder.Customer.Name.Contains(search) || 
-                    r.SOID.ToString().Contains(search));
-            }
-
-            var returns = await query
-                .OrderByDescending(r => r.ReturnID)
-                .Select(r => new ReturnOrderViewModel
-                {
-                    ReturnID = r.ReturnID,
-                    SaleOrderCode = $"SO-{r.SOID:D5}",
-                    CustomerName = r.SaleOrder.Customer.Name,
-                    ProductSummary = string.Join(", ", r.SaleOrder.SaleOrderDetails.Select(d => d.Product.ProductName).Take(2)),
-                    Settlement = r.Settlement ?? "N/A",
-                    Status = r.Status
-                })
-                .ToListAsync();
-
-            var saleOrders = await _context.SaleOrders
-                .Include(so => so.Customer)
-                .OrderByDescending(so => so.OrderDate)
-                .Take(50)
-                .ToListAsync();
-
-            var vm = new SalesReturnViewModel
-            {
-                Returns = returns,
-                SaleOrders = saleOrders
-            };
-
-            return View(vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateReturn(CreateReturnRequest request)
         {
-            if (request.SOID == 0) return RedirectToAction("Returns");
+            if (request.SOID == 0) return RedirectToAction("Index", "Sales", null, "menu4");
+            
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
 
@@ -282,7 +280,9 @@ namespace SCM_System.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Đã tạo yêu cầu đổi trả thành công!";
-            return RedirectToAction("Returns");
+            
+            // Redirect về trang chủ của Sales và trỏ thẳng vào tab Đổi trả (#menu4)
+            return RedirectToAction("Sales", "Sales", null, "menu4");
         }
     }
 }
