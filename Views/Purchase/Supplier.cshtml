@@ -169,7 +169,14 @@
                         <input type="hidden" name="hash" value="#menu4" />
                         <input type="text" name="searchReturn" value="@Model.SearchReturn" class="form-control form-control-sm" placeholder="Tìm RTN..." style="width: 200px;">
                         <button type="submit" class="btn btn-danger btn-sm px-3">Tìm</button>
+
+                        <button class="btn btn-success">
+                            <i class="bi bi-plus"></i>
+                            Tạo yêu cầu trả hàng
+                        </button>
                     </form>
+
+
                 </div>
                 <div class="table-responsive">
                     <table class="table border">
@@ -298,7 +305,17 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             function forceSwitchTab() {
-                let hash = window.location.hash || "#menu1";
+                let hash = window.location.hash;
+
+                if(!hash){
+                    let urlParams = new URLSearchParams(window.location.search);
+                    hash = urlParams.get('hash');
+
+                    if(hash){history.replaceState(null, null, window.location.pathname+window.location.search+ hash);}
+                }
+                
+                hash = hash || "#menu1";
+
                 let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
                 
                 if (tabLink) {
@@ -338,7 +355,7 @@
             new bootstrap.Modal(document.getElementById('modalReturnDetail')).show();
         }
 
-        const symbol = '@Model.CurrencySymbol';
+        const symbol = '@Html.Raw(Model.CurrencySymbol)';
         const rate = symbol === '₫' ? 1 : (symbol === '$' ? 25000 : 27000);
         const products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AvailableProducts.Select(p => new { p.ProductID, p.ProductName, p.BasePrice })));
 

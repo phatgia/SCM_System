@@ -291,6 +291,31 @@ namespace SCM_System.Data
                 if (o.SOID % 2 == 0) o.Status = "Đã soạn xong";
             }
             context.SaveChanges();
+
+            if(!context.Deliveries.Any(d => d.Status == "Chờ lấy hàng")){
+                var shipperIDs = context.Users.Where(u => u.RoleID == 5).Select(u => u.UserID).ToList();
+
+                var ordersForHandshake = context.SaleOrders
+                    .Where(o => (o.Status == "Đang xử lý" || o.Status == "Đã soạn xong") 
+                             && !context.Deliveries.Any(d => d.SOID == o.SOID))
+                    .Take(5)
+                    .ToList();
+
+                var faker = new Bogus.Faker();
+
+                foreach (var order in ordersForHandshake)
+                {
+                    context.Deliveries.Add(new Delivery
+                    {
+                        SOID = order.SOID,
+                        UserID = faker.PickRandom(shipperIDs), 
+                        Status = "Chờ lấy hàng",               
+                        DeliveryTime = null,
+                        HandShakeProof = null
+                    });
+                }
+                context.SaveChanges();
+            }
         }
     }
 }
