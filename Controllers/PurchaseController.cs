@@ -87,9 +87,11 @@ namespace SCM_System.Controllers
                     r.PurchaseOrder.POID.ToString().Contains(searchReturn) ||
                     (r.Reason != null && r.Reason.Contains(searchReturn)));
  
-            var returns = await returnQuery
+            var returnEntities = await returnQuery
                 .OrderByDescending(r => r.ReturnDate)
-                .Select(r => new PurchaseReturnViewModel
+                .ToListAsync();
+
+            var returns = returnEntities.Select(r => new PurchaseReturnViewModel
                 {
                     ReturnID = r.PurchaseReturnID,
                     SupplierName = r.PurchaseOrder.Supplier.SupplierName,
@@ -100,8 +102,7 @@ namespace SCM_System.Controllers
                     Status = r.Status,
                     Date = r.ReturnDate,
                     POID = r.POID
-                })
-                .ToListAsync();
+                }).ToList();
  
             // 4. Fetch Products for dropdown
             var products = await _context.Products.ToListAsync();

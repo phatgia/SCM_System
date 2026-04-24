@@ -92,9 +92,11 @@ namespace SCM_System.Controllers
                     Date = s.OrderDate
                 }).ToListAsync();
 
-            // 5. Low Stock Warnings
-            model.LowStockWarnings = await _context.Inventories
+            // 5. Low Stock Warnings - load in memory then filter (SQLite: GroupBy+Where+Take not translatable)
+            var allInventories = await _context.Inventories
                 .Include(i => i.Product).ThenInclude(p => p.Category)
+                .ToListAsync();
+            model.LowStockWarnings = allInventories
                 .GroupBy(i => new { i.Product.ProductName, cat = i.Product.Category.CategoryName })
                 .Select(g => new LowStockAlertViewModel {
                     ProductName = g.Key.ProductName,
@@ -104,7 +106,7 @@ namespace SCM_System.Controllers
                 })
                 .Where(x => x.CurrentStock < x.Threshold)
                 .Take(5)
-                .ToListAsync();
+                .ToList();
 
             // 6. Active Deliveries
             model.ActiveDeliveries = await _context.Deliveries
