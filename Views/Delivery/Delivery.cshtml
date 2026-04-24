@@ -38,18 +38,13 @@
         
         <div class="card border-0 shadow-sm mb-4 d-md-none">
             <div class="card-body bg-light rounded text-center">
-                <h6 class="fw-bold text-primary mb-3">Nhận hàng từ Kho (Handshake 1)</h6>
-                <p class="small text-muted mb-3">Đưa camera quét mã QR trên màn hình của Thủ kho để xác nhận nhận hàng đi giao.</p>
+                <h6 class="fw-bold text-primary mb-3">
+                    <i class="bi bi-upc-scan me-2"></i>Nhận hàng từ Kho
+                </h6>
                 
-                <button class="btn btn-warning fw-bold px-4 rounded-pill shadow" id="btnStartScan" onclick="startQRScanner()">
+                <button class="btn btn-warning fw-bold px-4 rounded-pill shadow" data-bs-toggle="modal" data-bs-target="#qrScannerModal">
                     <i class="bi bi-upc-scan me-2"></i>Bật Camera Quét Mã
                 </button>
-
-                <button class="btn btn-outline-danger fw-bold px-4 rounded-pill shadow d-none mt-2" id="btnStopScan" onclick="stopQRScanner()">
-                    <i class="bi bi-x-circle me-2"></i>Đóng Camera
-                </button>
-
-                <div id="reader" class="mt-3 mx-auto" style="width: 100%; max-width: 400px; border-radius: 10px; overflow: hidden; display: none;"></div>
             </div>
         </div>
 
@@ -69,7 +64,7 @@
                                 }else if(item.Status == "Đang giao hàng"){
                                     <span class="badge bg-primary bg-opacity-10 text-primary px-2">Đang giao hàng</span>
                                 }else if(item.Status == "Chờ lấy hàng"){
-                                    <span class="badge bg-danger bg-opacity-10 text-danger px-2">Chờ lấy hàng</span>
+                                    <span class="badge bg-warning bg-opacity-10 text-warning px-2">Chờ lấy hàng</span>
                                 }
                                 else{
                                     <span class="badge bg-secondary bg-opacity-10 text-secondary px-2">@item.Status</span>
@@ -249,6 +244,28 @@
     <div class="modal-footer border-0"><button class="btn btn-light border" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Phân công</button></div>
 </div></div></div>
 
+@* Modeal Camera *@
+<div class="modal fade" id="qrScannerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 p-3">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-camera-video me-2"></i>Quét mã QR</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4 bg-dark text-center">
+                <p class="small text-white-50 mb-3">Đưa mã QR của Thủ kho vào giữa khung hình</p>
+                
+                <div id="reader" class="mx-auto bg-black" style="width: 100%; max-width: 400px; border-radius: 10px; overflow: hidden; min-height: 250px;"></div>
+            </div>
+            
+            <div class="modal-footer border-0 p-3 bg-light justify-content-center">
+                <button type="button" class="btn btn-secondary px-5 rounded-pill fw-bold shadow-sm" data-bs-dismiss="modal">Hủy bỏ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
@@ -315,38 +332,42 @@
     }
 
 
-    let html5QrCode;
+        let html5QrCode;
 
-    function startQRScanner() {
-        document.getElementById('reader').style.display = 'block';
-        document.getElementById('btnStartScan').classList.add('d-none');
-        document.getElementById('btnStopScan').classList.remove('d-none');
+        document.getElementById('qrScannerModal').addEventListener('shown.bs.modal', function () {
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-        html5QrCode = new Html5Qrcode("reader");
+            const onScanSuccess = (decodedText, decodedResult) => {
+                stopQRScanner();
+                
+                var myModalEl = document.getElementById('qrScannerModal');
+                var modal = bootstrap.Modal.getInstance(myModalEl);
+                modal.hide();
 
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                window.location.href = decodedText;
+            };
 
-        const onScanSuccess = (decodedText, decodedResult) => {
-            stopQRScanner();
-            window.location.href = decodedText;
-        };
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+            .catch(err => {
+                html5QrCode.start({ facingMode: "user" }, config, onScanSuccess)
+                .catch(err2 => {
+                    alert("Lỗi: Không có quyền truy cập Máy ảnh!");
+                    stopQRScanner();
+                });
+            });
+        });
 
-        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
-        .catch(err => {
-            alert("Lỗi mở Camera: Hãy đảm bảo bạn đã cấp quyền sử dụng máy ảnh cho trình duyệt web!");
+        document.getElementById('qrScannerModal').addEventListener('hidden.bs.modal', function () {
             stopQRScanner();
         });
-    }
 
-    function stopQRScanner() {
-        if (html5QrCode) {
-            html5QrCode.stop().then(() => {
-                document.getElementById('reader').style.display = 'none';
-                document.getElementById('btnStartScan').classList.remove('d-none');
-                document.getElementById('btnStopScan').classList.add('d-none');
-            }).catch(err => {
-                console.log("Lỗi khi tắt camera", err);
-            });
+        function stopQRScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear(); 
+                    html5QrCode = null;
+                }).catch(err => console.log("Lỗi khi tắt camera: ", err));
+            }
         }
-    }
 </script>
