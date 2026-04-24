@@ -441,6 +441,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
 
 <script>
     function GenQRCode (){
@@ -562,5 +563,23 @@
             document.getElementById('editInvQuantity').value = qty;
             new bootstrap.Modal(document.getElementById('editInventoryModal')).show();
         }
+
+        const conn = new signalR.HubConnectionBuilder().withURL("/HandoverHub").build();
+
+        conn.on("OrderHandOver", function(deliveryId){
+
+            const selectElement = document.getElementById("pickupSelect");
+            const optionToRemove = selectElement.querySelector(`option[value='${deliveryId}']`);
+        
+            if(optionToRemove) {
+                const orderName = optionToRemove.text;
+                optionToRemove.remove(); 
+
+                alert("Thông báo: Đơn hàng [" + orderName + "] đã được Shipper quét nhận thành công!");
+                
+                document.getElementById("qrDisplay").classList.add("d-none");
+            }
+
+        });
     </script>
 }

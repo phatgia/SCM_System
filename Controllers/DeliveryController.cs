@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using SCM_System.Hubs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SCM_System.Data;
@@ -13,11 +15,12 @@ namespace SCM_System.Controllers
     {
         private readonly SCMDbContext _context;
 
-        public DeliveryController(SCMDbContext context)
+        private readonly IHubContext<HandoverHub> _hubContext;
+        public DeliveryController(SCMDbContext context, IHubContext<HandoverHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
-
         // =====================================================================
         // GET: /Delivery/Delivery  — Trang chính Vận chuyển
         // =====================================================================
@@ -286,8 +289,9 @@ namespace SCM_System.Controllers
             TempData["SuccessMessage"] = $"Đã ghi nhận hoàn hàng cho đơn SO-{order.OrderDate.Year}-{soid:D3}.";
             return RedirectToAction("Delivery");
         }
+    
         [HttpGet]
-        [AllowAnonymous] 
+        [Authorize] 
         public async Task<IActionResult> ScanPickup(int deliveryId)
         {
             var delivery = await _context.Deliveries
@@ -314,10 +318,12 @@ namespace SCM_System.Controllers
                 delivery.SaleOrder.Status = "Đang giao hàng";
             }
             await _context.SaveChangesAsync();
+                
+            await _hubContext.Clients.All.SendAsync("OrderHandedOver", deliveryId);
 
             TempData["SuccessMessage"] = $"Quét QR thành công! Đã nhận đơn SO-{delivery.SOID:D5} từ kho.";
             
-            return RedirectToAction("Delivery", new { hash = "#menu1" }); 
+            return RedirectToAction("Delivery","Delivery", new { hash = "#menu1" }); 
         }
     }
 }
