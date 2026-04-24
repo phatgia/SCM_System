@@ -4,12 +4,26 @@ using SCM_System.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Handle Railway's PORT environment variable
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+    builder.WebHost.UseUrls($"http://+:{port}");
+
 // Add MVC services
 builder.Services.AddControllersWithViews();
 
-// Add DbContext with SQL Server
-builder.Services.AddDbContext<SCMDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Use SQLite in Production (Railway), SQL Server in Development (local)
+if (builder.Environment.IsProduction())
+{
+    var dbPath = Path.Combine(AppContext.BaseDirectory, "scm_system.db");
+    builder.Services.AddDbContext<SCMDbContext>(options =>
+        options.UseSqlite($"Data Source={dbPath}"));
+}
+else
+{
+    builder.Services.AddDbContext<SCMDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
 
 // Add Cookie Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -46,17 +60,18 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Disable HTTPS redirect in production (Railway handles TLS termination)
+if (app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
+
 app.UseStaticFiles();
-
 app.UseRouting();
-
-app.UseAuthentication(); // <-- phải trước UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
 
-// Default route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
