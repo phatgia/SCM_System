@@ -17,6 +17,8 @@ namespace SCM_System.Models.ViewModels
         public List<Product> AllProducts { get; set; } = new();
         
         public string CurrencySymbol { get; set; } = "₫";
+
+        public List<StorageExportItem> PendingExports{get; set;}= new();
     }
 
     public class InboundOrderViewModel
@@ -113,4 +115,10 @@ namespace SCM_System.Models.ViewModels
         public string Notes { get; set; } = string.Empty;
     }
 
+    public class StorageExportItem
+    {
+        public int DeliveryID{get; set;}
+        public string OrderCode{get; set;} ="";
+        public string CustomerName{get; set;} ="";
+    }
 }

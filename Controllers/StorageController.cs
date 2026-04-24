@@ -205,6 +205,16 @@ namespace SCM_System.Controllers
                 }).ToListAsync();
 
             viewModel.AllProducts = await _context.Products.OrderBy(p => p.ProductName).ToListAsync();
+            viewModel.PendingExports = await _context.Deliveries
+            .Include(d => d.SaleOrder).ThenInclude(so => so.Customer)
+            .Where(d => d.Status == "Chờ lấy hàng")
+            .Select(d => new StorageExportItem
+            {
+                DeliveryID = d.DeliveryID,
+                OrderCode = "SO-" + d.SaleOrder.OrderDate.Year + "-" + d.SOID.ToString("D3"),
+                CustomerName = d.SaleOrder.Customer.Name ?? "Khách hàng"
+            }).ToListAsync();
+
 
             ViewBag.SearchReceipt = searchReceipt;
             ViewBag.SearchPick = searchPick;

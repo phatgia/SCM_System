@@ -1,4 +1,22 @@
+@using Microsoft.AspNetCore.Http.Features
+@model SCM_System.Models.ViewModels.DeliveryViewModel
 @{ViewData["Title"] = "Vận chuyển";}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div><h4 class="fw-bold mb-1">Vận chuyển & Giao nhận</h4><p class="text-muted small mb-0">Điều phối, theo dõi và xác nhận bàn giao hàng hóa</p></div>
 </div>
@@ -13,16 +31,54 @@
     <!-- DANH SÁCH GIAO HÀNG -->
     <div class="tab-pane active" id="menu1">
         <div class="row g-3 mb-3">
-            <div class="col-md-4"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-2 fw-bold text-warning">12</div><div class="small text-muted">Chờ lấy hàng</div></div></div>
-            <div class="col-md-4"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-2 fw-bold text-primary">38</div><div class="small text-muted">Đang giao</div></div></div>
-            <div class="col-md-4"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-2 fw-bold text-success">184</div><div class="small text-muted">Hoàn thành tháng này</div></div></div>
+            <div class="col-md-4"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-2 fw-bold text-warning">@Model.PendingPickupCount</div><div class="small text-muted">Chờ lấy hàng</div></div></div>
+            <div class="col-md-4"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-2 fw-bold text-primary">@Model.InDeliveryCount</div><div class="small text-muted">Đang giao</div></div></div>
+            <div class="col-md-4"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-2 fw-bold text-success">@Model.CompletedThisMonthCount</div><div class="small text-muted">Hoàn thành tháng <span class="text-success fw-bold">@DateTime.Now.Month</span> này</div></div></div>
         </div>
+        
+        <div class="card border-0 shadow-sm mb-4 d-md-none">
+            <div class="card-body bg-light rounded text-center">
+                <h6 class="fw-bold text-primary mb-3">Nhận hàng từ Kho (Handshake 1)</h6>
+                <p class="small text-muted mb-3">Đưa camera quét mã QR trên màn hình của Thủ kho để xác nhận nhận hàng đi giao.</p>
+                
+                <button class="btn btn-warning fw-bold px-4 rounded-pill shadow" id="btnStartScan" onclick="startQRScanner()">
+                    <i class="bi bi-upc-scan me-2"></i>Bật Camera Quét Mã
+                </button>
+
+                <button class="btn btn-outline-danger fw-bold px-4 rounded-pill shadow d-none mt-2" id="btnStopScan" onclick="stopQRScanner()">
+                    <i class="bi bi-x-circle me-2"></i>Đóng Camera
+                </button>
+
+                <div id="reader" class="mt-3 mx-auto" style="width: 100%; max-width: 400px; border-radius: 10px; overflow: hidden; display: none;"></div>
+            </div>
+        </div>
+
         <div class="card border-0 shadow-sm"><div class="card-body p-0"><div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light"><tr><th class="ps-4 py-2 small text-muted border-0">MÃ ĐƠN</th><th class="py-2 small text-muted border-0">KHÁCH HÀNG</th><th class="py-2 small text-muted border-0">SHIPPER</th><th class="py-2 small text-muted border-0">ĐỊA CHỈ GIAO</th><th class="py-2 small text-muted border-0">COD</th><th class="py-2 small text-muted border-0">TRẠNG THÁI</th><th class="py-2 small text-muted border-0"></th></tr></thead>
+                <thead class="table-light"><tr><th class="ps-4 py-2 small text-white border-0">MÃ ĐƠN</th><th class="py-2 small text-white border-0">KHÁCH HÀNG</th><th class="py-2 small text-white border-0">SHIPPER</th><th class="py-2 small text-white border-0">ĐỊA CHỈ GIAO</th><th class="py-2 small text-white border-0">COD</th><th class="py-2 small text-white border-0">TRẠNG THÁI</th><th class="py-2 small text-white border-0">Thời gian</th></tr></thead>
                 <tbody>
-                    <tr><td class="ps-4 py-2 fw-semibold small text-primary">SO-2026-040</td><td class="py-2"><div class="small fw-semibold">Nguyễn Thị Lan</div><div class="small text-muted">0987654321</div></td><td class="py-2 small">Trần Văn Cường</td><td class="py-2 small text-muted">78 Võ Văn Tần, Q.3</td><td class="py-2 small fw-semibold">28.200.000 ₫</td><td class="py-2"><span class="badge bg-warning bg-opacity-10 text-warning px-2">Đang giao</span></td><td class="py-2"><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye me-1"></i>Timeline</button></td></tr>
-                    <tr><td class="ps-4 py-2 fw-semibold small text-primary">SO-2026-041</td><td class="py-2"><div class="small fw-semibold">Trần Minh Khoa</div><div class="small text-muted">0912345678</div></td><td class="py-2 small">Nguyễn Hữu Lộc</td><td class="py-2 small text-muted">45 Lê Lợi, Q.1</td><td class="py-2 small fw-semibold">12.500.000 ₫</td><td class="py-2"><span class="badge bg-success bg-opacity-10 text-success px-2">Hoàn thành</span></td><td class="py-2"><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye me-1"></i>Timeline</button></td></tr>
+                    @foreach(var item in Model.AllDeliveries){
+                        <tr>
+                            <td class="ps-4 py-2 fw-semibold small text-primary">@item.OrderCode</td>
+                            <td class="py-2"><div class="small fw-semibold">@item.CustomerName</div><div class="small text-muted">@item.CustomerPhone</div></td>
+                            <td class="py-2 small">@item.ShipperName</td><td class="py-2 small text-muted">@item.Address</td>
+                            <td class="py-2 small fw-semibold">@item.TotalAmount</td>
+                            <td class="py-2">
+                                @if(item.Status == "Thành công"){
+                                    <span class="badge bg-success bg-opacity-10 text-success px-2">Hoàn thành</span>
+                                }else if(item.Status == "Đang giao hàng"){
+                                    <span class="badge bg-primary bg-opacity-10 text-primary px-2">Đang giao hàng</span>
+                                }else if(item.Status == "Chờ lấy hàng"){
+                                    <span class="badge bg-danger bg-opacity-10 text-danger px-2">Chờ lấy hàng</span>
+                                }
+                                else{
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-2">@item.Status</span>
+                                }
+                                
+                            </td>
+                            <td class="py-2">@item.DeliveryTime</td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div></div></div>
@@ -31,17 +87,6 @@
     <!-- HANDSHAKE -->
     <div class="tab-pane" id="menu2">
         <div class="row g-4">
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0"><i class="bi bi-qr-code me-1 text-primary"></i>Bàn giao xuất kho (Handshake 1)</h6></div><div class="card-body">
-                    <p class="small text-muted mb-3">Thủ kho tạo mã QR để Shipper quét xác nhận nhận hàng từ kho.</p>
-                    <div class="mb-3"><label class="form-label small fw-semibold">Chọn đơn hàng</label><select class="form-select"><option>SO-2026-039 — Lê Văn Bình</option><option>SO-2026-038 — Phạm Thúy Hà</option></select></div>
-                    <button class="btn btn-primary w-100"><i class="bi bi-qr-code me-1"></i>Tạo mã QR Handshake</button>
-                    <div class="mt-3 text-center d-none" id="qrDisplay">
-                        <div class="border rounded p-3 d-inline-block bg-white"><div style="width:150px;height:150px;background:#000;margin:0 auto;" class="d-flex align-items-center justify-content-center"><span class="text-white small">QR Code</span></div></div>
-                        <p class="small text-muted mt-2">Mã hết hạn sau <strong>5 phút</strong></p>
-                    </div>
-                </div></div>
-            </div>
             <div class="col-md-6">
                 <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0"><i class="bi bi-person-check me-1 text-success"></i>Bàn giao cho khách (Handshake 2)</h6></div><div class="card-body">
                     <p class="small text-muted mb-3">Shipper xác nhận giao hàng thành công bằng ảnh chữ ký / ảnh gói hàng.</p>
@@ -204,8 +249,9 @@
     <div class="modal-footer border-0"><button class="btn btn-light border" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Phân công</button></div>
 </div></div></div>
 
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-    // Các hàm hiển thị form giữ nguyên
     function showReturnForm() {
         document.getElementById("returnFormBox").classList.remove("d-none");
     }
@@ -215,38 +261,92 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        
-        // Hàm chuyển tab dựa theo hash (vd: #menu2)
         function forceSwitchTab() {
             let hash = window.location.hash || "#menu1";
             let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
             
             if (tabLink) {
-                // Khởi tạo và hiển thị tab bằng Bootstrap 5 API
                 let tab = new bootstrap.Tab(tabLink);
                 tab.show();
             }
         }
 
-        // 1. Kích hoạt đúng tab ngay khi vừa load trang (trường hợp từ trang khác nhảy vào)
+       
         forceSwitchTab();
 
-        // 2. Lắng nghe sự kiện URL thay đổi hash (khi click từ menu sidebar bên trái)
         window.addEventListener('hashchange', forceSwitchTab);
 
-        // 3. ĐỒNG BỘ NGƯỢC: Khi bạn chủ động click vào các Tab ở màn hình chính, 
-        // cập nhật lại URL hash để hàm highlightSidebar() ở file _Layout bắt được và đổi màu menu tương ứng
+    
         let tabElements = document.querySelectorAll('.nav-tabs a[data-bs-toggle="tab"]');
         tabElements.forEach(function(el) {
             el.addEventListener('shown.bs.tab', function (e) {
                 let currentHash = e.target.getAttribute('href');
-                
-                // Cập nhật URL mà không làm trình duyệt bị "giật" (scroll) xuống ID đó
+
                 history.replaceState(null, null, currentHash); 
                 
-                // Chủ động phát đi sự kiện hashchange để _Layout nhận diện
                 window.dispatchEvent(new Event('hashchange')); 
             });
         });
     });
+
+    function GenQRCode (){
+        var deliveryId = document.getElementById("pickupSelect").value;
+        
+        if (!deliveryId) {
+            alert("Vui lòng chọn một đơn hàng để tạo mã!");
+            return;
+        }
+
+        var currentDomain = window.location.origin;
+        var scanUrl = currentDomain + "/Delivery/ScanPickup?deliveryId=" + deliveryId;
+
+        document.getElementById("qrcodeCanvas").innerHTML = "";
+
+        new QRCode(document.getElementById("qrcodeCanvas"), {
+            text: scanUrl,          
+            width: 180,              
+            height: 180,            
+            colorDark : "#000000",   
+            colorLight : "#ffffff",  
+            correctLevel : QRCode.CorrectLevel.H 
+        });
+
+        document.getElementById("qrDisplay").classList.remove("d-none");
+    }
+
+
+    let html5QrCode;
+
+    function startQRScanner() {
+        document.getElementById('reader').style.display = 'block';
+        document.getElementById('btnStartScan').classList.add('d-none');
+        document.getElementById('btnStopScan').classList.remove('d-none');
+
+        html5QrCode = new Html5Qrcode("reader");
+
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        const onScanSuccess = (decodedText, decodedResult) => {
+            stopQRScanner();
+            window.location.href = decodedText;
+        };
+
+        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+        .catch(err => {
+            alert("Lỗi mở Camera: Hãy đảm bảo bạn đã cấp quyền sử dụng máy ảnh cho trình duyệt web!");
+            stopQRScanner();
+        });
+    }
+
+    function stopQRScanner() {
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                document.getElementById('reader').style.display = 'none';
+                document.getElementById('btnStartScan').classList.remove('d-none');
+                document.getElementById('btnStopScan').classList.add('d-none');
+            }).catch(err => {
+                console.log("Lỗi khi tắt camera", err);
+            });
+        }
+    }
 </script>

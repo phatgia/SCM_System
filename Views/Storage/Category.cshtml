@@ -31,6 +31,10 @@
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="tab" href="#menu7"><i class="bi bi-shield-check me-1"></i>Kiểm soát QC</a>
             </li>
+
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#menu8"><i class="bi bi-box-arrow-right me-1"></i> Xuất kho</a>
+            </li>
         </ul>
     </div>
 
@@ -307,6 +311,32 @@
                     </table>
                 </div>
             </div>
+
+            <div class="tab-pane" id="menu8">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0"><i class="bi bi-qr-code me-1 text-primary"></i>Bàn giao xuất kho (Handshake 1)</h6></div><div class="card-body">
+                            <p class="small text-muted mb-3">Thủ kho tạo mã QR để Shipper quét xác nhận nhận hàng từ kho.</p>
+                            <div class="mb-3"><label class="form-label small fw-semibold">Chọn đơn hàng</label>
+                                <select class="form-select" id="pickupSelect">
+                                    <option value="">-- Chọn đơn hàng --</option>
+                                    @foreach(var item in Model.PendingExports){
+                                        <option value="@item.DeliveryID">@item.OrderCode - @item.CustomerName</option>
+                                    }
+                                </select>
+                            </div>
+                            <button class="btn btn-primary w-100 " onclick="GenQRCode()"><i class="bi bi-qr-code me-1"></i>Tạo mã QR Handshake</button>
+                            <div class="mt-3 text-center d-none" id="qrDisplay">
+                                <div class="border rounded p-3 d-inline-block bg-white">
+                                    <div id="qrcodeCanvas" class="d-flex align-items-center justify-content-center"></div>
+                                </div>
+                                <p class="small text-muted mt-2">Mã hết hạn sau <strong>5 phút</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 </div>
@@ -445,6 +475,35 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+    function GenQRCode (){
+        var deliveryId = document.getElementById("pickupSelect").value;
+        
+        if (!deliveryId) {
+            alert("Vui lòng chọn một đơn hàng để tạo mã!");
+            return;
+        }
+
+        var currentDomain = window.location.origin;
+        var scanUrl = currentDomain + "/Delivery/ScanPickup?deliveryId=" + deliveryId;
+
+        document.getElementById("qrcodeCanvas").innerHTML = "";
+
+        new QRCode(document.getElementById("qrcodeCanvas"), {
+            text: scanUrl,          
+            width: 180,              
+            height: 180,            
+            colorDark : "#000000",   
+            colorLight : "#ffffff",  
+            correctLevel : QRCode.CorrectLevel.H 
+        });
+
+        document.getElementById("qrDisplay").classList.remove("d-none");
+    }
+</script>
 
 @section Scripts {
     <script>

@@ -46,7 +46,7 @@ namespace SCM_System.Controllers
 
             var now = DateTime.Now;
             vm.PendingPickupCount      = deliveries.Count(d => d.Status == "Chờ lấy hàng");
-            vm.InDeliveryCount         = deliveries.Count(d => d.Status == "Đang giao");
+            vm.InDeliveryCount         = deliveries.Count(d => d.Status == "Đang giao hàng");
             vm.CompletedThisMonthCount = deliveries.Count(d =>
                 d.Status == "Thành công" &&
                 d.DeliveryTime.HasValue &&
@@ -285,6 +285,39 @@ namespace SCM_System.Controllers
 
             TempData["SuccessMessage"] = $"Đã ghi nhận hoàn hàng cho đơn SO-{order.OrderDate.Year}-{soid:D3}.";
             return RedirectToAction("Delivery");
+        }
+        [HttpGet]
+        [AllowAnonymous] 
+        public async Task<IActionResult> ScanPickup(int deliveryId)
+        {
+            var delivery = await _context.Deliveries
+                .Include(d => d.SaleOrder)
+                .FirstOrDefaultAsync(d => d.DeliveryID == deliveryId);
+
+            if (delivery == null)
+            {
+                TempData["ErrorMessage"] = "Mã QR không hợp lệ hoặc đơn hàng không tồn tại!";
+                return RedirectToAction("Delivery", new { hash = "#menu1" }); 
+            }
+
+            if (delivery.Status != "Chờ lấy hàng")
+            {
+                TempData["ErrorMessage"] = $"Đơn hàng này đang ở trạng thái '{delivery.Status}', không thể nhận hàng.";
+                return RedirectToAction("Delivery", new { hash = "#menu1" });
+            }
+            delivery.Status = "Đang giao hàng";
+            delivery.DeliveryTime = DateTime.Now; 
+
+   
+            if (delivery.SaleOrder != null)
+            {
+                delivery.SaleOrder.Status = "Đang giao hàng";
+            }
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Quét QR thành công! Đã nhận đơn SO-{delivery.SOID:D5} từ kho.";
+            
+            return RedirectToAction("Delivery", new { hash = "#menu1" }); 
         }
     }
 }
