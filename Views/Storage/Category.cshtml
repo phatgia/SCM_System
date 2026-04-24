@@ -564,7 +564,7 @@
             new bootstrap.Modal(document.getElementById('editInventoryModal')).show();
         }
 
-        const conn = new signalR.HubConnectionBuilder().withURL("/HandoverHub").build();
+        const conn = new signalR.HubConnectionBuilder().withUrl("/HandoverHub").build();
 
         conn.on("OrderHandOver", function(deliveryId){
 
