@@ -31,10 +31,6 @@
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="tab" href="#menu7"><i class="bi bi-shield-check me-1"></i>Kiểm soát QC</a>
             </li>
-
-            <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#menu8"><i class="bi bi-box-arrow-right me-1"></i> Xuất kho</a>
-            </li>
         </ul>
     </div>
 
@@ -201,41 +197,33 @@
 
             @* TAB 5: BÀN GIAO *@
             <div class="tab-pane" id="menu5">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold mb-0">Đơn hàng sẵn sàng bàn giao</h5>
-                    <form asp-action="Category" method="get" class="d-flex gap-2">
-                        <input type="hidden" name="hash" value="#menu5" />
-                        <input type="text" name="searchHandover" value="@ViewBag.SearchHandover" class="form-control form-control-sm" placeholder="Tìm SO..." style="width: 200px;">
-                        <button type="submit" class="btn btn-primary btn-sm px-3">Tìm</button>
-                    </form>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover border">
-                        <thead class="bg-light small">
-                            <tr>
-                                <th class="ps-3">MÃ SO</th>
-                                <th>KHÁCH HÀNG</th>
-                                <th>SỐ LƯỢNG MẶT HÀNG</th>
-                                <th class="text-end pe-3">THAO TÁC</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var rs in Model.HandoverOrders) {
-                                <tr>
-                                    <td class="ps-3 fw-bold">#SO-@rs.SOID.ToString("D5")</td>
-                                    <td class="fw-bold">@rs.CustomerName</td>
-                                    <td class="text-center">@rs.TotalItems</td>
-                                    <td class="text-end pe-3">
-                                        <form asp-action="HandoverSO" method="post" class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="soid" value="@rs.SOID">
-                                            <button type="submit" class="btn btn-sm btn-primary px-4 shadow-sm fw-bold">Bàn giao</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
+                                <h6 class="fw-bold mb-0"><i class="bi bi-qr-code me-1 text-primary"></i>Bàn giao xuất kho (Handshake 1)</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="small text-muted mb-3">Thủ kho tạo mã QR để Shipper quét xác nhận nhận hàng từ kho.</p>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Chọn đơn hàng</label>
+                                    <select class="form-select" id="pickupSelect">
+                                        <option value="">-- Chọn đơn hàng --</option>
+                                        @foreach(var item in Model.PendingExports){
+                                            <option value="@item.DeliveryID">@item.OrderCode - @item.CustomerName</option>
+                                        }
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary w-100 " onclick="GenQRCode()"><i class="bi bi-qr-code me-1"></i>Tạo mã QR Handshake</button>
+                                <div class="mt-3 text-center d-none" id="qrDisplay">
+                                    <div class="border rounded p-3 d-inline-block bg-white">
+                                        <div id="qrcodeCanvas" class="d-flex align-items-center justify-content-center"></div>
+                                    </div>
+                                    <p class="small text-muted mt-2">Mã hết hạn sau <strong>5 phút</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -272,6 +260,7 @@
                     </table>
                 </div>
             </div>
+
 
             @* TAB 7: QC *@
             <div class="tab-pane" id="menu7">
@@ -312,31 +301,6 @@
                 </div>
             </div>
 
-            <div class="tab-pane" id="menu8">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0"><i class="bi bi-qr-code me-1 text-primary"></i>Bàn giao xuất kho (Handshake 1)</h6></div><div class="card-body">
-                            <p class="small text-muted mb-3">Thủ kho tạo mã QR để Shipper quét xác nhận nhận hàng từ kho.</p>
-                            <div class="mb-3"><label class="form-label small fw-semibold">Chọn đơn hàng</label>
-                                <select class="form-select" id="pickupSelect">
-                                    <option value="">-- Chọn đơn hàng --</option>
-                                    @foreach(var item in Model.PendingExports){
-                                        <option value="@item.DeliveryID">@item.OrderCode - @item.CustomerName</option>
-                                    }
-                                </select>
-                            </div>
-                            <button class="btn btn-primary w-100 " onclick="GenQRCode()"><i class="bi bi-qr-code me-1"></i>Tạo mã QR Handshake</button>
-                            <div class="mt-3 text-center d-none" id="qrDisplay">
-                                <div class="border rounded p-3 d-inline-block bg-white">
-                                    <div id="qrcodeCanvas" class="d-flex align-items-center justify-content-center"></div>
-                                </div>
-                                <p class="small text-muted mt-2">Mã hết hạn sau <strong>5 phút</strong></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
         </div>
     </div>
 </div>
