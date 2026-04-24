@@ -333,12 +333,18 @@
 
 
         let html5QrCode;
+        let isScanned = false;
 
         document.getElementById('qrScannerModal').addEventListener('shown.bs.modal', function () {
+            isScanned = false;
+
             html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            const config =   { fps: 10, qrbox: { width: 250, height: 250 } };
 
             const onScanSuccess = (decodedText, decodedResult) => {
+                
+                if(isScanned){return;}
+                isScanned= true;
                 stopQRScanner();
                 
                 var myModalEl = document.getElementById('qrScannerModal');
