@@ -7,6 +7,9 @@ using SCM_System.Data;
 using SCM_System.Models;
 using SCM_System.Models.ViewModels;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace SCM_System.Controllers
 {
@@ -16,10 +19,12 @@ namespace SCM_System.Controllers
         private readonly SCMDbContext _context;
 
         private readonly IHubContext<HandoverHub> _hubContext;
-        public DeliveryController(SCMDbContext context, IHubContext<HandoverHub> hubContext)
+        private readonly IWebHostEnvironment _env;
+        public DeliveryController(SCMDbContext context, IHubContext<HandoverHub> hubContext, IWebHostEnvironment env)
         {
             _context = context;
             _hubContext = hubContext;
+            _env = env;
         }
         // =====================================================================
         // GET: /Delivery/Delivery  — Trang chính Vận chuyển
@@ -324,6 +329,59 @@ namespace SCM_System.Controllers
             TempData["SuccessMessage"] = $"Quét QR thành công! Đã nhận đơn SO-{delivery.SOID:D5} từ kho.";
             
             return RedirectToAction("Delivery","Delivery", new { hash = "#menu1" }); 
+        }
+
+
+
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CompleteDelivery(int deliveryId, string result, IFormFile proofImage)
+        {
+            var delivery = await _context.Deliveries
+                .Include(d => d.SaleOrder)
+                .FirstOrDefaultAsync(d => d.DeliveryID == deliveryId);
+
+            if (delivery == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy đơn hàng cần bàn giao!";
+                return RedirectToAction("Delivery", new { hash = "#menu2" });
+            }
+
+            string imagePath = "";
+            if (proofImage != null && proofImage.Length > 0)
+            {
+                string uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "pod");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                string uniqueFileName = $"POD_SO-{delivery.SOID}_{Guid.NewGuid().ToString().Substring(0, 8)}{Path.GetExtension(proofImage.FileName)}";
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await proofImage.CopyToAsync(fileStream);
+                }
+
+                imagePath = $"/uploads/pod/{uniqueFileName}";
+            }
+
+            
+            delivery.Status = result == "Giao thành công" ? "Thành công" : "Trả hàng";
+
+            if(delivery.SaleOrder != null)
+            {
+                delivery.SaleOrder.Status = delivery.Status;
+            }
+
+            await _context.SaveChangesAsync();
+
+            // 4. Báo thành công
+            TempData["SuccessMessage"] = $"Tuyệt vời! Đã hoàn tất Handshake 2 cho đơn SO-{delivery.SOID:D5}.";
+            return RedirectToAction("Delivery", new { hash = "#menu1" }); // Xong thì ném về Tab danh sách để Shipper thấy đơn đã biến mất
         }
     }
 }

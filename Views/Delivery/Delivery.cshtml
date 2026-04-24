@@ -83,18 +83,43 @@
     <div class="tab-pane" id="menu2">
         <div class="row g-4">
             <div class="col-md-6">
-                <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0"><i class="bi bi-person-check me-1 text-success"></i>Bàn giao cho khách (Handshake 2)</h6></div><div class="card-body">
-                    <p class="small text-muted mb-3">Shipper xác nhận giao hàng thành công bằng ảnh chữ ký / ảnh gói hàng.</p>
-                    <div class="mb-3"><label class="form-label small fw-semibold">Mã đơn hàng</label><input type="text" class="form-control" placeholder="Nhập mã đơn đang giao..."></div>
-                    <div class="mb-3"><label class="form-label small fw-semibold">Kết quả giao hàng</label>
+                <form asp-action="CompleteDelivery" asp-controller="Delivery" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Chọn đơn hàng đang giao</label>
+                        <select class="form-select" name="deliveryId" required>
+                            <option value="">-- Chọn đơn hàng đang giao --</option>
+                            @foreach(var item in Model.AllDeliveries.Where(d => d.Status == "Đang giao hàng"))
+                            {
+                                <option value="@item.DeliveryID">@item.OrderCode - @item.CustomerName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Kết quả giao hàng</label>
                         <div class="d-flex gap-3">
-                            <div class="form-check"><input class="form-check-input" type="radio" name="delivResult" id="r1" checked><label class="form-check-label small" for="r1">Giao thành công</label></div>
-                            <div class="form-check"><input class="form-check-input" type="radio" name="delivResult" id="r2"><label class="form-check-label small" for="r2">Khách từ chối</label></div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="result" value="Giao thành công" id="r1" checked>
+                                <label class="form-check-label small" for="r1">Giao thành công</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="result" value="Khách từ chối" id="r2">
+                                <label class="form-check-label small" for="r2">Khách từ chối</label>
+                            </div>
                         </div>
                     </div>
-                    <div class="mb-3"><label class="form-label small fw-semibold">Ảnh minh chứng *</label><input type="file" class="form-control form-control-sm" accept="image/*"></div>
-                    <button class="btn btn-success w-100"><i class="bi bi-check2-circle me-1"></i>Hoàn tất bàn giao</button>
-                </div></div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Ảnh minh chứng *</label>
+                        <input type="file" name="proofImage" class="form-control form-control-sm" accept="image/*" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-check2-circle me-1"></i>Hoàn tất bàn giao
+                    </button>
+                </form>
             </div>
         </div>
     </div>
