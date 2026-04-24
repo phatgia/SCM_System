@@ -1,8 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using SCM_System.Data;
+using SCM_System.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSignalR();
 
 // Add MVC services
 builder.Services.AddControllersWithViews();
@@ -59,4 +62,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.MapHub<HandoverHub>("/handoverHub");
+
 app.Run();
+
+
