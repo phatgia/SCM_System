@@ -29,7 +29,7 @@ namespace SCM_System.Controllers
         // =====================================================================
         // GET: /Delivery/Delivery  — Trang chính Vận chuyển
         // =====================================================================
-        public async Task<IActionResult> Delivery()
+        public async Task<IActionResult> Delivery(string? searchCode = null)
         {
             var vm = new DeliveryViewModel();
             // ── Tab 2: Danh sách giao hàng ───────────────────────────────────
@@ -79,6 +79,16 @@ namespace SCM_System.Controllers
                 FullName         = u.FullName,
                 ActiveDeliveries = activeDeliveryCount.FirstOrDefault(x => x.Key == u.UserID)?.Count ?? 0
             }).ToList();
+
+            if (!string.IsNullOrEmpty(searchCode))
+            {
+                string idString = searchCode.Split('-').LastOrDefault() ?? "";
+                int.TryParse(idString, out int searchSoId);
+
+                ViewBag.SearchedDelivery = await _context.Deliveries
+                    .Include(d => d.DeliveryTrackings)
+                    .FirstOrDefaultAsync(d => d.SOID == searchSoId);
+            }
 
             return View(vm);
         }
@@ -205,8 +215,9 @@ namespace SCM_System.Controllers
         // POST: Bàn giao cho khách hàng (Handshake 2)
         // =====================================================================
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CompleteDelivery(int deliveryId, string result, string? proof)
+        public async Task<IActionResult> CompleteDelivery(int deliveryId, string result, IFormFile proofImage)
         {
             var delivery = await _context.Deliveries
                 .Include(d => d.SaleOrder)
@@ -214,34 +225,53 @@ namespace SCM_System.Controllers
 
             if (delivery == null)
             {
-                TempData["ErrorMessage"] = "Không tìm thấy chuyến giao hàng.";
-                return RedirectToAction("Delivery");
+                TempData["ErrorMessage"] = "Không tìm thấy đơn hàng cần bàn giao!";
+                return RedirectToAction("Delivery", "Delivery", null, "menu2");
             }
 
-            if (result == "success")
+            string imagePath = "";
+            if (proofImage != null && proofImage.Length > 0)
             {
-                delivery.Status        = "Thành công";
-                delivery.HandShakeProof = proof ?? "Đã xác nhận";
-                delivery.DeliveryTime  = DateTime.Now;
+                string uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "pod");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
 
-                // Cập nhật trạng thái đơn hàng
-                delivery.SaleOrder.Status = "Hoàn thành";
+                string uniqueFileName = $"POD_SO-{delivery.SOID}_{Guid.NewGuid().ToString().Substring(0, 8)}{Path.GetExtension(proofImage.FileName)}";
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                TempData["SuccessMessage"] = "Giao hàng thành công! Đơn hàng đã hoàn thành.";
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await proofImage.CopyToAsync(fileStream);
+                }
+
+                imagePath = $"/uploads/pod/{uniqueFileName}";
             }
-            else
+
+            string formattedOrderCode = $"SO-{DateTime.Now.Year}-{delivery.SOID:D3}";
+
+            if (result == "Giao thành công")
             {
-                delivery.Status = "Khách từ chối";
-                delivery.HandShakeProof = proof ?? "Khách từ chối nhận hàng";
-
-                TempData["SuccessMessage"] = "Đã ghi nhận khách từ chối. Đơn hàng sẽ được hoàn về kho.";
+                delivery.Status = "Thành công";
+                if(delivery.SaleOrder != null) delivery.SaleOrder.Status = "Thành công";
+                
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Tuyệt vời! Đã giao thành công đơn {formattedOrderCode}.";
+                
+                return RedirectToAction("Delivery", "Delivery", null, "menu2");
             }
+            else 
+            {
+                delivery.Status = "Giao thất bại"; 
+                if(delivery.SaleOrder != null) delivery.SaleOrder.Status = "Giao thất bại";
+                
+                await _context.SaveChangesAsync();
 
-            _context.Update(delivery);
-            _context.Update(delivery.SaleOrder);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("Delivery");
+                TempData["ErrorMessage"] = $"Khách từ chối nhận đơn {formattedOrderCode}. BẮT BUỘC ghi nhận lý do hoàn trả tại đây!";
+                
+                return RedirectToAction("Delivery", "Delivery", new { searchCode = formattedOrderCode }, "menu4");
+            }
         }
 
         // =====================================================================
@@ -249,20 +279,23 @@ namespace SCM_System.Controllers
         // =====================================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RecordReturn(int soid, string reason, string settlement)
+        public async Task<IActionResult> RecordReturn(string orderCode, string reason, string settlement)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId))
             {
                 TempData["ErrorMessage"] = "Không xác định được người dùng.";
-                return RedirectToAction("Delivery");
+                return RedirectToAction("Delivery", "Delivery", null, "menu4");
             }
+
+            string idString = orderCode.Split('-').LastOrDefault() ?? "0";
+            int.TryParse(idString, out int soid);
 
             var order = await _context.SaleOrders.FindAsync(soid);
             if (order == null)
             {
                 TempData["ErrorMessage"] = "Không tìm thấy đơn hàng.";
-                return RedirectToAction("Delivery");
+                return RedirectToAction("Delivery", "Delivery", null, "menu4");
             }
 
             // Tạo ReturnOrder
@@ -292,7 +325,7 @@ namespace SCM_System.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = $"Đã ghi nhận hoàn hàng cho đơn SO-{order.OrderDate.Year}-{soid:D3}.";
-            return RedirectToAction("Delivery");
+            return RedirectToAction("Delivery", "Delivery", null, "menu4");
         }
     
         [HttpGet]
@@ -331,57 +364,65 @@ namespace SCM_System.Controllers
             return RedirectToAction("Delivery","Delivery", new { hash = "#menu1" }); 
         }
 
-
-
-
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CompleteDelivery(int deliveryId, string result, IFormFile proofImage)
+        [HttpGet]
+        public IActionResult SearchDeliveryTimeline(string orderCode)
         {
-            var delivery = await _context.Deliveries
-                .Include(d => d.SaleOrder)
-                .FirstOrDefaultAsync(d => d.DeliveryID == deliveryId);
+
+            if (string.IsNullOrEmpty(orderCode))
+            {
+                TempData["ErrorMessage"] = "Vui lòng nhập mã đơn hàng để tìm kiếm!";
+                return RedirectToAction("Delivery", "Delivery", null, "menu3");
+            }
+
+            string? idString = orderCode.Split('-').LastOrDefault(); 
+            int.TryParse(idString, out int searchSoId);
+
+            var delivery = _context.Deliveries
+                .Include(d => d.DeliveryTrackings) 
+                .FirstOrDefault(d => d.SOID == searchSoId); 
 
             if (delivery == null)
             {
-                TempData["ErrorMessage"] = "Không tìm thấy đơn hàng cần bàn giao!";
-                return RedirectToAction("Delivery", new { hash = "#menu2" });
+                TempData["ErrorMessage"] = $"Không tìm thấy đơn hàng nào khớp với mã: {orderCode}";
+                return RedirectToAction("Delivery", "Delivery", null, "menu3");
             }
 
-            string imagePath = "";
-            if (proofImage != null && proofImage.Length > 0)
-            {
-                string uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "pod");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                string uniqueFileName = $"POD_SO-{delivery.SOID}_{Guid.NewGuid().ToString().Substring(0, 8)}{Path.GetExtension(proofImage.FileName)}";
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await proofImage.CopyToAsync(fileStream);
-                }
-
-                imagePath = $"/uploads/pod/{uniqueFileName}";
-            }
-
+            TempData["SearchedDeliveryId"] = delivery.DeliveryID;
             
-            delivery.Status = result == "Giao thành công" ? "Thành công" : "Trả hàng";
+            return RedirectToAction("Delivery", "Delivery", new { searchCode = orderCode }, "menu3");
+        }
 
-            if(delivery.SaleOrder != null)
+
+        [HttpPost]
+        public async Task<IActionResult> AddTrackingEvent(int deliveryId, string statusEvent, string note)
+        {
+            var delivery = await _context.Deliveries.FindAsync(deliveryId);
+            if (delivery == null) return NotFound();
+
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdStr, out int userId);
+
+            var currentUser = await _context.Users.FindAsync(userId);
+            string currentShipperName = currentUser != null ? currentUser.FullName : "Nhân viên hệ thống";
+
+            var trackingNode = new DeliveryTracking
             {
-                delivery.SaleOrder.Status = delivery.Status;
-            }
+                DeliveryID = deliveryId,
+                StatusEvent = statusEvent,
+                Note = note,
+                EventTime = DateTime.Now,
+                ShipperName = currentShipperName
+            };
 
+            _context.DeliveryTrackings.Add(trackingNode);
+            
             await _context.SaveChangesAsync();
 
-            // 4. Báo thành công
-            TempData["SuccessMessage"] = $"Tuyệt vời! Đã hoàn tất Handshake 2 cho đơn SO-{delivery.SOID:D5}.";
-            return RedirectToAction("Delivery", new { hash = "#menu1" }); // Xong thì ném về Tab danh sách để Shipper thấy đơn đã biến mất
+            TempData["SuccessMessage"] = "Đã cập nhật nhật ký hành trình thành công!";
+            
+            string formattedOrderCode = $"SO-{DateTime.Now.Year}-{delivery.SOID:D3}";
+
+            return RedirectToAction("Delivery", "Delivery", new { searchCode = formattedOrderCode }, "menu3");
         }
     }
 }
