@@ -25,6 +25,7 @@ namespace SCM_System.Data
         public DbSet<PurchaseReturn> PurchaseReturns { get; set; }
         public DbSet<SystemSetting> SystemSettings { get; set; }
         public DbSet<QualityControl> QualityControls { get; set; }
+        public DbSet<DeliveryTracking> DeliveryTrackings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

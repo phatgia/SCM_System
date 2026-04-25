@@ -4,8 +4,8 @@
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+    <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 fw-bold mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2 text-success"></i> @TempData["SuccessMessage"]
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
@@ -59,17 +59,18 @@
                             <td class="py-2 small">@item.ShipperName</td><td class="py-2 small text-muted">@item.Address</td>
                             <td class="py-2 small fw-semibold">@item.TotalAmount</td>
                             <td class="py-2">
-                                @if(item.Status == "Thành công"){
-                                    <span class="badge bg-success bg-opacity-10 text-success px-2">Hoàn thành</span>
-                                }else if(item.Status == "Đang giao hàng"){
-                                    <span class="badge bg-primary bg-opacity-10 text-primary px-2">Đang giao hàng</span>
-                                }else if(item.Status == "Chờ lấy hàng"){
-                                    <span class="badge bg-warning bg-opacity-10 text-warning px-2">Chờ lấy hàng</span>
+                                @if(item.Status == "Hoàn thành" || item.Status == "Thành công" || item.Status == "Giao thành công"){
+                                    <span class="badge bg-success bg-opacity-10 text-success px-2">@item.Status</span>
+                                }
+                                else if(item.Status == "Đang giao hàng" || item.Status == "Đang giao"){
+                                    <span class="badge bg-primary bg-opacity-10 text-primary px-2">@item.Status</span>
+                                }
+                                else if(item.Status == "Chờ lấy hàng"){
+                                    <span class="badge bg-warning bg-opacity-10 text-warning px-2">@item.Status</span>
                                 }
                                 else{
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-2">@item.Status</span>
+                                    <span class="badge bg-danger bg-opacity-10 text-danger px-2">@item.Status</span>
                                 }
-                                
                             </td>
                             <td class="py-2">@item.DeliveryTime</td>
                         </tr>
@@ -83,146 +84,175 @@
     <div class="tab-pane" id="menu2">
         <div class="row g-4">
             <div class="col-md-6">
-                <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0"><i class="bi bi-person-check me-1 text-success"></i>Bàn giao cho khách (Handshake 2)</h6></div><div class="card-body">
-                    <p class="small text-muted mb-3">Shipper xác nhận giao hàng thành công bằng ảnh chữ ký / ảnh gói hàng.</p>
-                    <div class="mb-3"><label class="form-label small fw-semibold">Mã đơn hàng</label><input type="text" class="form-control" placeholder="Nhập mã đơn đang giao..."></div>
-                    <div class="mb-3"><label class="form-label small fw-semibold">Kết quả giao hàng</label>
+                <form asp-action="CompleteDelivery" asp-controller="Delivery" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Chọn đơn hàng đang giao</label>
+                        <select class="form-select" name="deliveryId" required>
+                            <option value="">-- Chọn đơn hàng đang giao --</option>
+                            @foreach(var item in Model.AllDeliveries.Where(d => d.Status == "Đang giao hàng"))
+                            {
+                                <option value="@item.DeliveryID">@item.OrderCode - @item.CustomerName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Kết quả giao hàng</label>
                         <div class="d-flex gap-3">
-                            <div class="form-check"><input class="form-check-input" type="radio" name="delivResult" id="r1" checked><label class="form-check-label small" for="r1">Giao thành công</label></div>
-                            <div class="form-check"><input class="form-check-input" type="radio" name="delivResult" id="r2"><label class="form-check-label small" for="r2">Khách từ chối</label></div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="result" value="Giao thành công" id="r1" checked>
+                                <label class="form-check-label small" for="r1">Giao thành công</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="result" value="Khách từ chối" id="r2">
+                                <label class="form-check-label small" for="r2">Khách từ chối</label>
+                            </div>
                         </div>
                     </div>
-                    <div class="mb-3"><label class="form-label small fw-semibold">Ảnh minh chứng *</label><input type="file" class="form-control form-control-sm" accept="image/*"></div>
-                    <button class="btn btn-success w-100"><i class="bi bi-check2-circle me-1"></i>Hoàn tất bàn giao</button>
-                </div></div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Ảnh minh chứng *</label>
+                        <input type="file" name="proofImage" class="form-control form-control-sm" accept="image/*" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-check2-circle me-1"></i>Hoàn tất bàn giao
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 
     <!-- CẬP NHẬT TRẠNG THÁI -->
     <div class="tab-pane" id="menu3">
-        <div class="card border-0 shadow-sm mb-3"><div class="card-body p-3">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-5"><label class="form-label small fw-semibold">Tìm đơn hàng</label><div class="input-group"><input type="text" class="form-control" placeholder="Mã đơn hàng..."><button class="btn btn-primary"><i class="bi bi-search"></i></button></div></div>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-3">
+                <form asp-action="SearchDeliveryTimeline" asp-controller="Delivery" method="get">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label small fw-semibold">Tìm đơn hàng</label>
+                            <div class="input-group">
+                                <input type="text" name="orderCode" class="form-control" placeholder="Mã đơn (VD: SO-2026-040)..." value="@Context.Request.Query["searchCode"]" required>
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
-        </div></div>
-        <div class="card border-0 shadow-sm"><div class="card-header bg-white border-0 pt-3 pb-0 px-4"><h6 class="fw-bold mb-0">Timeline — SO-2026-040</h6></div><div class="card-body">
-            <div class="d-flex flex-column gap-3">
-                <div class="d-flex align-items-start gap-3"><div class="rounded-circle bg-success d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;"><i class="bi bi-check text-white small"></i></div><div><p class="mb-0 small fw-semibold">Lấy hàng từ kho</p><p class="mb-0 small text-muted">19/04/2026 10:00 — Shipper: Trần Văn Cường</p></div></div>
-                <div class="d-flex align-items-start gap-3"><div class="rounded-circle bg-warning d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;"><i class="bi bi-truck text-white small"></i></div><div><p class="mb-0 small fw-semibold">Đang di chuyển đến khách</p><p class="mb-0 small text-muted">19/04/2026 10:45</p></div></div>
-                <div class="d-flex align-items-start gap-3"><div class="rounded-circle bg-light border d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;"><i class="bi bi-house text-muted small"></i></div><div class="text-muted"><p class="mb-0 small fw-semibold">Giao cho khách</p><p class="mb-0 small">Chờ xác nhận...</p></div></div>
+        </div>
+
+        @if (ViewBag.SearchedDelivery is SCM_System.Models.Delivery delivery)
+        {
+            string orderCodeStr = $"SO-{DateTime.Now.Year}-{delivery.SOID:D3}";
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
+                    <h6 class="fw-bold mb-0">Timeline — @orderCodeStr</h6>
+                </div>
+                <div class="card-body">
+                    
+                    <div class="d-flex flex-column gap-3 mb-4">
+                        @if (delivery.DeliveryTrackings != null && delivery.DeliveryTrackings.Any())
+                        {
+                            foreach (var tracking in delivery.DeliveryTrackings.OrderBy(t => t.EventTime))
+                            {
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="rounded-circle bg-success d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;">
+                                        <i class="bi bi-check text-white small"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 small fw-semibold">@tracking.StatusEvent</p>
+                                        <p class="mb-0 small text-muted">@tracking.EventTime.ToString("dd/MM/yyyy HH:mm") — Shipper: @tracking.ShipperName</p>
+                                        @if (!string.IsNullOrEmpty(tracking.Note))
+                                        {
+                                            <p class="mb-0 small text-dark fst-italic">Ghi chú: @tracking.Note</p>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted small fst-italic">Chưa có lịch sử cập nhật nào cho đơn hàng này.</p>
+                        }
+                    </div>
+
+                    <hr>
+
+                    <form asp-action="AddTrackingEvent" asp-controller="Delivery" method="post">
+                        <input type="hidden" name="deliveryId" value="@delivery.DeliveryID" />
+                        
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold">Cập nhật trạng thái mới</label>
+                                <select name="statusEvent" class="form-select" required>
+                                    <option value="Đang di chuyển đến khách">Đang di chuyển đến khách</option>
+                                    <option value="Khách hẹn giao lại">Khách hẹn giao lại</option>
+                                    <option value="Không liên lạc được khách">Không liên lạc được khách</option>
+                                    <option value="Sự cố đi đường">Sự cố đi đường</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold">Ghi chú</label>
+                                <input type="text" name="note" class="form-control" placeholder="Ghi chú thêm...">
+                            </div>
+                            <div class="col-auto d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary">Lưu cập nhật</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <hr>
-            <div class="row g-3">
-                <div class="col-md-5"><label class="form-label small fw-semibold">Cập nhật trạng thái mới</label><select class="form-select"><option>Đang di chuyển đến khách</option><option>Khách hẹn giao lại</option><option>Không liên lạc được khách</option></select></div>
-                <div class="col-md-5"><label class="form-label small fw-semibold">Ghi chú</label><input type="text" class="form-control" placeholder="Ghi chú thêm..."></div>
-                <div class="col-auto d-flex align-items-end"><button class="btn btn-primary">Lưu cập nhật</button></div>
-            </div>
-        </div></div>
+        }
     </div>
     <!-- TAB: Ghi nhận trả hàng -->
     <div class="tab-pane" id="menu4">
-
-        <!-- Thông báo -->
-        <div class="alert alert-danger small">
-            Ghi nhận trường hợp giao hàng không thành công để hoàn trả hàng về kho.
+        <div class="alert alert-danger mb-4 border-0 shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> Ghi nhận trường hợp giao hàng không thành công để hoàn trả hàng về kho.
         </div>
 
-        <!-- BUTTON giống ảnh 1 -->
-        <button class="btn btn-danger mb-3"
-                onclick="showReturnForm()">
-            + Ghi nhận trả hàng tại chỗ
-        </button>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form asp-action="RecordReturn" asp-controller="Delivery" method="post">
+                    <div class="row g-4">
+                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Mã đơn hàng</label>
+                            <input type="text" name="orderCode" class="form-control" placeholder="VD: SO-2026-039" value="@Context.Request.Query["searchCode"]" required>
+                        </div>
 
-        <!-- FORM (ẩn ban đầu) -->
-        <div id="returnFormBox" class="card border-0 shadow-sm d-none" style="max-width:420px">
-            <div class="card-body">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Lý do hoàn trả</label>
+                            <select name="reason" class="form-select" required>
+                                <option value="" disabled selected>-- Chọn lý do --</option>
+                                <option value="Khách hàng từ chối nhận">Khách hàng từ chối nhận</option>
+                                <option value="Không liên lạc được khách (Quá 3 lần)">Không liên lạc được khách (Quá 3 lần)</option>
+                                <option value="Hàng hóa bị hỏng/lỗi khi vận chuyển">Hàng hóa hỏng/lỗi khi vận chuyển</option>
+                                <option value="Sai thông tin đơn hàng">Sai thông tin đơn hàng</option>
+                            </select>
+                        </div>
 
-                <h6 class="fw-bold mb-3">Ghi nhận trả hàng</h6>
-
-                <form asp-action="RecordReturn" method="post">
-                    @Html.AntiForgeryToken()
-
-                    <!-- Đơn hàng -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Đơn hàng</label>
-                        <select name="soid" class="form-select">
-                        </select>
-                    </div>
-
-                    <!-- Lý do -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Lý do không giao được</label>
-
-                        <div class="d-flex flex-column gap-2">
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="reason"
-                                    value="Khách không có mặt" checked>
-                                <label class="form-check-label small">
-                                    Khách hàng không có mặt tại địa chỉ
-                                </label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="reason"
-                                    value="Sai địa chỉ">
-                                <label class="form-check-label small">
-                                    Địa chỉ không tồn tại / không tìm thấy
-                                </label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="reason"
-                                    value="Khách từ chối">
-                                <label class="form-check-label small">
-                                    Khách hàng từ chối nhận hàng
-                                </label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="reason"
-                                    value="Hàng hỏng">
-                                <label class="form-check-label small">
-                                    Hàng hóa bị hư hỏng trong quá trình vận chuyển
-                                </label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="reason"
-                                    value="Sai sản phẩm">
-                                <label class="form-check-label small">
-                                    Sai sản phẩm / số lượng
-                                </label>
-                            </div>
-
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Hướng xử lý (Settlement)</label>
+                            <select name="settlement" class="form-select" required>
+                                <option value="" disabled selected>-- Chọn hướng xử lý --</option>
+                                <option value="Nhập lại kho, chờ xử lý">Nhập lại kho, chờ kiểm tra</option>
+                                <option value="Hoàn tiền cho khách">Hoàn tiền cho khách</option>
+                                <option value="Đổi trả sản phẩm khác">Đổi trả sản phẩm khác</option>
+                                <option value="Tiêu hủy (Hàng hỏng nặng)">Tiêu hủy (Hàng hỏng nặng)</option>
+                            </select>
                         </div>
                     </div>
 
-                    <!-- Ghi chú -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Ghi chú thêm</label>
-                        <textarea name="settlement" class="form-control"
-                                placeholder="Mô tả chi tiết..."></textarea>
-                    </div>
-
-                    <!-- Button -->
-                    <div class="d-flex justify-content-between">
-                        <button type="button" class="btn btn-light"
-                                onclick="hideReturnForm()">
-                            Hủy
-                        </button>
-
-                        <button type="submit" class="btn btn-danger">
-                            Ghi nhận trả hàng
+                    <div class="mt-4 text-end">
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="bi bi-box-arrow-in-down-left me-1"></i> Xác nhận hoàn hàng
                         </button>
                     </div>
-
                 </form>
-
             </div>
         </div>
-
     </div>
 </div>
 
