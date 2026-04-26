@@ -216,10 +216,16 @@
                                 </div>
                                 <button class="btn btn-primary w-100 " onclick="GenQRCode()"><i class="bi bi-qr-code me-1"></i>Tạo mã QR Handshake</button>
                                 <div class="mt-3 text-center d-none" id="qrDisplay">
-                                    <div class="border rounded p-3 d-inline-block bg-white">
+                                    <div class="border rounded p-3 d-inline-block bg-white shadow-sm">
                                         <div id="qrcodeCanvas" class="d-flex align-items-center justify-content-center"></div>
+                                        <div class="mt-2 small">
+                                            <div class="fw-bold text-primary" id="qrOrderCode"></div>
+                                            <div class="text-muted">Shipper: <strong id="qrShipperName"></strong></div>
+                                        </div>
                                     </div>
-                                    <p class="small text-muted mt-2">Mã hết hạn sau <strong>5 phút</strong></p>
+                                    <p class="small text-danger mt-2 mb-0">
+                                        <i class="bi bi-shield-lock me-1"></i>Mã chỉ hợp lệ với shipper được phân công · Hết hạn sau <strong>5 phút</strong>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -444,29 +450,57 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
 
 <script>
-    function GenQRCode (){
+    async function GenQRCode() {
         var deliveryId = document.getElementById("pickupSelect").value;
-        
         if (!deliveryId) {
             alert("Vui lòng chọn một đơn hàng để tạo mã!");
             return;
         }
 
-        var currentDomain = window.location.origin;
-        var scanUrl = currentDomain + "/Delivery/ScanPickup?deliveryId=" + deliveryId;
+        // Gọi server để lấy signed URL — URL chứa HMAC token
+        // Chỉ shipper được phân công mới dùng được URL này
+        const btn = event.currentTarget;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang tạo...';
 
-        document.getElementById("qrcodeCanvas").innerHTML = "";
+        try {
+            const resp = await fetch(`/Delivery/GenerateQR?deliveryId=${deliveryId}`);
+            if (!resp.ok) {
+                const err = await resp.json();
+                alert("Lỗi: " + (err.message || "Không thể tạo QR."));
+                return;
+            }
+            const data = await resp.json();
 
-        new QRCode(document.getElementById("qrcodeCanvas"), {
-            text: scanUrl,          
-            width: 180,              
-            height: 180,            
-            colorDark : "#000000",   
-            colorLight : "#ffffff",  
-            correctLevel : QRCode.CorrectLevel.H 
-        });
+            // Vẽ QR từ signed URL
+            document.getElementById("qrcodeCanvas").innerHTML = "";
+            new QRCode(document.getElementById("qrcodeCanvas"), {
+                text: data.qrUrl,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
 
-        document.getElementById("qrDisplay").classList.remove("d-none");
+            // Hiển thị thông tin
+            document.getElementById("qrShipperName").innerText = data.shipperName;
+            document.getElementById("qrOrderCode").innerText  = data.orderCode;
+            document.getElementById("qrDisplay").classList.remove("d-none");
+
+            // Tự ẩn QR sau 5 phút — mã sẽ vô hiệu hóa sau khi quét hoặc hết thời gian
+            clearTimeout(window._qrHideTimer);
+            window._qrHideTimer = setTimeout(() => {
+                document.getElementById("qrDisplay").classList.add("d-none");
+                document.getElementById("qrcodeCanvas").innerHTML =
+                    '<p class="text-danger small">⏱ Mã QR đã hết thời gian hiển thị. Vui lòng tạo lại.</p>';
+                document.getElementById("qrDisplay").classList.remove("d-none");
+            }, 5 * 60 * 1000);
+
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-qr-code me-1"></i>Tạo mã QR Handshake';
+        }
     }
 </script>
 

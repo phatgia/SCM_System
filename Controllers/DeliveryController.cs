@@ -10,6 +10,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SCM_System.Controllers
 {
@@ -17,14 +19,59 @@ namespace SCM_System.Controllers
     public class DeliveryController : Controller
     {
         private readonly SCMDbContext _context;
-
         private readonly IHubContext<HandoverHub> _hubContext;
         private readonly IWebHostEnvironment _env;
-        public DeliveryController(SCMDbContext context, IHubContext<HandoverHub> hubContext, IWebHostEnvironment env)
+        private readonly IConfiguration _config;
+
+        public DeliveryController(SCMDbContext context, IHubContext<HandoverHub> hubContext,
+                                  IWebHostEnvironment env, IConfiguration config)
         {
             _context = context;
             _hubContext = hubContext;
             _env = env;
+            _config = config;
+        }
+
+        // ─── HMAC helpers: bảo vệ QR ─────────────────────────────────────────
+        private string GeneratePickupToken(int deliveryId, int userId)
+        {
+            var secret = _config["QR:Secret"] ?? "scm-qr-fallback-2026";
+            var payload = $"{deliveryId}:{userId}";
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+            return Convert.ToBase64String(hash).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+        }
+        private bool ValidatePickupToken(int deliveryId, int userId, string token)
+            => string.Equals(GeneratePickupToken(deliveryId, userId), token,
+                             StringComparison.OrdinalIgnoreCase);
+
+        // ─── GET /Delivery/GenerateQR?deliveryId=X ────────────────────────────
+        // Thủ kho gọi API này → nhận signed URL → vẽ QR cho shipper quét
+        [HttpGet]
+        [Authorize(Roles = "Quản trị viên,Quản lý kho,Nhân viên vận chuyển")]
+        public async Task<IActionResult> GenerateQR(int deliveryId)
+        {
+            var delivery = await _context.Deliveries
+                .Include(d => d.User)
+                .Include(d => d.SaleOrder)
+                .FirstOrDefaultAsync(d => d.DeliveryID == deliveryId);
+
+            if (delivery == null)
+                return NotFound(new { message = "Không tìm thấy đơn hàng." });
+            if (delivery.Status != "Chờ lấy hàng")
+                return BadRequest(new { message = $"Đơn đang ở trạng thái '{delivery.Status}'." });
+
+            var token = GeneratePickupToken(deliveryId, delivery.UserID);
+            var url   = $"{Request.Scheme}://{Request.Host}/Delivery/ScanPickup"
+                      + $"?deliveryId={deliveryId}&userId={delivery.UserID}"
+                      + $"&token={Uri.EscapeDataString(token)}";
+
+            return Json(new
+            {
+                qrUrl       = url,
+                shipperName = delivery.User.FullName,
+                orderCode   = $"SO-{delivery.SaleOrder.OrderDate.Year}-{delivery.SOID:D3}"
+            });
         }
         // =====================================================================
         // GET: /Delivery/Delivery  — Trang chính Vận chuyển
@@ -328,40 +375,65 @@ namespace SCM_System.Controllers
             return RedirectToAction("Delivery", "Delivery", null, "menu4");
         }
     
+        // ─── GET /Delivery/ScanPickup ─────────────────────────────────────────
+        // Shipper quét QR → nhận hàng từ kho
+        // Bảo mật: token HMAC + đúng shipper được phân công
+        // Race condition: atomic ExecuteUpdateAsync (1 SQL, không thể bị 2 request cùng win)
         [HttpGet]
-        [Authorize] 
-        public async Task<IActionResult> ScanPickup(int deliveryId)
+        [Authorize(Roles = "Quản trị viên,Nhân viên vận chuyển")]
+        public async Task<IActionResult> ScanPickup(int deliveryId, int userId, string token)
         {
-            var delivery = await _context.Deliveries
-                .Include(d => d.SaleOrder)
-                .FirstOrDefaultAsync(d => d.DeliveryID == deliveryId);
-
-            if (delivery == null)
+            // 1. Xác thực token HMAC
+            if (string.IsNullOrEmpty(token) || !ValidatePickupToken(deliveryId, userId, token))
             {
-                TempData["ErrorMessage"] = "Mã QR không hợp lệ hoặc đơn hàng không tồn tại!";
-                return RedirectToAction("Delivery", new { hash = "#menu1" }); 
+                TempData["ErrorMessage"] = "⛔ Mã QR không hợp lệ hoặc đã bị giả mạo!";
+                return RedirectToAction("Delivery");
             }
 
-            if (delivery.Status != "Chờ lấy hàng")
-            {
-                TempData["ErrorMessage"] = $"Đơn hàng này đang ở trạng thái '{delivery.Status}', không thể nhận hàng.";
-                return RedirectToAction("Delivery", new { hash = "#menu1" });
-            }
-            delivery.Status = "Đang giao hàng";
-            delivery.DeliveryTime = DateTime.Now; 
+            // 2. Chỉ đúng shipper được phân công mới được quét
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int currentUserId))
+                return Unauthorized();
 
-   
-            if (delivery.SaleOrder != null)
+            if (currentUserId != userId && !User.IsInRole("Quản trị viên"))
             {
-                delivery.SaleOrder.Status = "Đang giao hàng";
+                TempData["ErrorMessage"] = "⛔ Đơn hàng này được phân công cho shipper khác!";
+                return RedirectToAction("Delivery");
             }
-            await _context.SaveChangesAsync();
-                
+
+            // 3. Atomic UPDATE — chỉ 1 trong N request đồng thời thắng
+            //    SQL: UPDATE Delivery SET Status=... WHERE DeliveryID=? AND Status='Chờ lấy hàng' AND UserID=?
+            var rows = await _context.Deliveries
+                .Where(d => d.DeliveryID == deliveryId
+                         && d.Status    == "Chờ lấy hàng"
+                         && d.UserID    == userId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(d => d.Status,       "Đang giao hàng")
+                    .SetProperty(d => d.DeliveryTime, DateTime.Now));
+
+            if (rows == 0)
+            {
+                var current = await _context.Deliveries.AsNoTracking()
+                                  .FirstOrDefaultAsync(d => d.DeliveryID == deliveryId);
+                TempData["ErrorMessage"] = current == null
+                    ? "Đơn hàng không tồn tại."
+                    : $"❌ Đơn đã được nhận bởi shipper khác (trạng thái: {current.Status}).";
+                return RedirectToAction("Delivery");
+            }
+
+            // 4. Cập nhật SaleOrder + gửi SignalR (sau khi đã chiếm được Delivery)
+            var claimed = await _context.Deliveries.AsNoTracking()
+                              .FirstOrDefaultAsync(d => d.DeliveryID == deliveryId);
+            if (claimed != null)
+            {
+                await _context.SaleOrders
+                    .Where(so => so.SOID == claimed.SOID)
+                    .ExecuteUpdateAsync(s => s.SetProperty(so => so.Status, "Đang giao hàng"));
+            }
+
             await _hubContext.Clients.All.SendAsync("OrderHandedOver", deliveryId);
 
-            TempData["SuccessMessage"] = $"Quét QR thành công! Đã nhận đơn SO-{delivery.SOID:D5} từ kho.";
-            
-            return RedirectToAction("Delivery","Delivery", new { hash = "#menu1" }); 
+            TempData["SuccessMessage"] = "✅ Quét QR thành công! Đơn hàng đã được nhận về giao.";
+            return RedirectToAction("Delivery");
         }
 
         [HttpGet]
