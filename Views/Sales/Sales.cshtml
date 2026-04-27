@@ -88,7 +88,7 @@
                                 <textarea id="orderNote" class="form-control shadow-sm" rows="4" placeholder="Nhập ghi chú..."></textarea>
                             </div>
                             <div class="d-grid gap-2 mt-4">
-                                <button type="button" class="btn btn-primary btn-lg shadow fw-bold" onclick="submitOrder()"><i class="bi bi-cart-check-fill me-2"></i>TẠO ĐƠN</button>
+                                <button type="button" class="btn btn-primary btn-lg shadow fw-bold" onclick="submitOrder(this)"><i class="bi bi-cart-check-fill me-2"></i>TẠO ĐƠN</button>
                                 <button type="button" class="btn btn-light border" onclick="location.reload()">Làm lại</button>
                             </div>
                         </div>
@@ -316,7 +316,8 @@
             (Model.CreateVM?.Products ?? new List<SCM_System.Models.Product>())
             .Select(p => new {
                 ProductID = p.ProductID,
-                ProductName = p.ProductName
+                ProductName = p.ProductName,
+                BasePrice = p.BasePrice
             })
         ));
         function toggleCustomerType() {
@@ -343,7 +344,7 @@
                 <td class="ps-4">
                     <select class="form-select form-select-sm prod-select shadow-sm" onchange="updateRow(this)">
                         <option value="0">-- Chọn sản phẩm --</option>
-                        ${products.map(p => `<option value="${p.ProductID}" data-price="${(p.ProductID * 500000) + 1000000}"> ${p.ProductName} </option>`).join('')}
+                        ${products.map(p => `<option value="${p.ProductID}" data-price="${p.BasePrice}"> ${p.ProductName} </option>`).join('')}
                     </select>
                 </td>
                 <td><input type="number" class="form-control form-control-sm text-center mx-auto prod-qty shadow-sm" style="width:70px" value="1" min="1" onchange="calcTotal()"></td>
@@ -373,9 +374,78 @@
             document.getElementById('grandTotal').innerText = grandTotal.toLocaleString('vi-VN') + ' ₫';
         }
 
-        async function submitOrder() {
-            // (Giữ nguyên logic fetch POST CreateOrder của bạn ở file cũ)
-            alert("Giữ nguyên logic Fetch JS của bạn ở đây");
+        async function submitOrder(btn) {
+            const rows = document.querySelectorAll('#productTable tbody tr');
+            if (rows.length === 0) {
+                alert("Vui lòng thêm sản phẩm vào đơn hàng.");
+                return;
+            }
+
+            const items = [];
+            let isValid = true;
+
+            rows.forEach(row => {
+                const productId = parseInt(row.querySelector('.prod-select').value);
+                const qty = parseInt(row.querySelector('.prod-qty').value);
+                const priceText = row.querySelector('.prod-price').value.toString().replace(/[^0-9]/g, '');
+                const price = parseFloat(priceText);
+
+                if (productId === 0 || isNaN(price)) {
+                    isValid = false;
+                } else {
+                    items.push({
+                        ProductID: productId,
+                        Quantity: qty,
+                        UnitPrice: price
+                    });
+                }
+            });
+
+            if (!isValid) {
+                alert("Vui lòng chọn sản phẩm và nhập giá hợp lệ cho tất cả các dòng.");
+                return;
+            }
+
+            const data = {
+                CustomerID: parseInt(document.getElementById('customerSelect').value) || null,
+                CustomerName: document.getElementById('custName').value,
+                CustomerPhone: document.getElementById('custPhone').value,
+                CustomerEmail: document.getElementById('custEmail').value,
+                ShippingAddress: document.getElementById('custAddr').value,
+                Note: document.getElementById('orderNote').value,
+                Items: items
+            };
+
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang xử lý...';
+
+            try {
+                const response = await fetch('/Sales/CreateOrder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+                    alert(res.message);
+                    window.location.href = '/Sales/Sales#menu2';
+                    location.reload();
+                } else {
+                    const err = await response.text();
+                    alert("Lỗi: " + err);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Lỗi kết nối Server.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
         }
 
         // 2. LOGIC MODAL CHI TIẾT ĐƠN HÀNG (AJAX)
