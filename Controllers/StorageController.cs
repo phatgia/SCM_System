@@ -205,15 +205,30 @@ namespace SCM_System.Controllers
                 }).ToListAsync();
 
             viewModel.AllProducts = await _context.Products.OrderBy(p => p.ProductName).ToListAsync();
-            viewModel.PendingExports = await _context.Deliveries
-            .Include(d => d.SaleOrder).ThenInclude(so => so.Customer)
-            .Where(d => d.Status == "Chờ lấy hàng")
-            .Select(d => new StorageExportItem
-            {
-                DeliveryID = d.DeliveryID,
-                OrderCode = "SO-" + d.SaleOrder.OrderDate.Year + "-" + d.SOID.ToString("D3"),
-                CustomerName = d.SaleOrder.Customer.Name ?? "Khách hàng"
-            }).ToListAsync();
+            // 5.1 Lấy danh sách các đơn sẵn sàng xuất kho (bao gồm cả đã phân công và chưa phân công)
+            // Đơn đã phân công (có trong bảng Delivery)
+            var assigned = await _context.Deliveries
+                .Include(d => d.SaleOrder).ThenInclude(so => so.Customer)
+                .Where(d => d.Status == "Chờ lấy hàng")
+                .Select(d => new StorageExportItem
+                {
+                    DeliveryID = d.SOID, // Dùng SOID làm định danh chính để đồng bộ với QR logic mới
+                    OrderCode = "SO-" + d.SaleOrder.OrderDate.Year + "-" + d.SOID.ToString("D3"),
+                    CustomerName = d.SaleOrder.Customer.Name ?? "Khách lẻ"
+                }).ToListAsync();
+
+            // Đơn chưa phân công (chỉ có trong bảng SaleOrder với trạng thái Đã soạn xong)
+            var unassigned = await _context.SaleOrders
+                .Include(so => so.Customer)
+                .Where(s => s.Status == "Đã soạn xong" && !s.Deliveries.Any())
+                .Select(s => new StorageExportItem
+                {
+                    DeliveryID = s.SOID,
+                    OrderCode = "SO-" + s.OrderDate.Year + "-" + s.SOID.ToString("D3"),
+                    CustomerName = s.Customer.Name ?? "Khách lẻ"
+                }).ToListAsync();
+
+            viewModel.PendingExports = assigned.Concat(unassigned).OrderBy(x => x.OrderCode).ToList();
 
 
             ViewBag.SearchReceipt = searchReceipt;
