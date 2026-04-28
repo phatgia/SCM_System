@@ -1,0 +1,9 @@
+# Railway configuration
+[build]
+builder = "dockerfile"
+
+[deploy]
+# Railway automatically sets $PORT; our app reads it via env var
+healthcheckPath = "/Account/Login"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3

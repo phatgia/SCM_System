@@ -51,19 +51,21 @@ namespace SCM_System.Controllers
                     o.SOID.ToString().Contains(searchOrder));
             }
 
-            var orders = await orderQuery
+            var orderEntities = await orderQuery
                 .OrderByDescending(so => so.OrderDate)
-                .Select(so => new SaleOrderListItem
-                {
-                    SOID = so.SOID,
-                    CustomerName = so.Customer.Name,
-                    CustomerPhone = so.Customer.Phone ?? "",
-                    TotalAmount = so.TotalAmount / rate, // Quy đổi tiền tệ
-                    OrderDate = so.OrderDate,
-                    Status = so.Status,
-                    ProductSummary = string.Join(", ", so.SaleOrderDetails.Select(d => d.Product.ProductName).Take(2))
-                })
                 .ToListAsync();
+
+            // Map in memory to avoid SQL APPLY (not supported by SQLite)
+            var orders = orderEntities.Select(so => new SaleOrderListItem
+            {
+                SOID = so.SOID,
+                CustomerName = so.Customer.Name,
+                CustomerPhone = so.Customer.Phone ?? "",
+                TotalAmount = so.TotalAmount / rate,
+                OrderDate = so.OrderDate,
+                Status = so.Status,
+                ProductSummary = string.Join(", ", so.SaleOrderDetails.Select(d => d.Product.ProductName).Take(2))
+            }).ToList();
 
             var ordersVM = new SalesOrdersViewModel { Orders = orders, CurrencySymbol = symbol };
 
@@ -116,18 +118,19 @@ namespace SCM_System.Controllers
                     r.SOID.ToString().Contains(searchReturn));
             }
 
-            var returns = await returnQuery
+            var returnEntities = await returnQuery
                 .OrderByDescending(r => r.ReturnID)
-                .Select(r => new ReturnOrderViewModel
-                {
-                    ReturnID = r.ReturnID,
-                    SaleOrderCode = $"SO-{r.SOID:D5}",
-                    CustomerName = r.SaleOrder.Customer.Name,
-                    ProductSummary = string.Join(", ", r.SaleOrder.SaleOrderDetails.Select(d => d.Product.ProductName).Take(2)),
-                    Settlement = r.Settlement ?? "N/A",
-                    Status = r.Status
-                })
                 .ToListAsync();
+
+            var returns = returnEntities.Select(r => new ReturnOrderViewModel
+            {
+                ReturnID = r.ReturnID,
+                SaleOrderCode = $"SO-{r.SOID:D5}",
+                CustomerName = r.SaleOrder.Customer.Name,
+                ProductSummary = string.Join(", ", r.SaleOrder.SaleOrderDetails.Select(d => d.Product.ProductName).Take(2)),
+                Settlement = r.Settlement ?? "N/A",
+                Status = r.Status
+            }).ToList();
 
             var recentSaleOrders = await _context.SaleOrders
                 .Include(so => so.Customer)

@@ -10,8 +10,12 @@ namespace SCM_System.Data
     {
         public static void Initialize(SCMDbContext context)
         {
-            // Apply any pending migrations automatically, or create DB if not exists
-            context.Database.Migrate();
+            // SQLite (Production/Railway): dùng EnsureCreated, không dùng migrations
+            // SQL Server (Development): dùng Migrate như bình thường
+            if (context.Database.IsSqlite())
+                context.Database.EnsureCreated();
+            else
+                context.Database.Migrate();
 
             // 1. Seed Roles
             if (!context.Roles.Any())

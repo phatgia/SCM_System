@@ -216,10 +216,16 @@
                                 </div>
                                 <button class="btn btn-primary w-100 " onclick="GenQRCode()"><i class="bi bi-qr-code me-1"></i>Tạo mã QR Handshake</button>
                                 <div class="mt-3 text-center d-none" id="qrDisplay">
-                                    <div class="border rounded p-3 d-inline-block bg-white">
+                                    <div class="border rounded p-3 d-inline-block bg-white shadow-sm">
                                         <div id="qrcodeCanvas" class="d-flex align-items-center justify-content-center"></div>
+                                        <div class="mt-2 small">
+                                            <div class="fw-bold text-primary" id="qrOrderCode"></div>
+                                            <div class="text-muted">Shipper: <strong id="qrShipperName"></strong></div>
+                                        </div>
                                     </div>
-                                    <p class="small text-muted mt-2">Mã hết hạn sau <strong>5 phút</strong></p>
+                                    <p class="small text-danger mt-2 mb-0">
+                                        <i class="bi bi-shield-lock me-1"></i>Mã chỉ hợp lệ với shipper được phân công · Hết hạn sau <strong>5 phút</strong>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -440,94 +446,116 @@
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
-
-<script>
-    function GenQRCode (){
-        var deliveryId = document.getElementById("pickupSelect").value;
-        
-        if (!deliveryId) {
-            alert("Vui lòng chọn một đơn hàng để tạo mã!");
-            return;
-        }
-
-        var currentDomain = window.location.origin;
-        var scanUrl = currentDomain + "/Delivery/ScanPickup?deliveryId=" + deliveryId;
-
-        document.getElementById("qrcodeCanvas").innerHTML = "";
-
-        new QRCode(document.getElementById("qrcodeCanvas"), {
-            text: scanUrl,          
-            width: 180,              
-            height: 180,            
-            colorDark : "#000000",   
-            colorLight : "#ffffff",  
-            correctLevel : QRCode.CorrectLevel.H 
-        });
-
-        document.getElementById("qrDisplay").classList.remove("d-none");
-    }
-</script>
-
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            function forceSwitchTab() {
-                let hash = window.location.hash;
+        // ─── 1. Khởi tạo SignalR ──────────────────────────────────────────
+        const connection = new signalR.HubConnectionBuilder().withUrl("/handoverHub").build();
 
-                if(!hash){
-                    let urlParams = new URLSearchParams(window.location.search);
-                    hash = urlParams.get('hash');
-                    if(hash){history.replaceState(null, null, window.location.pathname+ window.location.search+hash);}
-                }
-
-                hash = hash || "#menu1";
-
-                let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
+        connection.on("OrderHandedOver", function (soId) {
+            console.log("Đã nhận tín hiệu bàn giao đơn (SOID):", soId); 
+            
+            const selectElement = document.getElementById("pickupSelect");
+            if(selectElement) {
+                const optionToRemove = selectElement.querySelector(`option[value='${soId}']`);
                 
-                if (tabLink) {
-                    let tab = new bootstrap.Tab(tabLink);
-                    tab.show();
+                if (optionToRemove) {
+                    const orderName = optionToRemove.text;
+                    optionToRemove.remove(); 
+                    const qrDisplay = document.getElementById("qrDisplay");
+                    if(qrDisplay) qrDisplay.classList.add("d-none");
+                    showSuccessAlert(`Đơn hàng <strong>${orderName}</strong> đã được Shipper quét nhận thành công.`);
                 }
             }
+        });
 
+        connection.start()
+            .then(() => console.log("SignalR Connected!"))
+            .catch(err => console.error("SignalR Error: ", err.toString()));
+
+        // ─── 2. Hàm Tạo Mã QR (Hỗ trợ quy trình 'Ai quét trước nhận đơn') ──
+        async function GenQRCode() {
+            var soId = document.getElementById("pickupSelect").value;
+            if (!soId) {
+                alert("Vui lòng chọn một đơn hàng để tạo mã!");
+                return;
+            }
+
+            const btn = event.currentTarget;
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang tạo...';
+
+            try {
+                const resp = await fetch(`/Delivery/GenerateQR?soId=${soId}`);
+                if (!resp.ok) {
+                    const err = await resp.json();
+                    alert("Lỗi: " + (err.message || "Không thể tạo QR."));
+                    return;
+                }
+                const data = await resp.json();
+
+                // Vẽ QR
+                document.getElementById("qrcodeCanvas").innerHTML = "";
+                new QRCode(document.getElementById("qrcodeCanvas"), {
+                    text: data.qrUrl,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                document.getElementById("qrShipperName").innerText = data.shipperName;
+                document.getElementById("qrOrderCode").innerText  = data.orderCode;
+                document.getElementById("qrDisplay").classList.remove("d-none");
+
+                // Tự ẩn sau 5 phút
+                clearTimeout(window._qrHideTimer);
+                window._qrHideTimer = setTimeout(() => {
+                    document.getElementById("qrDisplay").classList.add("d-none");
+                }, 5 * 60 * 1000);
+
+            } catch(e) {
+                alert("Lỗi kết nối server.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
+        // ─── 3. Quản lý Tabs ───────────────────────────────────────────────
+        function forceSwitchTab() {
+            let hash = window.location.hash || "#menu1";
+            let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
+            if (tabLink) {
+                new bootstrap.Tab(tabLink).show();
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
             forceSwitchTab();
-            window.addEventListener('hashchange', function() {
-                forceSwitchTab();
-            });
-
-            let tabs = document.querySelectorAll('.nav-tabs a[data-bs-toggle="tab"]');
-            tabs.forEach(tab => {
-                tab.addEventListener('shown.bs.tab', function (e) {
-                    let targetHash = tab.getAttribute('href');
-                
-                    if (window.location.hash !== targetHash) {
-                        history.pushState(null, null, targetHash);
-                        
-                        window.dispatchEvent(new Event('hashchange')); 
-                    }
+            window.addEventListener('hashchange', forceSwitchTab);
+            document.querySelectorAll('.nav-tabs a[data-bs-toggle="tab"]').forEach(tab => {
+                tab.addEventListener('shown.bs.tab', (e) => {
+                    history.pushState(null, null, tab.getAttribute('href'));
                 });
             });
         });
 
-
-
+        // ─── 4. Các hàm xác nhận (Confirmation) ────────────────────────────
         let currentConfirmAction = null;
 
         function showInboundConfirm(id) { 
             currentConfirmAction = () => { 
                 let f = document.createElement('form'); 
-                f.method='POST'; 
-                f.action='/Storage/ProcessReceipt'; 
-                let i = document.createElement('input'); 
-                i.name='poid'; 
-                i.value=id; 
+                f.method='POST'; f.action='/Storage/ProcessReceipt'; 
+                let i = document.createElement('input'); i.name='poid'; i.value=id; 
                 f.appendChild(i); 
-                let t = document.querySelector('input[name="__RequestVerificationToken"]').cloneNode(); 
-                f.appendChild(t); 
-                document.body.appendChild(f); 
-                f.submit(); 
+                f.appendChild(document.querySelector('input[name="__RequestVerificationToken"]').cloneNode()); 
+                document.body.appendChild(f); f.submit(); 
             };
             document.getElementById('confirmActionTitle').innerText = "Xử lý nhập kho";
             document.getElementById('confirmActionBody').innerText = "Bạn xác nhận nhập đơn hàng PO-" + id.toString().padStart(5,'0') + " vào kho ?";
@@ -538,23 +566,23 @@
             currentConfirmAction = () => { 
                 $.ajax({ 
                     url: '/Storage/MarkAsPicked', 
-                    type: 'POST', 
-                    data: { soid: id }, 
+                    type: 'POST', data: { soid: id }, 
                     headers: { "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value }, 
-                    success: () => { 
-                        window.location.hash="#menu5"; 
-                        location.reload(); 
-                    } 
+                    success: (res) => { 
+                        if(res.success) {
+                            window.location.hash = "#menu5"; 
+                            location.reload(); 
+                        } else { alert("Lỗi: " + res.message); }
+                    },
+                    error: (xhr) => { alert("Lỗi hệ thống: " + xhr.responseText); }
                 });
             };
-            document.getElementById('confirmActionTitle').innerText = "Hoàn tất soạn hàng";
-            document.getElementById('confirmActionBody').innerText = "Xác nhận đã soạn đủ hàng cho đơn SO-" + id.toString().padStart(5,'0') + ". Chuyển sang trạng thái chờ bàn giao ?";
+            document.getElementById('confirmActionTitle').innerText = "Xác nhận Hoàn tất soạn & Đóng gói";
+            document.getElementById('confirmActionBody').innerText = "Xác nhận đã soạn và đóng gói đủ hàng cho đơn SO-" + id.toString().padStart(5,'0') + ". Đơn hàng sẽ được chuyển sang mục Bàn giao.";
             new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
         }
 
-        function executeConfirmedAction() { 
-            if(currentConfirmAction) currentConfirmAction(); 
-        }
+        function executeConfirmedAction() { if(currentConfirmAction) currentConfirmAction(); }
 
         function showEditInventory(pid, lid, name, qty) {
             document.getElementById('editInvProductId').value = pid;
@@ -564,49 +592,14 @@
             new bootstrap.Modal(document.getElementById('editInventoryModal')).show();
         }
 
-        const connection = new signalR.HubConnectionBuilder().withUrl("/handoverHub").build();
-
-        connection.on("OrderHandedOver", function (deliveryId) {
-            console.log("Đã nhận tín hiệu bàn giao đơn:", deliveryId); 
-            
-            const selectElement = document.getElementById("pickupSelect");
-            if(selectElement) {
-                const optionToRemove = selectElement.querySelector(`option[value='${deliveryId}']`);
-                
-                if (optionToRemove) {
-                    const orderName = optionToRemove.text;
-                    optionToRemove.remove(); 
-
-                    const qrDisplay = document.getElementById("qrDisplay");
-                    if(qrDisplay) qrDisplay.classList.add("d-none");
-
-                    showSuccessAlert(`Đơn hàng <strong>${orderName}</strong> đã được bàn giao cho nhân viên vận chuyển.`);
-                }
-            }
-        });
-
-        connection.start()
-            .then(() => console.log("SignalR Đã kết nối thành công!"))
-            .catch(err => console.error("Lỗi kết nối SignalR: ", err.toString()));
-
-
         function showSuccessAlert(message) {
             const alertDiv = document.createElement('div');
             alertDiv.className = 'alert alert-success alert-dismissible fade show shadow-sm border-0 fw-bold mb-4';
-            alertDiv.innerHTML = `
-                <i class="bi bi-check-circle-fill me-2 text-success"></i> ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-
+            alertDiv.innerHTML = `<i class="bi bi-check-circle-fill me-2 text-success"></i> ${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
             const cardBody = document.querySelector('#menu5 .card-body');
             if (cardBody) {
                 cardBody.insertBefore(alertDiv, cardBody.firstChild);
-                
-
-                setTimeout(() => {
-                    alertDiv.classList.remove('show');
-                    setTimeout(() => alertDiv.remove(), 300); // Đợi CSS fade out xong rồi xóa hẳn khỏi HTML
-                }, 4000);
+                setTimeout(() => { alertDiv.classList.remove('show'); setTimeout(() => alertDiv.remove(), 300); }, 4000);
             }
         }
     </script>
