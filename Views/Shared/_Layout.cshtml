@@ -64,7 +64,7 @@
                     @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên mua hàng")) {
                         <!-- MUA HÀNG -->
                         <li class="nav-item">
-                            <a href="/Purchase/Supplier" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <a href="#muaHangMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
                                 <i class="bi bi-cart3 me-3 fs-5"></i> <span class="text-white ">Mua hàng</span>
                                 <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                             </a>
@@ -97,7 +97,7 @@
                     @if (User.IsInRole("Quản trị viên") || User.IsInRole("Quản lý kho")) {
                         <!-- QUẢN LÝ KHO -->
                         <li class="nav-item">
-                            <a href="" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <a href="#quanLyKhoMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
                                 <i class="bi bi-shop-window me-3 fs-5"style="color: green;"></i> <span class="text-white">Quản lý kho</span>
                                 <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                             </a>
@@ -145,7 +145,7 @@
                     @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên bán hàng")) {
                         <!-- BÁN HÀNG -->
                         <li class="nav-item">
-                            <a href="" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <a href="#banHangMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
                                 <i class="bi bi-box-seam-fill me-3 fs-5" style="color: rgb(255, 97, 97);"></i> <span class="text-white">Bán hàng</span>
                                 <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                             </a>
@@ -180,7 +180,7 @@
                     @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên vận chuyển")) {
                         <!-- VẬN CHUYỂN -->    
                         <li class="nav-item">
-                            <a href="" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <a href="#vanChuyenMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
                                 <i class="bi bi-truck me-3 fs-5"style="color: orange;"></i> <span class="text-white">Vận chuyển</span>
                                 <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                             </a>
