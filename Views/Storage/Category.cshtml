@@ -76,7 +76,7 @@
                 </div>
             </div>
 
-            @* TAB 2: VÀNG *@
+            @* TAB 2: VỊ TRÍ *@
             <div class="tab-pane" id="menu2">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold mb-0">Sơ đồ và Sức chứa Zone</h5>
@@ -224,7 +224,7 @@
                                         </div>
                                     </div>
                                     <p class="small text-danger mt-2 mb-0">
-                                        <i class="bi bi-shield-lock me-1"></i>Mã chỉ hợp lệ với shipper được phân công · Hết hạn sau <strong>5 phút</strong>
+                                        <i class="bi bi-shield-lock me-1"></i>Hết hạn sau <strong id="timer">5 phút</strong>
                                     </p>
                                 </div>
                             </div>
@@ -512,6 +512,29 @@
                 document.getElementById("qrOrderCode").innerText  = data.orderCode;
                 document.getElementById("qrDisplay").classList.remove("d-none");
 
+                let timer = document.getElementById('timer');
+
+                let timeLeft = 300;
+
+                let  countdown = setInterval(()=>{
+                    let minutes = Math.floor(timeLeft/60);
+                    let seconds = timeLeft % 60;
+
+                    let showMinutes = minutes < 10 ? "0"+ minutes : minutes;
+                    let showSeconds = seconds <10 ? "0"+ seconds: seconds;
+
+                    timer.innerHTML = showMinutes + ":" + showSeconds
+
+
+                    if (timeLeft <= 0) {
+                        clearInterval(countdown); 
+                        timer.innerText = "00:00 (Đã hết hạn)";
+                        timer.classList.add("text-decoration-underline"); 
+                    } else {
+                        timeLeft--; 
+                    }
+                }, 1000)
+
                 // Tự ẩn sau 5 phút
                 clearTimeout(window._qrHideTimer);
                 window._qrHideTimer = setTimeout(() => {
@@ -528,7 +551,15 @@
 
         // ─── 3. Quản lý Tabs ───────────────────────────────────────────────
         function forceSwitchTab() {
-            let hash = window.location.hash || "#menu1";
+            let hash = window.location.hash;
+            
+            if(!hash){
+                const urlParams = new URLSearchParams(window.location.search);
+                hash = urlParams.get('hash');
+            }
+
+            if(!hash){hash ="#menu1";}
+
             let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
             if (tabLink) {
                 new bootstrap.Tab(tabLink).show();
