@@ -22,11 +22,22 @@ namespace SCM_System.Controllers
         // TRANG CHÍNH: GỘP 3 TAB (TÀI KHOẢN, CẤU HÌNH, BÁO CÁO)
         // =====================================================================
         [HttpGet]
-        public async Task<IActionResult> Admin(string reportType = "summary", DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<IActionResult> Admin(string searchUser = "", int? roleId = null, string reportType = "summary", DateTime? fromDate = null, DateTime? toDate = null)
         {
             // --- 1. LẤY DỮ LIỆU TAB TÀI KHOẢN ---
-            var users = await _context.Users
-                .Include(u => u.Role)
+            var userQuery = _context.Users.Include(u => u.Role).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchUser))
+            {
+                userQuery = userQuery.Where(u => u.FullName.Contains(searchUser) || (u.Email != null && u.Email.Contains(searchUser)));
+            }
+            
+            if (roleId.HasValue && roleId.Value > 0)
+            {
+                userQuery = userQuery.Where(u => u.RoleID == roleId.Value);
+            }
+
+            var users = await userQuery
                 .Select(u => new UserViewModel
                 {
                     UserID = u.UserID,
@@ -40,6 +51,9 @@ namespace SCM_System.Controllers
 
             var roles = await _context.Roles.ToListAsync();
             var userVM = new AdminUserViewModel { Users = users, Roles = roles };
+
+            ViewBag.SearchUser = searchUser;
+            ViewBag.RoleId = roleId;
 
 
             // --- 2. LẤY DỮ LIỆU TAB CẤU HÌNH ---
@@ -187,7 +201,7 @@ namespace SCM_System.Controllers
             TempData["SuccessMessage"] = $"Đã duyệt kích hoạt tài khoản {user.Username}!";
             
             // Redirect về trang Admin, nhảy vào tab #menu1
-            return RedirectToAction("Admin", "Admin", null, "menu1");
+            return RedirectToAction("Admin", "Admin", new { hash = "#menu1" });
         }
 
         [HttpGet]
@@ -222,7 +236,7 @@ namespace SCM_System.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Cập nhật tài khoản thành công!";
-            return RedirectToAction("Admin", "Admin", null, "menu1");
+            return RedirectToAction("Admin", "Admin", new { hash = "#menu1" });
         }
 
         [HttpPost]
@@ -236,31 +250,33 @@ namespace SCM_System.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Xóa tài khoản thành công!";
-            return RedirectToAction("Admin", "Admin", null, "menu1");
+            return RedirectToAction("Admin", "Admin", new { hash = "#menu1" });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveConfig(AdminCombinedViewModel combinedModel)
+        public async Task<IActionResult> SaveConfig([Bind(Prefix = "ConfigVM")] AdminConfigViewModel configVM)
         {
             var settings = await _context.SystemSettings.FirstOrDefaultAsync();
-            if (settings == null) settings = new SystemSetting();
+            if (settings == null) 
+            {
+                settings = new SystemSetting();
+                _context.SystemSettings.Add(settings);
+            }
 
-            // Chú ý: Vì dùng CombinedModel, ta phải truy cập qua thuộc tính ConfigVM
-            settings.LowStockThreshold = combinedModel.ConfigVM.LowStockThreshold;
-            settings.AutoBackup = combinedModel.ConfigVM.AutoBackup;
-            settings.EnableEmail = combinedModel.ConfigVM.EnableEmail;
-            settings.EnableSMS = combinedModel.ConfigVM.EnableSMS;
-            settings.Currency = combinedModel.ConfigVM.Currency;
-            settings.TimeZone = combinedModel.ConfigVM.TimeZone;
+            settings.LowStockThreshold = configVM.LowStockThreshold;
+            settings.AutoBackup = configVM.AutoBackup;
+            settings.EnableEmail = configVM.EnableEmail;
+            settings.EnableSMS = configVM.EnableSMS;
+            settings.Currency = configVM.Currency;
+            settings.TimeZone = configVM.TimeZone;
 
-            _context.Update(settings);
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Cấu hình hệ thống đã được cập nhật thành công!";
             
             // Redirect về trang Admin, nhảy vào tab #menu2
-            return RedirectToAction("Admin", "Admin", null, "menu2");
+            return RedirectToAction("Admin", "Admin", new { hash = "#menu2" });
         }
     }
 }

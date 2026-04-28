@@ -170,7 +170,7 @@
                         <input type="text" name="searchReturn" value="@Model.SearchReturn" class="form-control form-control-sm" placeholder="Tìm RTN..." style="width: 200px;">
                         <button type="submit" class="btn btn-danger btn-sm px-3">Tìm</button>
 
-                        <button class="btn btn-success">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPurchaseReturnModal">
                             <i class="bi bi-plus"></i>
                             Tạo yêu cầu trả hàng
                         </button>
@@ -232,6 +232,44 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4" id="modalReturnDetailBody"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createPurchaseReturnModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form asp-action="CreateReturn" asp-controller="Purchase" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-danger text-white p-4">
+                    <h5 class="modal-title fw-bold">Tạo phiếu trả hàng cho NCC</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Chọn đơn nhập hàng (PO) *</label>
+                        <select name="POID" class="form-select shadow-sm" required>
+                            <option value="">-- Chọn Đơn Nhập (PO) --</option>
+                            @if(Model.PurchaseOrders != null) {
+                                foreach(var po in Model.PurchaseOrders) {
+                                    <option value="@po.POID">PO-@(po.POID.ToString("D5")) - @po.SupplierName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Lý do trả hàng *</label>
+                        <textarea name="Reason" class="form-control shadow-sm" rows="3" required placeholder="Hàng lỗi, không đúng quy cách..."></textarea>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold">Số tiền yêu cầu hoàn lại</label>
+                        <input type="number" name="Amount" class="form-control shadow-sm" value="0" min="0">
+                    </div>
+                </div>
+                <div class="modal-footer p-4 border-0">
+                    <button type="submit" class="btn btn-danger w-100 rounded-pill py-2 fw-bold shadow">Tạo Phiếu Trả Hàng</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -346,13 +384,17 @@
         function viewPODetail(id) {
             $('#modalPODetailBody').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>');
             $.get('/Purchase/PODetails/' + id, d => $('#modalPODetailBody').html(d));
-            new bootstrap.Modal(document.getElementById('modalPODetail')).show();
+            let mEl = document.getElementById('modalPODetail');
+            let m = bootstrap.Modal.getInstance(mEl) || new bootstrap.Modal(mEl);
+            m.show();
         }
 
         function viewReturnDetail(id) {
             $('#modalReturnDetailBody').html('<div class="text-center py-5"><div class="spinner-border text-danger"></div></div>');
             $.get('/Purchase/ReturnDetails/' + id, d => $('#modalReturnDetailBody').html(d));
-            new bootstrap.Modal(document.getElementById('modalReturnDetail')).show();
+            let mEl = document.getElementById('modalReturnDetail');
+            let m = bootstrap.Modal.getInstance(mEl) || new bootstrap.Modal(mEl);
+            m.show();
         }
 
         const symbol = '@Html.Raw(Model.CurrencySymbol)';

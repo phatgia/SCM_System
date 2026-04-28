@@ -350,5 +350,35 @@ namespace SCM_System.Controllers
 
             return PartialView("_ReturnDetailsPartial", ret);
         }
+
+        // =====================================================================
+        // POST: /Purchase/CreateReturn
+        // =====================================================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateReturn(int POID, string Reason, decimal Amount)
+        {
+            if (POID == 0) return RedirectToAction("Supplier", "Purchase", new { hash = "#menu4" });
+
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+            var returnOrder = new PurchaseReturn
+            {
+                POID = POID,
+                UserID = int.Parse(userIdStr),
+                Reason = Reason,
+                Amount = Amount,
+                Status = "Chờ duyệt",
+                ReturnDate = DateTime.Now
+            };
+
+            _context.PurchaseReturns.Add(returnOrder);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Đã tạo yêu cầu trả hàng thành công!";
+            
+            return RedirectToAction("Supplier", "Purchase", new { hash = "#menu4" });
+        }
     }
 }

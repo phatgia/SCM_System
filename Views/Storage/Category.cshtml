@@ -528,11 +528,15 @@
 
         // ─── 3. Quản lý Tabs ───────────────────────────────────────────────
         function forceSwitchTab() {
-            let hash = window.location.hash || "#menu1";
-            let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
-            if (tabLink) {
-                new bootstrap.Tab(tabLink).show();
+            let hash = window.location.hash;
+            if(!hash){
+                let urlParams = new URLSearchParams(window.location.search);
+                hash = urlParams.get('hash');
+                if(hash) history.replaceState(null, null, window.location.pathname + window.location.search + hash);
             }
+            hash = hash || "#menu1";
+            let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
+            if (tabLink) new bootstrap.Tab(tabLink).show();
         }
 
         document.addEventListener("DOMContentLoaded", function () {
