@@ -43,7 +43,13 @@ namespace SCM_System.Controllers
 
             if (!string.IsNullOrWhiteSpace(searchReceipt))
             {
-                receiptsQuery = receiptsQuery.Where(p => p.Supplier.SupplierName.Contains(searchReceipt) || p.POID.ToString().Contains(searchReceipt));
+                string idPart = searchReceipt.Split('-').LastOrDefault() ?? "";
+                int.TryParse(idPart, out int searchPoId);
+
+                receiptsQuery = receiptsQuery.Where(p => 
+                    (searchPoId > 0 && p.POID == searchPoId) || 
+                    (p.Supplier != null && p.Supplier.SupplierName.Contains(searchReceipt))
+                );
             }
 
             viewModel.InboundOrders = await receiptsQuery
@@ -89,7 +95,10 @@ namespace SCM_System.Controllers
 
             if (!string.IsNullOrWhiteSpace(searchPick))
             {
-                pickQuery = pickQuery.Where(s => s.Customer.Name.Contains(searchPick) || s.SOID.ToString().Contains(searchPick));
+                string idString = searchPick.Split('-').LastOrDefault() ?? "0";
+                int.TryParse(idString, out int searchSoId);
+
+                pickQuery = pickQuery.Where(o => o.SOID == searchSoId);
             }
 
             viewModel.PickingOrders = await pickQuery
@@ -136,26 +145,21 @@ namespace SCM_System.Controllers
                 }).ToListAsync();
 
             // 5. HandoverOrders
-            var handoverQuery = _context.SaleOrders
-                .Where(s => s.Status == "Đã soạn xong")
+            var rawOrders = await _context.SaleOrders
                 .Include(s => s.Customer)
                 .Include(s => s.SaleOrderDetails)
-                .AsQueryable();
+                .Where(s => s.Status == "Đã soạn xong" || s.Status == "Chờ lấy hàng")
+                .ToListAsync(); 
 
-            if (!string.IsNullOrWhiteSpace(searchHandover))
-            {
-                handoverQuery = handoverQuery.Where(s => s.Customer.Name.Contains(searchHandover) || s.SOID.ToString().Contains(searchHandover));
-            }
-
-            viewModel.HandoverOrders = await handoverQuery
-                .Select(s => new HandoverOrderViewModel
+            viewModel.PendingExports = rawOrders
+                .Select(s => new StorageExportItem
                 {
-                    SOID = s.SOID,
-                    CustomerName = s.Customer.Name,
-                    TotalItems = s.SaleOrderDetails.Count,
-                    ShipperName = "Võ Giao Hàng",
-                    Status = s.Status
-                }).ToListAsync();
+                    DeliveryID = s.SOID,
+                    OrderCode = $"SO-{s.OrderDate.Year}-{s.SOID:D3}",
+                    CustomerName = s.Customer?.Name ?? "Khách lẻ"
+                })
+                .OrderBy(x => x.OrderCode)
+                .ToList();
 
             // 6. Returns
             var returnQuery = _context.ReturnOrders
@@ -205,32 +209,6 @@ namespace SCM_System.Controllers
                 }).ToListAsync();
 
             viewModel.AllProducts = await _context.Products.OrderBy(p => p.ProductName).ToListAsync();
-            // 5.1 Lấy danh sách các đơn sẵn sàng xuất kho (bao gồm cả đã phân công và chưa phân công)
-            // Đơn đã phân công (có trong bảng Delivery)
-            var assigned = await _context.Deliveries
-                .Include(d => d.SaleOrder).ThenInclude(so => so.Customer)
-                .Where(d => d.Status == "Chờ lấy hàng")
-                .Select(d => new StorageExportItem
-                {
-                    DeliveryID = d.SOID, // Dùng SOID làm định danh chính để đồng bộ với QR logic mới
-                    OrderCode = "SO-" + d.SaleOrder.OrderDate.Year + "-" + d.SOID.ToString("D3"),
-                    CustomerName = d.SaleOrder.Customer.Name ?? "Khách lẻ"
-                }).ToListAsync();
-
-            // Đơn chưa phân công (chỉ có trong bảng SaleOrder với trạng thái Đã soạn xong)
-            var unassigned = await _context.SaleOrders
-                .Include(so => so.Customer)
-                .Where(s => s.Status == "Đã soạn xong" && !s.Deliveries.Any())
-                .Select(s => new StorageExportItem
-                {
-                    DeliveryID = s.SOID,
-                    OrderCode = "SO-" + s.OrderDate.Year + "-" + s.SOID.ToString("D3"),
-                    CustomerName = s.Customer.Name ?? "Khách lẻ"
-                }).ToListAsync();
-
-            viewModel.PendingExports = assigned.Concat(unassigned).OrderBy(x => x.OrderCode).ToList();
-
-
             ViewBag.SearchReceipt = searchReceipt;
             ViewBag.SearchPick = searchPick;
             ViewBag.SearchInv = searchInv;
@@ -331,16 +309,14 @@ namespace SCM_System.Controllers
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // 1. Deduct Inventory (The physical handover point)
                 foreach (var item in so.SaleOrderDetails)
                 {
-                    // Find location that has the product (Simplified: subtract from first location found)
                     var inventory = await _context.Inventories
                         .FirstOrDefaultAsync(i => i.ProductID == item.ProductID && i.QuantityAvailable >= item.Quantity);
                     
                     if (inventory == null)
                     {
-                        // Fallback if no single location has enough, or just take from first available
+                        
                         inventory = await _context.Inventories.FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
                     }
 
@@ -352,7 +328,6 @@ namespace SCM_System.Controllers
                     }
                 }
 
-                // 2. Create Delivery Record
                 var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var delivery = new Delivery
                 {
@@ -363,7 +338,6 @@ namespace SCM_System.Controllers
                 };
                 _context.Deliveries.Add(delivery);
 
-                // 3. Update SaleOrder Status
                 so.Status = "Đang giao hàng";
                 
                 await _context.SaveChangesAsync();

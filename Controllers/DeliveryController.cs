@@ -23,8 +23,7 @@ namespace SCM_System.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly IConfiguration _config;
 
-        public DeliveryController(SCMDbContext context, IHubContext<HandoverHub> hubContext,
-                                  IWebHostEnvironment env, IConfiguration config)
+        public DeliveryController(SCMDbContext context, IHubContext<HandoverHub> hubContext,IWebHostEnvironment env, IConfiguration config)
         {
             _context = context;
             _hubContext = hubContext;
@@ -91,36 +90,56 @@ namespace SCM_System.Controllers
         public async Task<IActionResult> Delivery(string? searchCode = null)
         {
             var vm = new DeliveryViewModel();
-            // ── Tab 2: Danh sách giao hàng ───────────────────────────────────
-            var deliveries = await _context.Deliveries
+
+            var rawActiveDeliveries = await _context.Deliveries
                 .Include(d => d.SaleOrder).ThenInclude(so => so.Customer)
                 .Include(d => d.User)
-                .OrderByDescending(d => d.DeliveryTime)
-                .ToListAsync();
+                .ToListAsync(); 
 
-            vm.AllDeliveries = deliveries.Select(d => new DeliveryListItem
+            var activeDeliveries = rawActiveDeliveries.Select(d => new DeliveryListItem
             {
                 DeliveryID    = d.DeliveryID,
-                OrderCode     = "SO-" + d.SaleOrder.OrderDate.Year + "-" + d.SOID.ToString("D3"),
-                CustomerName  = d.SaleOrder.Customer.Name,
-                CustomerPhone = d.SaleOrder.Customer.Phone ?? "",
-                ShipperName   = d.User.FullName,
-                Address       = d.SaleOrder.Customer.ShippingAddress ?? "",
+                OrderCode     = $"SO-{d.SaleOrder.OrderDate.Year}-{d.SOID:D3}",
+                CustomerName  = d.SaleOrder.Customer?.Name ?? "Khách lẻ",
+                CustomerPhone = d.SaleOrder.Customer?.Phone ?? "",
+                ShipperName   = d.User?.FullName ?? "Không rõ", 
+                Address       = d.SaleOrder.Customer?.ShippingAddress ?? "",
                 TotalAmount   = d.SaleOrder.TotalAmount,
                 Status        = d.Status,
                 DeliveryTime  = d.DeliveryTime
             }).ToList();
 
+            var rawPendingOrders = await _context.SaleOrders
+                .Include(so => so.Customer)
+                .Where(so => so.Status == "Chờ lấy hàng" || so.Status == "Đã soạn xong" && !so.Deliveries.Any())
+                .ToListAsync();
+
+            var pendingDeliveries = rawPendingOrders.Select(so => new DeliveryListItem
+            {
+                DeliveryID    = 0, 
+                OrderCode     = $"SO-{so.OrderDate.Year}-{so.SOID:D3}",
+                CustomerName  = so.Customer?.Name ?? "Khách lẻ",
+                CustomerPhone = so.Customer?.Phone ?? "",
+                ShipperName   = "---", 
+                Address       = so.Customer?.ShippingAddress ?? "",
+                TotalAmount   = so.TotalAmount,
+                Status        = "Chờ lấy hàng", 
+                DeliveryTime  = so.OrderDate 
+            }).ToList();
+
+            vm.AllDeliveries = pendingDeliveries.Concat(activeDeliveries)
+                .OrderByDescending(x => x.DeliveryTime)
+                .ToList();
+
             var now = DateTime.Now;
-            vm.PendingPickupCount      = deliveries.Count(d => d.Status == "Chờ lấy hàng");
-            vm.InDeliveryCount         = deliveries.Count(d => d.Status == "Đang giao hàng");
-            vm.CompletedThisMonthCount = deliveries.Count(d =>
+            vm.PendingPickupCount      = vm.AllDeliveries.Count(d => d.Status == "Chờ lấy hàng");
+            vm.InDeliveryCount         = vm.AllDeliveries.Count(d => d.Status == "Đang giao hàng" || d.Status == "Đang giao");
+            vm.CompletedThisMonthCount = vm.AllDeliveries.Count(d =>
                 d.Status == "Thành công" &&
                 d.DeliveryTime.HasValue &&
                 d.DeliveryTime.Value.Month == now.Month &&
                 d.DeliveryTime.Value.Year  == now.Year);
 
-            // ── Danh sách shipper cho modal phân công ────────────────────────
             var shippers = await _context.Users
                 .Include(u => u.Role)
                 .Where(u => u.Role.RoleName == "Nhân viên vận chuyển")
@@ -148,7 +167,6 @@ namespace SCM_System.Controllers
                     .Include(d => d.DeliveryTrackings)
                     .FirstOrDefaultAsync(d => d.SOID == searchSoId);
             }
-
             return View(vm);
         }
 
@@ -397,7 +415,7 @@ namespace SCM_System.Controllers
             // 1. Xác thực token HMAC
             if (string.IsNullOrEmpty(token) || !ValidatePickupToken(soId, token))
             {
-                TempData["ErrorMessage"] = "⛔ Mã QR không hợp lệ!";
+                TempData["ErrorMessage"] = "Mã QR không hợp lệ!";
                 return RedirectToAction("Delivery");
             }
 
@@ -421,7 +439,7 @@ namespace SCM_System.Controllers
                     // TRƯỜNG HỢP 1: Đã phân công Shipper từ trước
                     if (delivery.UserID != currentUserId && !User.IsInRole("Quản trị viên"))
                     {
-                        TempData["ErrorMessage"] = "⛔ Đơn này đã được chỉ định cho một Shipper khác!";
+                        TempData["ErrorMessage"] = "Đơn này đã được chỉ định cho một Shipper khác!";
                         return RedirectToAction("Delivery");
                     }
 
@@ -443,7 +461,7 @@ namespace SCM_System.Controllers
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = $"❌ Đơn hàng đang ở trạng thái '{order.Status}', không thể nhận.";
+                    TempData["ErrorMessage"] = $"Đơn hàng đang ở trạng thái '{order.Status}', không thể nhận.";
                     return RedirectToAction("Delivery");
                 }
 
@@ -453,7 +471,7 @@ namespace SCM_System.Controllers
 
                 await _hubContext.Clients.All.SendAsync("OrderHandedOver", soId);
 
-                TempData["SuccessMessage"] = "✅ Nhận đơn thành công! Bạn đã được gán làm người giao cho đơn này.";
+                TempData["SuccessMessage"] = "Nhận đơn thành công! Bạn đã được gán làm người giao cho đơn này.";
                 return RedirectToAction("Delivery");
             }
             catch (Exception ex)
