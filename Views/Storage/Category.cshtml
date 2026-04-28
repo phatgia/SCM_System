@@ -497,7 +497,6 @@
                 }
                 const data = await resp.json();
 
-                // Vẽ QR
                 document.getElementById("qrcodeCanvas").innerHTML = "";
                 new QRCode(document.getElementById("qrcodeCanvas"), {
                     text: data.qrUrl,
@@ -535,7 +534,6 @@
                     }
                 }, 1000)
 
-                // Tự ẩn sau 5 phút
                 clearTimeout(window._qrHideTimer);
                 window._qrHideTimer = setTimeout(() => {
                     document.getElementById("qrDisplay").classList.add("d-none");
@@ -550,27 +548,42 @@
         }
 
         // ─── 3. Quản lý Tabs ───────────────────────────────────────────────
-        function forceSwitchTab() {
-            let hash = window.location.hash;
-            if(!hash){
-                let urlParams = new URLSearchParams(window.location.search);
-                hash = urlParams.get('hash');
-                if(hash) history.replaceState(null, null, window.location.pathname + window.location.search + hash);
-            }
-            hash = hash || "#menu1";
-            let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
-            if (tabLink) new bootstrap.Tab(tabLink).show();
-        }
+
+
 
         document.addEventListener("DOMContentLoaded", function () {
+            function forceSwitchTab() {
+                let hash = window.location.hash;
+                if(!hash){
+                    let urlParams = new URLSearchParams(window.location.search);
+                    hash = urlParams.get('hash');
+                    if(hash) history.replaceState(null, null, window.location.pathname + window.location.search + hash);
+                }
+                hash = hash || "#menu1";
+                let tabLink = document.querySelector('.nav-tabs a[href="' + hash + '"]');
+                if(tabLink) new bootstrap.Tab(tabLink).show();
+            }
             forceSwitchTab();
-            window.addEventListener('hashchange', forceSwitchTab);
-            document.querySelectorAll('.nav-tabs a[data-bs-toggle="tab"]').forEach(tab => {
-                tab.addEventListener('shown.bs.tab', (e) => {
-                    history.pushState(null, null, tab.getAttribute('href'));
+            window.addEventListener('hashchange', function() {
+                forceSwitchTab();
+            });
+
+            let tabs = document.querySelectorAll('.nav-tabs a[data-bs-toggle="tab"]');
+            tabs.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function (e) {
+                    let targetHash = tab.getAttribute('href');
+                
+                    if (window.location.hash !== targetHash) {
+                        history.pushState(null, null, targetHash);
+                        
+                        window.dispatchEvent(new Event('hashchange')); 
+                    }
                 });
             });
         });
+
+
+
 
         // ─── 4. Các hàm xác nhận (Confirmation) ────────────────────────────
         let currentConfirmAction = null;

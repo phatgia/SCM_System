@@ -310,11 +310,11 @@
                     const linkPath = $(this).attr('href');
                     if (linkPath === currentPath || (window.location.hash === "" && linkPath === window.location.pathname + "#menu1")) {
                         $(this).removeClass('text-secondary').addClass('text-white fw-bold');
-                        // Expand parent if it's a sub-menu
+
                         $(this).closest('.collapse').addClass('show');
                         $(this).closest('.nav-item').find('> .sidebar-link').addClass('text-white fw-bold');
                     } else if (!$(this).hasClass('active')) {
-                        // Don't mess with the "Tổng quan" active state if it's explicitly set
+                        
                         if (linkPath && linkPath !== "/") $(this).removeClass('text-white fw-bold').addClass('text-secondary');
                     }
                 });
