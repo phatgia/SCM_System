@@ -26,7 +26,8 @@ namespace SCM_System.Data
                     new Role { RoleName = "Nhân viên bán hàng" },
                     new Role { RoleName = "Nhân viên mua hàng" },
                     new Role { RoleName = "Quản lý kho" },
-                    new Role { RoleName = "Nhân viên vận chuyển" }
+                    new Role { RoleName = "Nhân viên vận chuyển" },
+                    new Role { RoleName = "Quản lý" }
                 };
                 context.Roles.AddRange(roles);
                 context.SaveChanges();
@@ -85,6 +86,7 @@ namespace SCM_System.Data
                 var rolePurchase = context.Roles.FirstOrDefault(r => r.RoleName == "Nhân viên mua hàng")?.RoleID ?? 3;
                 var roleWarehouse = context.Roles.FirstOrDefault(r => r.RoleName == "Quản lý kho")?.RoleID ?? 4;
                 var roleDelivery = context.Roles.FirstOrDefault(r => r.RoleName == "Nhân viên vận chuyển")?.RoleID ?? 5;
+                var roleManager = context.Roles.FirstOrDefault(r => r.RoleName == "Quản lý")?.RoleID ?? 6;
 
                 // Create fixed test accounts (Password is "123" for easy login testing)
                 var testUsers = new User[]
@@ -93,7 +95,8 @@ namespace SCM_System.Data
                     new User { RoleID = roleSale, FullName = "Trần Bán Hàng", Username = "sale", Password = "123", Email = "sale@scm.com", PhoneNumber = "0987654322" },
                     new User { RoleID = rolePurchase, FullName = "Lê Mua Hàng", Username = "purchase", Password = "123", Email = "purchase@scm.com", PhoneNumber = "0987654323" },
                     new User { RoleID = roleWarehouse, FullName = "Phạm Thủ Kho", Username = "warehouse", Password = "123", Email = "warehouse@scm.com", PhoneNumber = "0987654324" },
-                    new User { RoleID = roleDelivery, FullName = "Hoàng Vận Chuyển", Username = "delivery", Password = "123", Email = "delivery@scm.com", PhoneNumber = "0987654325" }
+                    new User { RoleID = roleDelivery, FullName = "Hoàng Vận Chuyển", Username = "delivery", Password = "123", Email = "delivery@scm.com", PhoneNumber = "0987654325" },
+                    new User { RoleID = roleManager, FullName = "Giám Đốc Quản Lý", Username = "manager", Password = "123", Email = "manager@scm.com", PhoneNumber = "0987654326" }
                 };
 
                 context.Users.AddRange(testUsers);

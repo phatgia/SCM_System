@@ -210,6 +210,24 @@
                             </div>
                         </li>
                     }
+                    @if (User.IsInRole("Quản lý") || User.IsInRole("Quản trị viên")) {
+                        <!-- QUẢN LÝ -->
+                        <li class="nav-item">
+                            <a href="#quanLyMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                                <i class="bi bi-graph-up-arrow me-3 fs-5" style="color: #00f2fe;"></i> <span class="text-white">Quản lý Kinh doanh</span>
+                                <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
+                            </a>
+                            <div class="collapse show mt-1" id="quanLyMenu">
+                                <ul class="nav flex-column ms-4 border-start border-secondary" style="font-size: 0.9rem;">
+                                    <li>
+                                        <a href="/Manager/Index" class="nav-link sidebar-link py-1 d-flex align-items-center text-secondary">
+                                            <i class="bi bi-pie-chart me-2"></i> Báo cáo doanh thu
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    }
                     @if (User.IsInRole("Quản trị viên")) {
                         <!-- QUẢN TRỊ -->
                         <li class="nav-item">
@@ -231,7 +249,7 @@
                                     </li>
                                     <li>
                                         <a href="/Admin/Admin#menu3" class="nav-link sidebar-link py-1 d-flex align-items-center text-secondary">
-                                            <i class="bi bi-bar-chart-line me-2"></i> Báo cáo tổng quan
+                                            <i class="bi bi-cpu me-2"></i> Giám sát hệ thống
                                         </a>
                                     </li>
                                 </ul>
