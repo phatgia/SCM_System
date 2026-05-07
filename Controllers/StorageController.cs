@@ -169,7 +169,22 @@ namespace SCM_System.Controllers
 
             if (!string.IsNullOrWhiteSpace(searchReturn))
             {
-                returnQuery = returnQuery.Where(r => (r.SaleOrder.Customer.Name != null && r.SaleOrder.Customer.Name.Contains(searchReturn)) || r.SOID.ToString().Contains(searchReturn));
+                string search = searchReturn.Trim().ToLower();
+
+                string numericString = search.Replace("rtn", "").Replace("so", "").Replace("-", "").TrimStart('0');
+
+                if(string.IsNullOrEmpty(numericString) && search.Contains("0"))
+                {
+                    numericString = "0";
+                }
+
+                bool isNumeric = int.TryParse(numericString, out int searchId);
+
+                returnQuery = returnQuery.Where(r => 
+                    (r.SaleOrder.Customer.Name != null && r.SaleOrder.Customer.Name.ToLower().Contains(search)) ||
+                    (isNumeric && r.SOID == searchId) ||      
+                    (isNumeric && r.ReturnID == searchId)     
+                );
             }
 
             viewModel.Returns = await returnQuery
@@ -223,49 +238,73 @@ namespace SCM_System.Controllers
         public async Task<IActionResult> ProcessReceipt(int poid)
         {
             var po = await _context.PurchaseOrders
-                .Include(p => p.PurchaseOrderDetails)
-                .FirstOrDefaultAsync(p => p.POID == poid);
+                    .Include(p => p.PurchaseOrderDetails)
+                        .ThenInclude(d => d.Product) 
+                    .FirstOrDefaultAsync(p => p.POID == poid);
 
-            if (po == null) return NotFound();
-            if (po.Status == "Hoàn thành") return BadRequest("Đơn hàng đã được xử lý nhập kho trước đó.");
+                if (po == null) return NotFound();
+                if (po.Status == "Hoàn thành") return BadRequest("Đơn hàng đã được xử lý nhập kho trước đó.");
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                foreach (var item in po.PurchaseOrderDetails)
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    // Find a location for this product, or default to A1 (LocationID 1)
-                    var inventory = await _context.Inventories
-                        .FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
+                    foreach (var item in po.PurchaseOrderDetails)
+                    {
+            
+                        var inventory = await _context.Inventories
+                            .FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
 
-                    if (inventory != null)
-                    {
-                        inventory.QuantityAvailable += item.Quantity;
-                    }
-                    else
-                    {
-                        // Create new inventory entry in A1
-                        _context.Inventories.Add(new Inventory
+                        int targetLocationId = inventory != null ? inventory.LocationID : 1; 
+
+                        var targetLocation = await _context.ProductLocations.FindAsync(targetLocationId);
+                        if (targetLocation == null) throw new Exception("Không tìm thấy vị trí lưu kho.");
+
+    
+                        int currentTotalInLocation = await _context.Inventories
+                            .Where(i => i.LocationID == targetLocationId)
+                            .SumAsync(i => (int?)i.QuantityAvailable) ?? 0;
+
+                        if (currentTotalInLocation + item.Quantity > targetLocation.Capacity)
                         {
-                            ProductID = item.ProductID,
-                            LocationID = 1, // Default A1
-                            QuantityAvailable = item.Quantity
-                        });
+                            int spaceLeft = targetLocation.Capacity - currentTotalInLocation;
+                            string productName = item.Product?.ProductName ?? $"Mã SP {item.ProductID}";
+
+                
+                            TempData["ErrorMessage"] = $"Nhập kho thất bại! Vị trí {targetLocation.LocationCode} chỉ còn trống {spaceLeft} chỗ. Không thể nhét thêm {item.Quantity} sản phẩm '{productName}'.";
+                            
+                            await transaction.RollbackAsync(); 
+                            return RedirectToAction("Category", new { hash = "#menu1" }); // Bật ngửa về Tab 1
+                        }
+
+                        if (inventory != null)
+                        {
+                            inventory.QuantityAvailable += item.Quantity;
+                        }
+                        else
+                        {
+                            _context.Inventories.Add(new Inventory
+                            {
+                                ProductID = item.ProductID,
+                                LocationID = targetLocationId, 
+                                QuantityAvailable = item.Quantity
+                            });
+                        }
+
+                        await _context.SaveChangesAsync(); 
                     }
+
+                    po.Status = "Hoàn thành";
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync(); 
+                    TempData["SuccessMessage"] = $"Đã nhập kho thành công đơn hàng PO-{poid:D5}.";
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    TempData["ErrorMessage"] = "Lỗi hệ thống khi nhập kho: " + ex.Message;
                 }
 
-                po.Status = "Hoàn thành";
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                TempData["SuccessMessage"] = $"Đã nhập kho thành công đơn hàng PO-{poid:D5}.";
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                TempData["ErrorMessage"] = "Lỗi khi nhập kho: " + ex.Message;
-            }
-
-            return RedirectToAction("Category", new { hash = "#menu1" });
+                return RedirectToAction("Category", new { hash = "#menu1" });
         }
 
         [HttpPost]

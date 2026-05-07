@@ -22,7 +22,7 @@ namespace SCM_System.Controllers
         // TRANG CHÍNH: GỘP 4 TAB (TẠO ĐƠN, ĐƠN BÁN, TỒN KHO, ĐỔI TRẢ)
         // =====================================================================
         [HttpGet]
-        public async Task<IActionResult> Sales(string? searchOrder, string? searchStock, int? categoryId, string? searchReturn)        {
+        public async Task<IActionResult> Sales(string? searchOrder, string? searchStock, int? categoryId, string? searchReturn){
             // Lấy cài đặt tiền tệ dùng chung
             var settings = await _context.SystemSettings.FirstOrDefaultAsync() ?? new SystemSetting();
             decimal rate = 1;
@@ -46,9 +46,22 @@ namespace SCM_System.Controllers
 
             if (!string.IsNullOrWhiteSpace(searchOrder))
             {
+                string search = searchOrder.Trim().ToLower();
+
+                string numericString = search.Replace("so", "").Replace("-", "").TrimStart('0');
+
+                if(string.IsNullOrEmpty(numericString) && search.Contains("0"))
+                {
+                    numericString = "0";
+                }
+
+                bool isNumeric = int.TryParse(numericString, out int searchId);
+
                 orderQuery = orderQuery.Where(o => 
-                    o.Customer.Name.Contains(searchOrder) || 
-                    o.SOID.ToString().Contains(searchOrder));
+                    (o.Customer.Name != null && o.Customer.Name.ToLower().Contains(search)) || 
+                    (o.Customer.Phone != null && o.Customer.Phone.Contains(search)) || 
+                    (isNumeric && o.SOID == searchId)
+                );
             }
 
             var orderEntities = await orderQuery
@@ -77,7 +90,22 @@ namespace SCM_System.Controllers
 
             if (!string.IsNullOrWhiteSpace(searchStock))
             {
-                stockQuery = stockQuery.Where(i => i.Product.ProductName.Contains(searchStock));
+                string search = searchStock.Trim().ToLower();
+
+                string numericString = search.Replace("sku", "").Replace("-", "").TrimStart('0');
+
+                if (string.IsNullOrEmpty(numericString) && search.Contains("0"))
+                {
+                    numericString = "0";
+                }
+
+                bool isNumeric = int.TryParse(numericString, out int searchId);
+
+                stockQuery = stockQuery.Where(i => 
+                    (i.Product.ProductName != null && i.Product.ProductName.ToLower().Contains(search)) ||
+                    (isNumeric && i.ProductID == searchId) 
+                );
+            
             }
 
             if (categoryId.HasValue && categoryId > 0)
@@ -113,9 +141,31 @@ namespace SCM_System.Controllers
 
             if (!string.IsNullOrWhiteSpace(searchReturn))
             {
+                string search = searchReturn.Trim().ToLower();
+
+
+                string numericString = search.Replace("dt", "").Replace("so", "").Replace("-", "");
+
+                string currentYear = DateTime.Now.Year.ToString();
+                if (numericString.StartsWith(currentYear) && numericString.Length > 4)
+                {
+                    numericString = numericString.Substring(4);
+                }
+
+                numericString = numericString.TrimStart('0');
+                
+                if (string.IsNullOrEmpty(numericString) && search.Contains("0"))
+                {
+                    numericString = "0";
+                }
+
+                bool isNumeric = int.TryParse(numericString, out int searchId);
+
                 returnQuery = returnQuery.Where(r => 
-                    r.SaleOrder.Customer.Name.Contains(searchReturn) || 
-                    r.SOID.ToString().Contains(searchReturn));
+                    (r.SaleOrder.Customer != null && r.SaleOrder.Customer.Name.ToLower().Contains(search)) || 
+                    (isNumeric && r.ReturnID == searchId && !search.Contains("so")) || 
+                    (isNumeric && r.SOID == searchId && !search.Contains("dt"))
+                );
             }
 
             var returnEntities = await returnQuery
