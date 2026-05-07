@@ -251,26 +251,35 @@
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded">
                             <p class="small text-muted mb-1">Môi trường</p>
-                            <span class="badge bg-info">Production</span>
+                            <span class="badge bg-info">@Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")</span>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded">
-                            <p class="small text-muted mb-1">Cơ sở dữ liệu</p>
-                            <span class="badge bg-secondary">SQLite / SQL Server</span>
+                            <p class="small text-muted mb-1">Process ID</p>
+                            <span class="fw-bold">#@Model.ReportVM.ProcessID</span>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded">
-                            <p class="small text-muted mb-1">CPU Load</p>
+                            <p class="small text-muted mb-1">CPU Time</p>
                             <span class="text-success fw-bold">@Model.ReportVM.CpuUsage</span>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded">
-                            <p class="small text-muted mb-1">Security</p>
-                            <span class="text-primary small fw-bold">SSL / HTTPS Active</span>
+                            <p class="small text-muted mb-1">Hệ điều hành</p>
+                            <span class="small fw-semibold">@Model.ReportVM.EnvironmentInfo</span>
                         </div>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 border rounded bg-light">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-shield-lock text-primary me-2 fs-5"></i>
+                            <span class="small fw-bold">Bảo mật hệ thống</span>
+                        </div>
+                        <span class="text-primary small fw-bold">SSL / HTTPS Active</span>
                     </div>
                 </div>
             </div>

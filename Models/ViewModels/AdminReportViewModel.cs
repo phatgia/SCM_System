@@ -18,6 +18,8 @@ namespace SCM_System.Models.ViewModels
         public int ThreadCount { get; set; }
         public string Uptime { get; set; } = "";
         public string StartTime { get; set; } = "";
-        public string CpuUsage { get; set; } = "N/A"; // Placeholder for future if needed
+        public string CpuUsage { get; set; } = "N/A";
+        public string EnvironmentInfo { get; set; } = "";
+        public int ProcessID { get; set; }
     }
 }

@@ -122,6 +122,16 @@ namespace SCM_System.Controllers
                     Status = d.Status
                 }).ToListAsync();
 
+            // 6. System Metrics (For Admin only)
+            if (User.IsInRole("Quản trị viên"))
+            {
+                var process = System.Diagnostics.Process.GetCurrentProcess();
+                model.RamUsageMB = Math.Round(process.WorkingSet64 / (1024.0 * 1024.0), 2);
+                model.ThreadCount = process.Threads.Count;
+                model.StartTime = process.StartTime.ToString("dd/MM/yyyy HH:mm:ss");
+                model.Uptime = (DateTime.Now - process.StartTime).ToString(@"dd\.hh\:mm\:ss");
+            }
+
             return View(model);
         }
 

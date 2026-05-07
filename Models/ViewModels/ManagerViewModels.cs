@@ -17,5 +17,15 @@ namespace SCM_System.Models.ViewModels
         public List<decimal> ChartDataExpense { get; set; } = new();
 
         public string ReportType { get; set; } = "Tổng quan";
+
+        public List<RecentOrderHomeViewModel> RecentOrders { get; set; } = new();
+        public List<TopProductViewModel> TopProducts { get; set; } = new();
+    }
+
+    public class TopProductViewModel
+    {
+        public string ProductName { get; set; } = "";
+        public int TotalSold { get; set; }
+        public decimal Revenue { get; set; }
     }
 }

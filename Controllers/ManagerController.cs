@@ -121,7 +121,26 @@ namespace SCM_System.Controllers
                 ChartLabels = chartLabels,
                 ChartDataRevenue = chartRevConverted,
                 ChartDataExpense = chartExpConverted,
-                ReportType = reportType
+                ReportType = reportType,
+                RecentOrders = saleOrders.OrderByDescending(s => s.OrderDate).Take(10).Select(s => new RecentOrderHomeViewModel
+                {
+                    OrderCode = $"SO-{s.SOID:D5}",
+                    CustomerName = s.Customer?.Name ?? "Khách lẻ",
+                    TotalAmount = s.TotalAmount / rate,
+                    Status = s.Status,
+                    Date = s.OrderDate
+                }).ToList(),
+                TopProducts = saleOrders.SelectMany(s => s.SaleOrderDetails)
+                    .GroupBy(d => d.Product.ProductName)
+                    .Select(g => new TopProductViewModel
+                    {
+                        ProductName = g.Key,
+                        TotalSold = g.Sum(d => d.Quantity),
+                        Revenue = g.Sum(d => d.Price * d.Quantity) / rate
+                    })
+                    .OrderByDescending(p => p.Revenue)
+                    .Take(5)
+                    .ToList()
             };
 
             return View(reportVM);

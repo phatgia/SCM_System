@@ -84,7 +84,9 @@ namespace SCM_System.Controllers
                 ThreadCount = process.Threads.Count,
                 StartTime = process.StartTime.ToString("dd/MM/yyyy HH:mm:ss"),
                 Uptime = (DateTime.Now - process.StartTime).ToString(@"dd\.hh\:mm\:ss"),
-                CpuUsage = "Đang theo dõi..." // Placeholder
+                CpuUsage = process.TotalProcessorTime.TotalSeconds.ToString("N2") + "s", // Total CPU time used by process
+                EnvironmentInfo = $"{Environment.OSVersion}, {Environment.MachineName}",
+                ProcessID = process.Id
             };
 
             // --- 4. GỘP CHUNG VÀ TRẢ VỀ VIEW ---
