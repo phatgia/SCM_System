@@ -136,7 +136,7 @@ namespace SCM_System.Controllers
                     {
                         ProductName = g.Key,
                         TotalSold = g.Sum(d => d.Quantity),
-                        Revenue = g.Sum(d => d.Price * d.Quantity) / rate
+                        Revenue = g.Sum(d => d.UnitPrice * d.Quantity) / rate
                     })
                     .OrderByDescending(p => p.Revenue)
                     .Take(5)
