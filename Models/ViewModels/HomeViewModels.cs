@@ -28,6 +28,12 @@ namespace SCM_System.Models.ViewModels
         public List<RecentOrderHomeViewModel> RecentOrders { get; set; } = new();
         public List<LowStockAlertViewModel> LowStockWarnings { get; set; } = new();
         public List<ShippingActivityHomeViewModel> ActiveDeliveries { get; set; } = new();
+
+        // System Metrics (for Admin)
+        public double RamUsageMB { get; set; }
+        public int ThreadCount { get; set; }
+        public string Uptime { get; set; } = "";
+        public string StartTime { get; set; } = "";
     }
 
     public class RecentOrderHomeViewModel

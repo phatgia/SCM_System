@@ -92,9 +92,11 @@ namespace SCM_System.Controllers
                     Date = s.OrderDate
                 }).ToListAsync();
 
-            // 5. Low Stock Warnings
-            model.LowStockWarnings = await _context.Inventories
+            // 5. Low Stock Warnings - load in memory then filter (SQLite: GroupBy+Where+Take not translatable)
+            var allInventories = await _context.Inventories
                 .Include(i => i.Product).ThenInclude(p => p.Category)
+                .ToListAsync();
+            model.LowStockWarnings = allInventories
                 .GroupBy(i => new { i.Product.ProductName, cat = i.Product.Category.CategoryName })
                 .Select(g => new LowStockAlertViewModel {
                     ProductName = g.Key.ProductName,
@@ -104,7 +106,7 @@ namespace SCM_System.Controllers
                 })
                 .Where(x => x.CurrentStock < x.Threshold)
                 .Take(5)
-                .ToListAsync();
+                .ToList();
 
             // 6. Active Deliveries
             model.ActiveDeliveries = await _context.Deliveries
@@ -119,6 +121,16 @@ namespace SCM_System.Controllers
                     ShipperName = d.User.FullName,
                     Status = d.Status
                 }).ToListAsync();
+
+            // 6. System Metrics (For Admin only)
+            if (User.IsInRole("Quản trị viên"))
+            {
+                var process = System.Diagnostics.Process.GetCurrentProcess();
+                model.RamUsageMB = Math.Round(process.WorkingSet64 / (1024.0 * 1024.0), 2);
+                model.ThreadCount = process.Threads.Count;
+                model.StartTime = process.StartTime.ToString("dd/MM/yyyy HH:mm:ss");
+                model.Uptime = (DateTime.Now - process.StartTime).ToString(@"dd\.hh\:mm\:ss");
+            }
 
             return View(model);
         }

@@ -64,7 +64,7 @@
                     @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên mua hàng")) {
                         <!-- MUA HÀNG -->
                         <li class="nav-item">
-                            <a href="/Purchase/Supplier" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <a href="#muaHangMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
                                 <i class="bi bi-cart3 me-3 fs-5"></i> <span class="text-white ">Mua hàng</span>
                                 <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                             </a>
@@ -97,7 +97,7 @@
                     @if (User.IsInRole("Quản trị viên") || User.IsInRole("Quản lý kho")) {
                         <!-- QUẢN LÝ KHO -->
                         <li class="nav-item">
-                            <a href="" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <a href="#quanLyKhoMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
                                 <i class="bi bi-shop-window me-3 fs-5"style="color: green;"></i> <span class="text-white">Quản lý kho</span>
                                 <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                             </a>
@@ -138,12 +138,6 @@
                                             <i class="bi bi-shield-check me-2"></i> Kiểm tra chất lượng
                                         </a>
                                     </li>
-
-                                    <li>
-                                        <a href="/Storage/Category#menu8" class="nav-link sidebar-link py-1 d-flex align-items-center text-secondary">
-                                            <i class="bi bi-box-arrow-right me-1"></i> Xuất kho
-                                        </a>
-                                    </li>
                                 </ul>
                             </div>
                         </li>
@@ -151,7 +145,7 @@
                     @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên bán hàng")) {
                         <!-- BÁN HÀNG -->
                         <li class="nav-item">
-                            <a href="" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <a href="#banHangMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
                                 <i class="bi bi-box-seam-fill me-3 fs-5" style="color: rgb(255, 97, 97);"></i> <span class="text-white">Bán hàng</span>
                                 <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                             </a>
@@ -186,7 +180,7 @@
                     @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên vận chuyển")) {
                         <!-- VẬN CHUYỂN -->    
                         <li class="nav-item">
-                            <a href="" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                            <a href="#vanChuyenMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
                                 <i class="bi bi-truck me-3 fs-5"style="color: orange;"></i> <span class="text-white">Vận chuyển</span>
                                 <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                             </a>
@@ -216,6 +210,24 @@
                             </div>
                         </li>
                     }
+                    @if (User.IsInRole("Quản lý") || User.IsInRole("Quản trị viên")) {
+                        <!-- QUẢN LÝ -->
+                        <li class="nav-item">
+                            <a href="#quanLyMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
+                                <i class="bi bi-graph-up-arrow me-3 fs-5" style="color: #00f2fe;"></i> <span class="text-white">Quản lý Kinh doanh</span>
+                                <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
+                            </a>
+                            <div class="collapse show mt-1" id="quanLyMenu">
+                                <ul class="nav flex-column ms-4 border-start border-secondary" style="font-size: 0.9rem;">
+                                    <li>
+                                        <a href="/Manager/Index" class="nav-link sidebar-link py-1 d-flex align-items-center text-secondary">
+                                            <i class="bi bi-pie-chart me-2"></i> Báo cáo doanh thu
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    }
                     @if (User.IsInRole("Quản trị viên")) {
                         <!-- QUẢN TRỊ -->
                         <li class="nav-item">
@@ -237,7 +249,7 @@
                                     </li>
                                     <li>
                                         <a href="/Admin/Admin#menu3" class="nav-link sidebar-link py-1 d-flex align-items-center text-secondary">
-                                            <i class="bi bi-bar-chart-line me-2"></i> Báo cáo tổng quan
+                                            <i class="bi bi-cpu me-2"></i> Giám sát hệ thống
                                         </a>
                                     </li>
                                 </ul>
@@ -316,11 +328,11 @@
                     const linkPath = $(this).attr('href');
                     if (linkPath === currentPath || (window.location.hash === "" && linkPath === window.location.pathname + "#menu1")) {
                         $(this).removeClass('text-secondary').addClass('text-white fw-bold');
-                        // Expand parent if it's a sub-menu
+
                         $(this).closest('.collapse').addClass('show');
                         $(this).closest('.nav-item').find('> .sidebar-link').addClass('text-white fw-bold');
                     } else if (!$(this).hasClass('active')) {
-                        // Don't mess with the "Tổng quan" active state if it's explicitly set
+                        
                         if (linkPath && linkPath !== "/") $(this).removeClass('text-white fw-bold').addClass('text-secondary');
                     }
                 });

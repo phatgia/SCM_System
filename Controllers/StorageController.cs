@@ -43,7 +43,13 @@ namespace SCM_System.Controllers
 
             if (!string.IsNullOrWhiteSpace(searchReceipt))
             {
-                receiptsQuery = receiptsQuery.Where(p => p.Supplier.SupplierName.Contains(searchReceipt) || p.POID.ToString().Contains(searchReceipt));
+                string idPart = searchReceipt.Split('-').LastOrDefault() ?? "";
+                int.TryParse(idPart, out int searchPoId);
+
+                receiptsQuery = receiptsQuery.Where(p => 
+                    (searchPoId > 0 && p.POID == searchPoId) || 
+                    (p.Supplier != null && p.Supplier.SupplierName.Contains(searchReceipt))
+                );
             }
 
             viewModel.InboundOrders = await receiptsQuery
@@ -89,7 +95,10 @@ namespace SCM_System.Controllers
 
             if (!string.IsNullOrWhiteSpace(searchPick))
             {
-                pickQuery = pickQuery.Where(s => s.Customer.Name.Contains(searchPick) || s.SOID.ToString().Contains(searchPick));
+                string idString = searchPick.Split('-').LastOrDefault() ?? "0";
+                int.TryParse(idString, out int searchSoId);
+
+                pickQuery = pickQuery.Where(o => o.SOID == searchSoId);
             }
 
             viewModel.PickingOrders = await pickQuery
@@ -136,26 +145,21 @@ namespace SCM_System.Controllers
                 }).ToListAsync();
 
             // 5. HandoverOrders
-            var handoverQuery = _context.SaleOrders
-                .Where(s => s.Status == "Đã soạn xong")
+            var rawOrders = await _context.SaleOrders
                 .Include(s => s.Customer)
                 .Include(s => s.SaleOrderDetails)
-                .AsQueryable();
+                .Where(s => s.Status == "Đã soạn xong" || s.Status == "Chờ lấy hàng")
+                .ToListAsync(); 
 
-            if (!string.IsNullOrWhiteSpace(searchHandover))
-            {
-                handoverQuery = handoverQuery.Where(s => s.Customer.Name.Contains(searchHandover) || s.SOID.ToString().Contains(searchHandover));
-            }
-
-            viewModel.HandoverOrders = await handoverQuery
-                .Select(s => new HandoverOrderViewModel
+            viewModel.PendingExports = rawOrders
+                .Select(s => new StorageExportItem
                 {
-                    SOID = s.SOID,
-                    CustomerName = s.Customer.Name,
-                    TotalItems = s.SaleOrderDetails.Count,
-                    ShipperName = "Võ Giao Hàng",
-                    Status = s.Status
-                }).ToListAsync();
+                    DeliveryID = s.SOID,
+                    OrderCode = $"SO-{s.OrderDate.Year}-{s.SOID:D3}",
+                    CustomerName = s.Customer?.Name ?? "Khách lẻ"
+                })
+                .OrderBy(x => x.OrderCode)
+                .ToList();
 
             // 6. Returns
             var returnQuery = _context.ReturnOrders
@@ -165,7 +169,22 @@ namespace SCM_System.Controllers
 
             if (!string.IsNullOrWhiteSpace(searchReturn))
             {
-                returnQuery = returnQuery.Where(r => (r.SaleOrder.Customer.Name != null && r.SaleOrder.Customer.Name.Contains(searchReturn)) || r.SOID.ToString().Contains(searchReturn));
+                string search = searchReturn.Trim().ToLower();
+
+                string numericString = search.Replace("rtn", "").Replace("so", "").Replace("-", "").TrimStart('0');
+
+                if(string.IsNullOrEmpty(numericString) && search.Contains("0"))
+                {
+                    numericString = "0";
+                }
+
+                bool isNumeric = int.TryParse(numericString, out int searchId);
+
+                returnQuery = returnQuery.Where(r => 
+                    (r.SaleOrder.Customer.Name != null && r.SaleOrder.Customer.Name.ToLower().Contains(search)) ||
+                    (isNumeric && r.SOID == searchId) ||      
+                    (isNumeric && r.ReturnID == searchId)     
+                );
             }
 
             viewModel.Returns = await returnQuery
@@ -205,17 +224,6 @@ namespace SCM_System.Controllers
                 }).ToListAsync();
 
             viewModel.AllProducts = await _context.Products.OrderBy(p => p.ProductName).ToListAsync();
-            viewModel.PendingExports = await _context.Deliveries
-            .Include(d => d.SaleOrder).ThenInclude(so => so.Customer)
-            .Where(d => d.Status == "Chờ lấy hàng")
-            .Select(d => new StorageExportItem
-            {
-                DeliveryID = d.DeliveryID,
-                OrderCode = "SO-" + d.SaleOrder.OrderDate.Year + "-" + d.SOID.ToString("D3"),
-                CustomerName = d.SaleOrder.Customer.Name ?? "Khách hàng"
-            }).ToListAsync();
-
-
             ViewBag.SearchReceipt = searchReceipt;
             ViewBag.SearchPick = searchPick;
             ViewBag.SearchInv = searchInv;
@@ -230,49 +238,73 @@ namespace SCM_System.Controllers
         public async Task<IActionResult> ProcessReceipt(int poid)
         {
             var po = await _context.PurchaseOrders
-                .Include(p => p.PurchaseOrderDetails)
-                .FirstOrDefaultAsync(p => p.POID == poid);
+                    .Include(p => p.PurchaseOrderDetails)
+                        .ThenInclude(d => d.Product) 
+                    .FirstOrDefaultAsync(p => p.POID == poid);
 
-            if (po == null) return NotFound();
-            if (po.Status == "Hoàn thành") return BadRequest("Đơn hàng đã được xử lý nhập kho trước đó.");
+                if (po == null) return NotFound();
+                if (po.Status == "Hoàn thành") return BadRequest("Đơn hàng đã được xử lý nhập kho trước đó.");
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                foreach (var item in po.PurchaseOrderDetails)
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    // Find a location for this product, or default to A1 (LocationID 1)
-                    var inventory = await _context.Inventories
-                        .FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
+                    foreach (var item in po.PurchaseOrderDetails)
+                    {
+            
+                        var inventory = await _context.Inventories
+                            .FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
 
-                    if (inventory != null)
-                    {
-                        inventory.QuantityAvailable += item.Quantity;
-                    }
-                    else
-                    {
-                        // Create new inventory entry in A1
-                        _context.Inventories.Add(new Inventory
+                        int targetLocationId = inventory != null ? inventory.LocationID : 1; 
+
+                        var targetLocation = await _context.ProductLocations.FindAsync(targetLocationId);
+                        if (targetLocation == null) throw new Exception("Không tìm thấy vị trí lưu kho.");
+
+    
+                        int currentTotalInLocation = await _context.Inventories
+                            .Where(i => i.LocationID == targetLocationId)
+                            .SumAsync(i => (int?)i.QuantityAvailable) ?? 0;
+
+                        if (currentTotalInLocation + item.Quantity > targetLocation.Capacity)
                         {
-                            ProductID = item.ProductID,
-                            LocationID = 1, // Default A1
-                            QuantityAvailable = item.Quantity
-                        });
+                            int spaceLeft = targetLocation.Capacity - currentTotalInLocation;
+                            string productName = item.Product?.ProductName ?? $"Mã SP {item.ProductID}";
+
+                
+                            TempData["ErrorMessage"] = $"Nhập kho thất bại! Vị trí {targetLocation.LocationCode} chỉ còn trống {spaceLeft} chỗ. Không thể nhét thêm {item.Quantity} sản phẩm '{productName}'.";
+                            
+                            await transaction.RollbackAsync(); 
+                            return RedirectToAction("Category", new { hash = "#menu1" }); // Bật ngửa về Tab 1
+                        }
+
+                        if (inventory != null)
+                        {
+                            inventory.QuantityAvailable += item.Quantity;
+                        }
+                        else
+                        {
+                            _context.Inventories.Add(new Inventory
+                            {
+                                ProductID = item.ProductID,
+                                LocationID = targetLocationId, 
+                                QuantityAvailable = item.Quantity
+                            });
+                        }
+
+                        await _context.SaveChangesAsync(); 
                     }
+
+                    po.Status = "Hoàn thành";
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync(); 
+                    TempData["SuccessMessage"] = $"Đã nhập kho thành công đơn hàng PO-{poid:D5}.";
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    TempData["ErrorMessage"] = "Lỗi hệ thống khi nhập kho: " + ex.Message;
                 }
 
-                po.Status = "Hoàn thành";
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                TempData["SuccessMessage"] = $"Đã nhập kho thành công đơn hàng PO-{poid:D5}.";
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                TempData["ErrorMessage"] = "Lỗi khi nhập kho: " + ex.Message;
-            }
-
-            return RedirectToAction("Category", new { hash = "#menu1" });
+                return RedirectToAction("Category", new { hash = "#menu1" });
         }
 
         [HttpPost]
@@ -316,16 +348,14 @@ namespace SCM_System.Controllers
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // 1. Deduct Inventory (The physical handover point)
                 foreach (var item in so.SaleOrderDetails)
                 {
-                    // Find location that has the product (Simplified: subtract from first location found)
                     var inventory = await _context.Inventories
                         .FirstOrDefaultAsync(i => i.ProductID == item.ProductID && i.QuantityAvailable >= item.Quantity);
                     
                     if (inventory == null)
                     {
-                        // Fallback if no single location has enough, or just take from first available
+                        
                         inventory = await _context.Inventories.FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
                     }
 
@@ -337,7 +367,6 @@ namespace SCM_System.Controllers
                     }
                 }
 
-                // 2. Create Delivery Record
                 var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var delivery = new Delivery
                 {
@@ -348,7 +377,6 @@ namespace SCM_System.Controllers
                 };
                 _context.Deliveries.Add(delivery);
 
-                // 3. Update SaleOrder Status
                 so.Status = "Đang giao hàng";
                 
                 await _context.SaveChangesAsync();

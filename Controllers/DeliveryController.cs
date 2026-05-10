@@ -1,10 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using SCM_System.Hubs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SCM_System.Data;
 using SCM_System.Models;
 using SCM_System.Models.ViewModels;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SCM_System.Controllers
 {
@@ -12,48 +19,127 @@ namespace SCM_System.Controllers
     public class DeliveryController : Controller
     {
         private readonly SCMDbContext _context;
+        private readonly IHubContext<HandoverHub> _hubContext;
+        private readonly IWebHostEnvironment _env;
+        private readonly IConfiguration _config;
 
-        public DeliveryController(SCMDbContext context)
+        public DeliveryController(SCMDbContext context, IHubContext<HandoverHub> hubContext,IWebHostEnvironment env, IConfiguration config)
         {
             _context = context;
+            _hubContext = hubContext;
+            _env = env;
+            _config = config;
         }
 
+        // ─── HMAC helpers: bảo vệ QR ─────────────────────────────────────────
+        private string GeneratePickupToken(int soId)
+        {
+            var secret = _config["QR:Secret"] ?? "scm-qr-fallback-2026";
+            var payload = $"SO:{soId}"; // Token gắn với mã đơn hàng
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+            return Convert.ToBase64String(hash).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+        }
+        private bool ValidatePickupToken(int soId, string token)
+            => string.Equals(GeneratePickupToken(soId), token,
+                             StringComparison.OrdinalIgnoreCase);
+
+        // ─── GET /Delivery/GenerateQR?soId=X ────────────────────────────
+        // Thủ kho gọi API này → nhận signed URL → vẽ QR cho shipper quét
+        [HttpGet]
+        [Authorize(Roles = "Quản trị viên,Quản lý kho,Nhân viên vận chuyển")]
+        public async Task<IActionResult> GenerateQR(int soId)
+        {
+            var order = await _context.SaleOrders
+                .Include(so => so.Deliveries)
+                .Include(so => so.Customer)
+                .FirstOrDefaultAsync(so => so.SOID == soId);
+
+            if (order == null)
+                return NotFound(new { message = "Không tìm thấy đơn hàng." });
+
+            // Cho phép tạo QR nếu đơn đã soạn xong HOẶC đơn đã phân công nhưng chưa lấy
+            bool isReady = order.Status == "Đã soạn xong" || 
+                           (order.Status == "Đang giao hàng" && order.Deliveries.Any(d => d.Status == "Chờ lấy hàng"));
+
+            if (!isReady)
+                return BadRequest(new { message = $"Đơn đang ở trạng thái '{order.Status}', chưa sẵn sàng để bàn giao." });
+
+            var token = GeneratePickupToken(soId);
+            var url   = $"{Request.Scheme}://{Request.Host}/Delivery/ScanPickup"
+                      + $"?soId={soId}&token={Uri.EscapeDataString(token)}";
+
+            string shipperName = "Chưa có (Ai quét trước nhận đơn)";
+            var delivery = order.Deliveries.FirstOrDefault(d => d.Status == "Chờ lấy hàng");
+            if (delivery != null)
+            {
+                var assignedUser = await _context.Users.FindAsync(delivery.UserID);
+                shipperName = assignedUser?.FullName ?? "N/A";
+            }
+
+            return Json(new
+            {
+                qrUrl       = url,
+                shipperName = shipperName,
+                orderCode   = $"SO-{order.OrderDate.Year}-{order.SOID:D3}"
+            });
+        }
         // =====================================================================
         // GET: /Delivery/Delivery  — Trang chính Vận chuyển
         // =====================================================================
-        public async Task<IActionResult> Delivery()
+        public async Task<IActionResult> Delivery(string? searchCode = null)
         {
             var vm = new DeliveryViewModel();
-            // ── Tab 2: Danh sách giao hàng ───────────────────────────────────
-            var deliveries = await _context.Deliveries
+
+            var rawActiveDeliveries = await _context.Deliveries
                 .Include(d => d.SaleOrder).ThenInclude(so => so.Customer)
                 .Include(d => d.User)
-                .OrderByDescending(d => d.DeliveryTime)
-                .ToListAsync();
+                .ToListAsync(); 
 
-            vm.AllDeliveries = deliveries.Select(d => new DeliveryListItem
+            var activeDeliveries = rawActiveDeliveries.Select(d => new DeliveryListItem
             {
                 DeliveryID    = d.DeliveryID,
-                OrderCode     = "SO-" + d.SaleOrder.OrderDate.Year + "-" + d.SOID.ToString("D3"),
-                CustomerName  = d.SaleOrder.Customer.Name,
-                CustomerPhone = d.SaleOrder.Customer.Phone ?? "",
-                ShipperName   = d.User.FullName,
-                Address       = d.SaleOrder.Customer.ShippingAddress ?? "",
+                OrderCode     = $"SO-{d.SaleOrder.OrderDate.Year}-{d.SOID:D3}",
+                CustomerName  = d.SaleOrder.Customer?.Name ?? "Khách lẻ",
+                CustomerPhone = d.SaleOrder.Customer?.Phone ?? "",
+                ShipperName   = d.User?.FullName ?? "Không rõ", 
+                Address       = d.SaleOrder.Customer?.ShippingAddress ?? "",
                 TotalAmount   = d.SaleOrder.TotalAmount,
                 Status        = d.Status,
                 DeliveryTime  = d.DeliveryTime
             }).ToList();
 
+            var rawPendingOrders = await _context.SaleOrders
+                .Include(so => so.Customer)
+                .Where(so => so.Status == "Chờ lấy hàng" || so.Status == "Đã soạn xong" && !so.Deliveries.Any())
+                .ToListAsync();
+
+            var pendingDeliveries = rawPendingOrders.Select(so => new DeliveryListItem
+            {
+                DeliveryID    = 0, 
+                OrderCode     = $"SO-{so.OrderDate.Year}-{so.SOID:D3}",
+                CustomerName  = so.Customer?.Name ?? "Khách lẻ",
+                CustomerPhone = so.Customer?.Phone ?? "",
+                ShipperName   = "---", 
+                Address       = so.Customer?.ShippingAddress ?? "",
+                TotalAmount   = so.TotalAmount,
+                Status        = "Chờ lấy hàng", 
+                DeliveryTime  = so.OrderDate 
+            }).ToList();
+
+            vm.AllDeliveries = pendingDeliveries.Concat(activeDeliveries)
+                .OrderByDescending(x => x.DeliveryTime)
+                .ToList();
+
             var now = DateTime.Now;
-            vm.PendingPickupCount      = deliveries.Count(d => d.Status == "Chờ lấy hàng");
-            vm.InDeliveryCount         = deliveries.Count(d => d.Status == "Đang giao hàng");
-            vm.CompletedThisMonthCount = deliveries.Count(d =>
+            vm.PendingPickupCount      = vm.AllDeliveries.Count(d => d.Status == "Chờ lấy hàng");
+            vm.InDeliveryCount         = vm.AllDeliveries.Count(d => d.Status == "Đang giao hàng" || d.Status == "Đang giao");
+            vm.CompletedThisMonthCount = vm.AllDeliveries.Count(d =>
                 d.Status == "Thành công" &&
                 d.DeliveryTime.HasValue &&
                 d.DeliveryTime.Value.Month == now.Month &&
                 d.DeliveryTime.Value.Year  == now.Year);
 
-            // ── Danh sách shipper cho modal phân công ────────────────────────
             var shippers = await _context.Users
                 .Include(u => u.Role)
                 .Where(u => u.Role.RoleName == "Nhân viên vận chuyển")
@@ -72,6 +158,15 @@ namespace SCM_System.Controllers
                 ActiveDeliveries = activeDeliveryCount.FirstOrDefault(x => x.Key == u.UserID)?.Count ?? 0
             }).ToList();
 
+            if (!string.IsNullOrEmpty(searchCode))
+            {
+                string idString = searchCode.Split('-').LastOrDefault() ?? "";
+                int.TryParse(idString, out int searchSoId);
+
+                ViewBag.SearchedDelivery = await _context.Deliveries
+                    .Include(d => d.DeliveryTrackings)
+                    .FirstOrDefaultAsync(d => d.SOID == searchSoId);
+            }
             return View(vm);
         }
 
@@ -197,8 +292,9 @@ namespace SCM_System.Controllers
         // POST: Bàn giao cho khách hàng (Handshake 2)
         // =====================================================================
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CompleteDelivery(int deliveryId, string result, string? proof)
+        public async Task<IActionResult> CompleteDelivery(int deliveryId, string result, IFormFile proofImage)
         {
             var delivery = await _context.Deliveries
                 .Include(d => d.SaleOrder)
@@ -206,34 +302,53 @@ namespace SCM_System.Controllers
 
             if (delivery == null)
             {
-                TempData["ErrorMessage"] = "Không tìm thấy chuyến giao hàng.";
-                return RedirectToAction("Delivery");
+                TempData["ErrorMessage"] = "Không tìm thấy đơn hàng cần bàn giao!";
+                return RedirectToAction("Delivery", "Delivery", null, "menu2");
             }
 
-            if (result == "success")
+            string imagePath = "";
+            if (proofImage != null && proofImage.Length > 0)
             {
-                delivery.Status        = "Thành công";
-                delivery.HandShakeProof = proof ?? "Đã xác nhận";
-                delivery.DeliveryTime  = DateTime.Now;
+                string uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "pod");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
 
-                // Cập nhật trạng thái đơn hàng
-                delivery.SaleOrder.Status = "Hoàn thành";
+                string uniqueFileName = $"POD_SO-{delivery.SOID}_{Guid.NewGuid().ToString().Substring(0, 8)}{Path.GetExtension(proofImage.FileName)}";
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                TempData["SuccessMessage"] = "Giao hàng thành công! Đơn hàng đã hoàn thành.";
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await proofImage.CopyToAsync(fileStream);
+                }
+
+                imagePath = $"/uploads/pod/{uniqueFileName}";
             }
-            else
+
+            string formattedOrderCode = $"SO-{DateTime.Now.Year}-{delivery.SOID:D3}";
+
+            if (result == "Giao thành công")
             {
-                delivery.Status = "Khách từ chối";
-                delivery.HandShakeProof = proof ?? "Khách từ chối nhận hàng";
-
-                TempData["SuccessMessage"] = "Đã ghi nhận khách từ chối. Đơn hàng sẽ được hoàn về kho.";
+                delivery.Status = "Thành công";
+                if(delivery.SaleOrder != null) delivery.SaleOrder.Status = "Thành công";
+                
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Tuyệt vời! Đã giao thành công đơn {formattedOrderCode}.";
+                
+                return RedirectToAction("Delivery", "Delivery", null, "menu2");
             }
+            else 
+            {
+                delivery.Status = "Giao thất bại"; 
+                if(delivery.SaleOrder != null) delivery.SaleOrder.Status = "Giao thất bại";
+                
+                await _context.SaveChangesAsync();
 
-            _context.Update(delivery);
-            _context.Update(delivery.SaleOrder);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("Delivery");
+                TempData["ErrorMessage"] = $"Khách từ chối nhận đơn {formattedOrderCode}. BẮT BUỘC ghi nhận lý do hoàn trả tại đây!";
+                
+                return RedirectToAction("Delivery", "Delivery", new { searchCode = formattedOrderCode }, "menu4");
+            }
         }
 
         // =====================================================================
@@ -241,20 +356,23 @@ namespace SCM_System.Controllers
         // =====================================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RecordReturn(int soid, string reason, string settlement)
+        public async Task<IActionResult> RecordReturn(string orderCode, string reason, string settlement)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId))
             {
                 TempData["ErrorMessage"] = "Không xác định được người dùng.";
-                return RedirectToAction("Delivery");
+                return RedirectToAction("Delivery", "Delivery", null, "menu4");
             }
+
+            string idString = orderCode.Split('-').LastOrDefault() ?? "0";
+            int.TryParse(idString, out int soid);
 
             var order = await _context.SaleOrders.FindAsync(soid);
             if (order == null)
             {
                 TempData["ErrorMessage"] = "Không tìm thấy đơn hàng.";
-                return RedirectToAction("Delivery");
+                return RedirectToAction("Delivery", "Delivery", null, "menu4");
             }
 
             // Tạo ReturnOrder
@@ -284,40 +402,145 @@ namespace SCM_System.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = $"Đã ghi nhận hoàn hàng cho đơn SO-{order.OrderDate.Year}-{soid:D3}.";
-            return RedirectToAction("Delivery");
+            return RedirectToAction("Delivery", "Delivery", null, "menu4");
         }
+    
+        // ─── GET /Delivery/ScanPickup ─────────────────────────────────────────
+        // Shipper quét QR → nhận hàng từ kho
+        // Logic mới: Hỗ trợ cả đơn đã phân công shipper và đơn "mở" (ai quét trước nhận đơn)
         [HttpGet]
-        [AllowAnonymous] 
-        public async Task<IActionResult> ScanPickup(int deliveryId)
+        [Authorize(Roles = "Quản trị viên,Nhân viên vận chuyển")]
+        public async Task<IActionResult> ScanPickup(int soId, string token)
         {
-            var delivery = await _context.Deliveries
-                .Include(d => d.SaleOrder)
-                .FirstOrDefaultAsync(d => d.DeliveryID == deliveryId);
+            // 1. Xác thực token HMAC
+            if (string.IsNullOrEmpty(token) || !ValidatePickupToken(soId, token))
+            {
+                TempData["ErrorMessage"] = "Mã QR không hợp lệ!";
+                return RedirectToAction("Delivery");
+            }
+
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int currentUserId))
+                return Unauthorized();
+
+            // 2. Sử dụng Transaction để đảm bảo tính nguyên tử (Atomicity)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var order = await _context.SaleOrders
+                    .Include(s => s.Deliveries)
+                    .FirstOrDefaultAsync(s => s.SOID == soId);
+
+                if (order == null) throw new Exception("Không tìm thấy đơn hàng.");
+
+                var delivery = order.Deliveries.FirstOrDefault(d => d.Status == "Chờ lấy hàng");
+
+                if (delivery != null)
+                {
+                    // TRƯỜNG HỢP 1: Đã phân công Shipper từ trước
+                    if (delivery.UserID != currentUserId && !User.IsInRole("Quản trị viên"))
+                    {
+                        TempData["ErrorMessage"] = "Đơn này đã được chỉ định cho một Shipper khác!";
+                        return RedirectToAction("Delivery");
+                    }
+
+                    // Cập nhật trạng thái
+                    delivery.Status = "Đang giao hàng";
+                    delivery.DeliveryTime = DateTime.Now;
+                }
+                else if (order.Status == "Đã soạn xong")
+                {
+                    // TRƯỜNG HỢP 2: Đơn "mở" - Người đầu tiên quét sẽ nhận đơn
+                    var newDelivery = new Delivery
+                    {
+                        SOID = soId,
+                        UserID = currentUserId,
+                        Status = "Đang giao hàng",
+                        DeliveryTime = DateTime.Now
+                    };
+                    _context.Deliveries.Add(newDelivery);
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = $"Đơn hàng đang ở trạng thái '{order.Status}', không thể nhận.";
+                    return RedirectToAction("Delivery");
+                }
+
+                order.Status = "Đang giao hàng";
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                await _hubContext.Clients.All.SendAsync("OrderHandedOver", soId);
+
+                TempData["SuccessMessage"] = "Nhận đơn thành công! Bạn đã được gán làm người giao cho đơn này.";
+                return RedirectToAction("Delivery");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                TempData["ErrorMessage"] = "Lỗi khi nhận đơn: " + ex.Message;
+                return RedirectToAction("Delivery");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult SearchDeliveryTimeline(string orderCode)
+        {
+
+            if (string.IsNullOrEmpty(orderCode))
+            {
+                TempData["ErrorMessage"] = "Vui lòng nhập mã đơn hàng để tìm kiếm!";
+                return RedirectToAction("Delivery", "Delivery", null, "menu3");
+            }
+
+            string? idString = orderCode.Split('-').LastOrDefault(); 
+            int.TryParse(idString, out int searchSoId);
+
+            var delivery = _context.Deliveries
+                .Include(d => d.DeliveryTrackings) 
+                .FirstOrDefault(d => d.SOID == searchSoId); 
 
             if (delivery == null)
             {
-                TempData["ErrorMessage"] = "Mã QR không hợp lệ hoặc đơn hàng không tồn tại!";
-                return RedirectToAction("Delivery", new { hash = "#menu1" }); 
+                TempData["ErrorMessage"] = $"Không tìm thấy đơn hàng nào khớp với mã: {orderCode}";
+                return RedirectToAction("Delivery", "Delivery", null, "menu3");
             }
 
-            if (delivery.Status != "Chờ lấy hàng")
-            {
-                TempData["ErrorMessage"] = $"Đơn hàng này đang ở trạng thái '{delivery.Status}', không thể nhận hàng.";
-                return RedirectToAction("Delivery", new { hash = "#menu1" });
-            }
-            delivery.Status = "Đang giao hàng";
-            delivery.DeliveryTime = DateTime.Now; 
+            TempData["SearchedDeliveryId"] = delivery.DeliveryID;
+            
+            return RedirectToAction("Delivery", "Delivery", new { searchCode = orderCode }, "menu3");
+        }
 
-   
-            if (delivery.SaleOrder != null)
+
+        [HttpPost]
+        public async Task<IActionResult> AddTrackingEvent(int deliveryId, string statusEvent, string note)
+        {
+            var delivery = await _context.Deliveries.FindAsync(deliveryId);
+            if (delivery == null) return NotFound();
+
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdStr, out int userId);
+
+            var currentUser = await _context.Users.FindAsync(userId);
+            string currentShipperName = currentUser != null ? currentUser.FullName : "Nhân viên hệ thống";
+
+            var trackingNode = new DeliveryTracking
             {
-                delivery.SaleOrder.Status = "Đang giao hàng";
-            }
+                DeliveryID = deliveryId,
+                StatusEvent = statusEvent,
+                Note = note,
+                EventTime = DateTime.Now,
+                ShipperName = currentShipperName
+            };
+
+            _context.DeliveryTrackings.Add(trackingNode);
+            
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = $"Quét QR thành công! Đã nhận đơn SO-{delivery.SOID:D5} từ kho.";
+            TempData["SuccessMessage"] = "Đã cập nhật nhật ký hành trình thành công!";
             
-            return RedirectToAction("Delivery", new { hash = "#menu1" }); 
+            string formattedOrderCode = $"SO-{DateTime.Now.Year}-{delivery.SOID:D3}";
+
+            return RedirectToAction("Delivery", "Delivery", new { searchCode = formattedOrderCode }, "menu3");
         }
     }
 }

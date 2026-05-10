@@ -22,11 +22,22 @@ namespace SCM_System.Controllers
         // TRANG CHÍNH: GỘP 3 TAB (TÀI KHOẢN, CẤU HÌNH, BÁO CÁO)
         // =====================================================================
         [HttpGet]
-        public async Task<IActionResult> Admin(string reportType = "summary", DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<IActionResult> Admin(string searchUser = "", int? roleId = null, string reportType = "summary", DateTime? fromDate = null, DateTime? toDate = null)
         {
             // --- 1. LẤY DỮ LIỆU TAB TÀI KHOẢN ---
-            var users = await _context.Users
-                .Include(u => u.Role)
+            var userQuery = _context.Users.Include(u => u.Role).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchUser))
+            {
+                userQuery = userQuery.Where(u => u.FullName.Contains(searchUser) || (u.Email != null && u.Email.Contains(searchUser)));
+            }
+            
+            if (roleId.HasValue && roleId.Value > 0)
+            {
+                userQuery = userQuery.Where(u => u.RoleID == roleId.Value);
+            }
+
+            var users = await userQuery
                 .Select(u => new UserViewModel
                 {
                     UserID = u.UserID,
@@ -40,6 +51,9 @@ namespace SCM_System.Controllers
 
             var roles = await _context.Roles.ToListAsync();
             var userVM = new AdminUserViewModel { Users = users, Roles = roles };
+
+            ViewBag.SearchUser = searchUser;
+            ViewBag.RoleId = roleId;
 
 
             // --- 2. LẤY DỮ LIỆU TAB CẤU HÌNH ---
@@ -62,103 +76,17 @@ namespace SCM_System.Controllers
             };
 
 
-            // --- 3. LẤY DỮ LIỆU TAB BÁO CÁO ---
-            string symbol = settings.Currency == "VND" ? "₫" : (settings.Currency == "USD" ? "$" : "€");
-
-            var saleQuery = _context.SaleOrders.AsQueryable();
-            var purchaseQuery = _context.PurchaseOrders.AsQueryable();
-            var deliveryQuery = _context.Deliveries.AsQueryable();
-            var returnQuery = _context.ReturnOrders.AsQueryable();
-
-            if (fromDate.HasValue)
-            {
-                saleQuery = saleQuery.Where(o => o.OrderDate >= fromDate.Value);
-                purchaseQuery = purchaseQuery.Where(o => o.OrderDate >= fromDate.Value);
-                deliveryQuery = deliveryQuery.Where(d => d.DeliveryTime >= fromDate.Value);
-            }
-            if (toDate.HasValue)
-            {
-                saleQuery = saleQuery.Where(o => o.OrderDate <= toDate.Value);
-                purchaseQuery = purchaseQuery.Where(o => o.OrderDate <= toDate.Value);
-                deliveryQuery = deliveryQuery.Where(d => d.DeliveryTime <= toDate.Value);
-            }
-
-            var saleOrders = await saleQuery.ToListAsync();
-            var purchaseOrders = await purchaseQuery.ToListAsync();
-            var deliveries = await deliveryQuery.ToListAsync();
-            var returns = await returnQuery.ToListAsync();
-
-            decimal totalRevenue = saleOrders
-                .Where(so => so.Status == "Hoàn thành" || so.Status == "Đã giao")
-                .Sum(so => so.TotalAmount);
-
-            decimal totalExpense = purchaseOrders
-                .Where(po => po.Status == "Hoàn thành")
-                .Sum(po => po.TotalAmount);
-
-            int completedOrders = saleOrders.Count(so => so.Status == "Hoàn thành");
-
-            double deliverySuccessRate = deliveries.Any() 
-                ? (double)deliveries.Count(d => d.Status == "Thành công") / deliveries.Count * 100 
-                : 100;
-
-            double returnRate = saleOrders.Any() 
-                ? (double)returns.Count / saleOrders.Count * 100 
-                : 0;
-
-            var chartLabels = new List<string>();
-            var chartRevenue = new List<decimal>();
-            var chartExpense = new List<decimal>();
-
-            for (int i = 5; i >= 0; i--)
-            {
-                var date = DateTime.Now.AddMonths(-i);
-                var label = $"T{date.Month}/{date.Year % 100}";
-                chartLabels.Add(label);
-
-                var monthlyRev = saleOrders
-                    .Where(so => so.OrderDate.Month == date.Month && so.OrderDate.Year == date.Year)
-                    .Sum(so => so.TotalAmount);
-                
-                var monthlyExp = purchaseOrders
-                    .Where(po => po.OrderDate.Month == date.Month && po.OrderDate.Year == date.Year)
-                    .Sum(po => po.TotalAmount);
-
-                chartRevenue.Add(monthlyRev);
-                chartExpense.Add(monthlyExp);
-            }
-
-            decimal rate = 1;
-            if (settings.Currency == "USD") rate = 25000;
-            else if (settings.Currency == "EUR") rate = 27000;
-
-            var chartRevConverted = chartRevenue.Select(v => v / rate).ToList();
-            var chartExpConverted = chartExpense.Select(v => v / rate).ToList();
-
-            string revStr, expStr;
-            if (settings.Currency == "VND")
-            {
-                revStr = (totalRevenue / 1000000000).ToString("N2") + " tỷ";
-                expStr = (totalExpense / 1000000000).ToString("N2") + " tỷ";
-            }
-            else
-            {
-                revStr = (totalRevenue / rate).ToString("N0");
-                expStr = (totalExpense / rate).ToString("N0");
-            }
-
+            // --- 3. LẤY DỮ LIỆU TAB BÁO CÁO (HỆ THỐNG) ---
+            var process = System.Diagnostics.Process.GetCurrentProcess();
             var reportVM = new AdminReportViewModel
             {
-                TotalRevenue = revStr,
-                TotalExpense = expStr,
-                CompletedOrdersCount = completedOrders,
-                DeliverySuccessRate = deliverySuccessRate.ToString("N1") + "%",
-                ReturnRate = returnRate.ToString("N1") + "%",
-                CurrencySymbol = symbol,
-                ChartLabels = chartLabels,
-                ChartDataRevenue = chartRevConverted,
-                ChartDataExpense = chartExpConverted,
-                ReportType = reportType
+                RamUsageMB = Math.Round(process.WorkingSet64 / (1024.0 * 1024.0), 2),
+                ThreadCount = process.Threads.Count,
+                StartTime = process.StartTime.ToString("dd/MM/yyyy HH:mm:ss"),
+                Uptime = (DateTime.Now - process.StartTime).ToString(@"dd\.hh\:mm\:ss"),
+                CpuUsage = process.TotalProcessorTime.TotalSeconds.ToString("N2") + "s", // Total CPU time used by process
+                EnvironmentInfo = $"{Environment.OSVersion}, {Environment.MachineName}",
+                ProcessID = process.Id
             };
 
             // --- 4. GỘP CHUNG VÀ TRẢ VỀ VIEW ---
@@ -187,7 +115,7 @@ namespace SCM_System.Controllers
             TempData["SuccessMessage"] = $"Đã duyệt kích hoạt tài khoản {user.Username}!";
             
             // Redirect về trang Admin, nhảy vào tab #menu1
-            return RedirectToAction("Admin", "Admin", null, "menu1");
+            return RedirectToAction("Admin", "Admin", new { hash = "#menu1" });
         }
 
         [HttpGet]
@@ -222,7 +150,7 @@ namespace SCM_System.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Cập nhật tài khoản thành công!";
-            return RedirectToAction("Admin", "Admin", null, "menu1");
+            return RedirectToAction("Admin", "Admin", new { hash = "#menu1" });
         }
 
         [HttpPost]
@@ -236,31 +164,33 @@ namespace SCM_System.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Xóa tài khoản thành công!";
-            return RedirectToAction("Admin", "Admin", null, "menu1");
+            return RedirectToAction("Admin", "Admin", new { hash = "#menu1" });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveConfig(AdminCombinedViewModel combinedModel)
+        public async Task<IActionResult> SaveConfig([Bind(Prefix = "ConfigVM")] AdminConfigViewModel configVM)
         {
             var settings = await _context.SystemSettings.FirstOrDefaultAsync();
-            if (settings == null) settings = new SystemSetting();
+            if (settings == null) 
+            {
+                settings = new SystemSetting();
+                _context.SystemSettings.Add(settings);
+            }
 
-            // Chú ý: Vì dùng CombinedModel, ta phải truy cập qua thuộc tính ConfigVM
-            settings.LowStockThreshold = combinedModel.ConfigVM.LowStockThreshold;
-            settings.AutoBackup = combinedModel.ConfigVM.AutoBackup;
-            settings.EnableEmail = combinedModel.ConfigVM.EnableEmail;
-            settings.EnableSMS = combinedModel.ConfigVM.EnableSMS;
-            settings.Currency = combinedModel.ConfigVM.Currency;
-            settings.TimeZone = combinedModel.ConfigVM.TimeZone;
+            settings.LowStockThreshold = configVM.LowStockThreshold;
+            settings.AutoBackup = configVM.AutoBackup;
+            settings.EnableEmail = configVM.EnableEmail;
+            settings.EnableSMS = configVM.EnableSMS;
+            settings.Currency = configVM.Currency;
+            settings.TimeZone = configVM.TimeZone;
 
-            _context.Update(settings);
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Cấu hình hệ thống đã được cập nhật thành công!";
             
             // Redirect về trang Admin, nhảy vào tab #menu2
-            return RedirectToAction("Admin", "Admin", null, "menu2");
+            return RedirectToAction("Admin", "Admin", new { hash = "#menu2" });
         }
     }
 }

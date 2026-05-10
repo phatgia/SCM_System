@@ -8,13 +8,68 @@
     <div class="row align-items-center mb-4">
         <div class="col">
             <h2 class="fw-bold mb-0 text-dark">Tổng quan hệ thống</h2>
-            <p class="text-muted small mb-0">Theo dõi hoạt động kinh doanh và vận hành thời gian thực</p>
+            <p class="text-muted small mb-0">@(User.IsInRole("Quản trị viên") ? "Theo dõi hiệu năng phần cứng và tài nguyên" : "Theo dõi hoạt động kinh doanh và vận hành thời gian thực")</p>
         </div>
     </div>
 
-    <!-- STATS CARDS -->
+    <!-- ADMIN SYSTEM METRICS -->
+    @if (User.IsInRole("Quản trị viên"))
+    {
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-3 text-primary me-3">
+                                <i class="bi bi-cpu fs-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-secondary small fw-bold text-uppercase mb-1">Threads</p>
+                                <h4 class="fw-bold mb-0">@Model.ThreadCount</h4>
+                            </div>
+                        </div>
+                        <p class="small text-muted mb-0">Số lượng luồng xử lý</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-3 text-success me-3">
+                                <i class="bi bi-memory fs-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-secondary small fw-bold text-uppercase mb-1">RAM Usage</p>
+                                <h4 class="fw-bold mb-0">@Model.RamUsageMB MB</h4>
+                            </div>
+                        </div>
+                        <p class="small text-muted mb-0">Bộ nhớ RAM chiếm dụng</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-3 text-warning me-3">
+                                <i class="bi bi-clock-history fs-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-secondary small fw-bold text-uppercase mb-1">Uptime</p>
+                                <h4 class="fw-bold mb-0">@Model.Uptime</h4>
+                            </div>
+                        </div>
+                        <p class="small text-muted mb-0">Bắt đầu: @Model.StartTime</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- BUSINESS STATS CARDS -->
     <div class="row g-3 mb-4">
-        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên bán hàng"))
+        @if (User.IsInRole("Quản lý") || User.IsInRole("Nhân viên bán hàng"))
         {
             <div class="col-xl-3 col-md-6">
                 <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
@@ -49,7 +104,7 @@
             </div>
         }
 
-        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Quản lý kho"))
+        @if (User.IsInRole("Quản lý") || User.IsInRole("Quản lý kho"))
         {
             <div class="col-xl-3 col-md-6">
                 <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
@@ -68,7 +123,7 @@
             </div>
         }
 
-        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên vận chuyển"))
+        @if (User.IsInRole("Quản lý") || User.IsInRole("Nhân viên vận chuyển"))
         {
             <div class="col-xl-3 col-md-6">
                 <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
@@ -90,7 +145,7 @@
 
     <!-- CHARTS (Line & Donut) -->
     <div class="row g-4 mb-4">
-        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên mua hàng") || User.IsInRole("Nhân viên bán hàng"))
+        @if (User.IsInRole("Quản lý") || User.IsInRole("Nhân viên mua hàng") || User.IsInRole("Nhân viên bán hàng"))
         {
             <div class="col-xl-8">
                 <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
@@ -109,7 +164,7 @@
             </div>
         }
 
-        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên bán hàng"))
+        @if (User.IsInRole("Quản lý") || User.IsInRole("Nhân viên bán hàng"))
         {
             <div class="col-xl-4">
                 <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
@@ -140,14 +195,14 @@
 
     <!-- RECENT ORDERS & WARNINGS -->
     <div class="row g-4 mb-4">
-        @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên bán hàng"))
+        @if (User.IsInRole("Quản lý") || User.IsInRole("Nhân viên bán hàng"))
         {
             <div class="col-xl-8">
                 <div class="card border-0 shadow-sm rounded-4 bg-white">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center justify-content-between mb-4">
                             <h5 class="fw-bold mb-0">Đơn hàng gần đây</h5>
-                            <a href="/Sales/Orders" class="btn btn-sm btn-link text-decoration-none fw-bold">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                            <a href="/Sales/Sales#menu2" class="btn btn-sm btn-link text-decoration-none fw-bold">Xem tất cả <i class="bi bi-arrow-right"></i></a>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle">
@@ -190,7 +245,7 @@
         }
 
         <div class="col-xl-4">
-            @if (User.IsInRole("Quản trị viên") || User.IsInRole("Quản lý kho"))
+            @if (User.IsInRole("Quản lý") || User.IsInRole("Quản lý kho"))
             {
                 <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
                     <div class="card-body p-4">
@@ -222,7 +277,7 @@
                 </div>
             }
 
-            @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên vận chuyển"))
+            @if (User.IsInRole("Quản lý") || User.IsInRole("Nhân viên vận chuyển"))
             {
                 <div class="card border-0 shadow-sm rounded-4 bg-white">
                     <div class="card-body p-4">
@@ -250,7 +305,7 @@
         </div>
     </div>
 
-    @if (User.IsInRole("Quản trị viên") || User.IsInRole("Quản lý kho"))
+    @if (User.IsInRole("Quản lý") || User.IsInRole("Quản lý kho"))
     {
         <!-- INVENTORY BY CATEGORY -->
         <div class="row">
@@ -272,7 +327,7 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên mua hàng") || User.IsInRole("Nhân viên bán hàng"))
+            @if (User.IsInRole("Quản lý") || User.IsInRole("Nhân viên mua hàng") || User.IsInRole("Nhân viên bán hàng"))
             {
                 <text>
                 // Line Chart: Revenue & Cost
@@ -328,7 +383,7 @@
                 </text>
             }
 
-            @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên bán hàng"))
+            @if (User.IsInRole("Quản lý") || User.IsInRole("Nhân viên bán hàng"))
             {
                 <text>
                 // Donut Chart: Order Status
@@ -358,7 +413,7 @@
                 </text>
             }
 
-            @if (User.IsInRole("Quản trị viên") || User.IsInRole("Quản lý kho"))
+            @if (User.IsInRole("Quản lý") || User.IsInRole("Quản lý kho"))
             {
                 <text>
                 // Bar Chart: Inventory Category

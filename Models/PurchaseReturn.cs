@@ -13,7 +13,7 @@ namespace SCM_System.Models
         public int POID { get; set; }
 
         [ForeignKey("User")]
-        public int UserID { get; set; } // Nhân viên lập phiếu trả
+        public int UserID { get; set; } 
 
         [StringLength(500)]
         public string? Reason { get; set; }

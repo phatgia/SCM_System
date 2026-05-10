@@ -27,5 +27,6 @@ namespace SCM_System.Models
         // Navigation
         public virtual SaleOrder SaleOrder { get; set; } = null!;
         public virtual User User { get; set; } = null!;
+        public ICollection<DeliveryTracking>? DeliveryTrackings { get; set; }
     }
 }

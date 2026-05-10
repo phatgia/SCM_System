@@ -1,0 +1,21 @@
+# Build artifacts
+obj/
+bin/
+
+# Sensitive files
+appsettings.Development.json
+
+# Local SQLite DB (not for production)
+*.db
+*.db-shm
+*.db-wal
+
+# Visual Studio files
+.vs/
+*.user
+
+# Git
+.git/
+
+# Logs
+*.log

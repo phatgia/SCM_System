@@ -29,10 +29,19 @@ namespace SCM_System.Controllers
                 .AsQueryable();
  
             if (!string.IsNullOrWhiteSpace(searchSupplier))
-                supplierQuery = supplierQuery.Where(s =>
-                    s.SupplierName.Contains(searchSupplier) ||
-                    (s.ContactPerson != null && s.ContactPerson.Contains(searchSupplier)) ||
-                    (s.Phone != null && s.Phone.Contains(searchSupplier)));
+            {
+                string search1 = searchSupplier.Trim().ToLower();
+
+                string numericString1 = search1.Replace("ncc", "").TrimStart('0');
+                bool isNumeric1 = int.TryParse(numericString1, out int searchId1);
+
+                supplierQuery = supplierQuery.Where(s =>s.SupplierName.ToLower().Contains(search1) ||
+                    (s.ContactPerson != null && s.ContactPerson.ToLower().Contains(search1)) ||
+                    (s.Phone != null && s.Phone.Contains(search1)) ||
+                    (isNumeric1 && s.SupplierID == searchId1) 
+                );
+    
+            }
  
             var suppliers = await supplierQuery
                 .Select(s => new SupplierViewModel
@@ -55,10 +64,25 @@ namespace SCM_System.Controllers
                 .AsQueryable();
  
             if (!string.IsNullOrWhiteSpace(searchPO))
+            {
+                string search2 = searchPO.Trim().ToLower();
+
+                string numericString = search2.Replace("po", "").Replace("-", "").TrimStart('0');
+    
+   
+                if (string.IsNullOrEmpty(numericString) && search2.Contains("0"))
+                {
+                    numericString = "0";
+                }
+
+                bool isNumeric = int.TryParse(numericString, out int searchId);
+
                 poQuery = poQuery.Where(p => 
-                    p.Supplier.SupplierName.Contains(searchPO) || 
-                    p.POID.ToString().Contains(searchPO));
+                    (p.Supplier != null && p.Supplier.SupplierName.ToLower().Contains(search2))|| (isNumeric && p.POID == searchId) 
+                );
  
+            }
+                
             var pos = await poQuery
                 .OrderByDescending(p => p.POID)
                 .Select(p => new PurchaseOrderViewModel
@@ -82,14 +106,29 @@ namespace SCM_System.Controllers
                 .AsQueryable();
  
             if (!string.IsNullOrWhiteSpace(searchReturn))
+            {
+                string search = searchReturn.Trim().ToLower();
+
+                string numericString = search.Replace("rtn", "").Replace("po", "").Replace("-", "").TrimStart('0');
+                if(string.IsNullOrEmpty(numericString) && search.Contains("0")){
+                    numericString = "0";
+                }
+                bool isNumeric = int.TryParse(numericString, out int searchId);
+
                 returnQuery = returnQuery.Where(r => 
-                    r.PurchaseOrder.Supplier.SupplierName.Contains(searchReturn) || 
-                    r.PurchaseOrder.POID.ToString().Contains(searchReturn) ||
-                    (r.Reason != null && r.Reason.Contains(searchReturn)));
+                    (r.PurchaseOrder.Supplier != null && r.PurchaseOrder.Supplier.SupplierName.ToLower().Contains(search)) || 
+                    (r.Reason != null && r.Reason.ToLower().Contains(search)) ||
+                    (isNumeric && r.PurchaseOrder.POID == searchId) || 
+                    (isNumeric && r.PurchaseReturnID == searchId)              
+                );
+            }
+
  
-            var returns = await returnQuery
+            var returnEntities = await returnQuery
                 .OrderByDescending(r => r.ReturnDate)
-                .Select(r => new PurchaseReturnViewModel
+                .ToListAsync();
+
+            var returns = returnEntities.Select(r => new PurchaseReturnViewModel
                 {
                     ReturnID = r.PurchaseReturnID,
                     SupplierName = r.PurchaseOrder.Supplier.SupplierName,
@@ -100,8 +139,7 @@ namespace SCM_System.Controllers
                     Status = r.Status,
                     Date = r.ReturnDate,
                     POID = r.POID
-                })
-                .ToListAsync();
+                }).ToList();
  
             // 4. Fetch Products for dropdown
             var products = await _context.Products.ToListAsync();
@@ -348,6 +386,36 @@ namespace SCM_System.Controllers
             }
 
             return PartialView("_ReturnDetailsPartial", ret);
+        }
+
+        // =====================================================================
+        // POST: /Purchase/CreateReturn
+        // =====================================================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateReturn(int POID, string Reason, decimal Amount)
+        {
+            if (POID == 0) return RedirectToAction("Supplier", "Purchase", new { hash = "#menu4" });
+
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+            var returnOrder = new PurchaseReturn
+            {
+                POID = POID,
+                UserID = int.Parse(userIdStr),
+                Reason = Reason,
+                Amount = Amount,
+                Status = "Chờ duyệt",
+                ReturnDate = DateTime.Now
+            };
+
+            _context.PurchaseReturns.Add(returnOrder);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Đã tạo yêu cầu trả hàng thành công!";
+            
+            return RedirectToAction("Supplier", "Purchase", new { hash = "#menu4" });
         }
     }
 }
