@@ -43,6 +43,10 @@ namespace SCM_System.Models.ViewModels
         // Role Distribution (Admin)
         public List<string> RoleLabels { get; set; } = new();
         public List<int> RoleCounts { get; set; } = new();
+
+        // Database & System Logs (Admin)
+        public Dictionary<string, int> EntityCounts { get; set; } = new();
+        public List<SystemEventViewModel> RecentEvents { get; set; } = new();
     }
 
     public class RecentOrderHomeViewModel

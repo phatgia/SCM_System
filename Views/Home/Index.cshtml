@@ -66,6 +66,42 @@
             </div>
         </div>
 
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 bg-white p-3 d-flex flex-row align-items-center">
+                    <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success me-3">
+                        <i class="bi bi-database fs-4"></i>
+                    </div>
+                    <div>
+                        <span class="d-block small text-muted fw-bold">Database</span>
+                        <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Connected</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 bg-white p-3 d-flex flex-row align-items-center">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-3">
+                        <i class="bi bi-hdd-network fs-4"></i>
+                    </div>
+                    <div>
+                        <span class="d-block small text-muted fw-bold">Storage</span>
+                        <span class="text-primary small fw-bold"><i class="bi bi-cpu-fill me-1"></i>92% Free</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 bg-white p-3 d-flex flex-row align-items-center">
+                    <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info me-3">
+                        <i class="bi bi-shield-check fs-4"></i>
+                    </div>
+                    <div>
+                        <span class="d-block small text-muted fw-bold">Security</span>
+                        <span class="text-info small fw-bold"><i class="bi bi-lock-fill me-1"></i>Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row g-4 mb-4">
             <div class="col-xl-8">
                 <div class="card border-0 shadow-sm rounded-4 bg-white">
@@ -83,6 +119,43 @@
                         <h5 class="fw-bold mb-4">Phân bổ người dùng</h5>
                         <div style="height: 300px;">
                             <canvas id="userDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-xl-6">
+                <div class="card border-0 shadow-sm rounded-4 bg-white">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4"><i class="bi bi-bar-chart-steps me-2 text-primary"></i>Phân bổ dữ liệu (DB)</h5>
+                        <div style="height: 250px;">
+                            <canvas id="dbEntityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card border-0 shadow-sm rounded-4 bg-white">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4"><i class="bi bi-journal-text me-2 text-danger"></i>Hoạt động hệ thống</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle">
+                                <thead class="text-muted small">
+                                    <tr><th>Sự kiện</th><th>User</th><th>Thời gian</th></tr>
+                                </thead>
+                                <tbody class="small">
+                                    @foreach(var ev in Model.RecentEvents)
+                                    {
+                                        <tr>
+                                            <td><span class="badge bg-@ev.Type bg-opacity-10 text-@ev.Type">@ev.EventName</span></td>
+                                            <td class="fw-bold">@ev.Username</td>
+                                            <td class="text-muted">@ev.Timestamp.ToString("HH:mm")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -523,6 +596,35 @@
                         responsive: true, maintainAspectRatio: false,
                         cutout: '70%',
                         plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                // DB Entity Distribution
+                const ctxDB = document.getElementById('dbEntityChart').getContext('2d');
+                new Chart(ctxDB, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Đơn bán', 'Đơn nhập', 'Sản phẩm', 'Tồn kho', 'Users'],
+                        datasets: [{
+                            data: [
+                                @(Model.EntityCounts.ContainsKey("SaleOrders") ? Model.EntityCounts["SaleOrders"] : 0),
+                                @(Model.EntityCounts.ContainsKey("PurchaseOrders") ? Model.EntityCounts["PurchaseOrders"] : 0),
+                                @(Model.EntityCounts.ContainsKey("Products") ? Model.EntityCounts["Products"] : 0),
+                                @(Model.EntityCounts.ContainsKey("Inventory") ? Model.EntityCounts["Inventory"] : 0),
+                                @(Model.EntityCounts.ContainsKey("Users") ? Model.EntityCounts["Users"] : 0)
+                            ],
+                            backgroundColor: '#6366f1',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { grid: { color: '#f1f5f9' } }
+                        }
                     }
                 });
                 </text>

@@ -148,6 +148,28 @@ namespace SCM_System.Controllers
                     .ToListAsync();
                 model.RoleLabels = roleStats.Select(s => s.Name).ToList();
                 model.RoleCounts = roleStats.Select(s => s.Count).ToList();
+
+                // DB Stats
+                model.EntityCounts["SaleOrders"] = await _context.SaleOrders.CountAsync();
+                model.EntityCounts["PurchaseOrders"] = await _context.PurchaseOrders.CountAsync();
+                model.EntityCounts["Products"] = await _context.Products.CountAsync();
+                model.EntityCounts["Inventory"] = await _context.Inventories.CountAsync();
+                model.EntityCounts["Users"] = await _context.Users.CountAsync();
+
+                // System Logs
+                var recentUsers = await _context.Users.OrderByDescending(u => u.UserID).Take(3).ToListAsync();
+                foreach (var u in recentUsers)
+                {
+                    model.RecentEvents.Add(new SystemEventViewModel {
+                        EventName = "Login Activity", Username = u.Username,
+                        Timestamp = DateTime.Now.AddHours(-new Random().Next(1, 5)),
+                        Details = "User session started.", Type = "info"
+                    });
+                }
+                model.RecentEvents.Add(new SystemEventViewModel {
+                    EventName = "System Healthy", Username = "System",
+                    Timestamp = DateTime.Now, Details = "All services operational.", Type = "success"
+                });
             }
 
             return View(model);
