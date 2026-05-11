@@ -130,6 +130,24 @@ namespace SCM_System.Controllers
                 model.ThreadCount = process.Threads.Count;
                 model.StartTime = process.StartTime.ToString("dd/MM/yyyy HH:mm:ss");
                 model.Uptime = (DateTime.Now - process.StartTime).ToString(@"dd\.hh\:mm\:ss");
+
+                // Giả lập dữ liệu lịch sử (10 phút)
+                for (int i = 9; i >= 0; i--)
+                {
+                    var time = DateTime.Now.AddMinutes(-i).ToString("HH:mm");
+                    model.HistoryLabels.Add(time);
+                    model.RamHistory.Add(model.RamUsageMB + new Random().Next(-5, 5));
+                    model.ThreadHistory.Add(model.ThreadCount + new Random().Next(-2, 3));
+                }
+
+                // Phân bổ vai trò
+                var roleStats = await _context.Users
+                    .Include(u => u.Role)
+                    .GroupBy(u => u.Role.RoleName)
+                    .Select(g => new { Name = g.Key, Count = g.Count() })
+                    .ToListAsync();
+                model.RoleLabels = roleStats.Select(s => s.Name).ToList();
+                model.RoleCounts = roleStats.Select(s => s.Count).ToList();
             }
 
             return View(model);

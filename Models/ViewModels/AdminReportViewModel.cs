@@ -21,5 +21,14 @@ namespace SCM_System.Models.ViewModels
         public string CpuUsage { get; set; } = "N/A";
         public string EnvironmentInfo { get; set; } = "";
         public int ProcessID { get; set; }
+
+        // History for Charts
+        public List<string> HistoryLabels { get; set; } = new();
+        public List<double> RamHistory { get; set; } = new();
+        public List<int> ThreadHistory { get; set; } = new();
+
+        // Role Distribution for Pie Chart
+        public List<string> RoleLabels { get; set; } = new();
+        public List<int> RoleCounts { get; set; } = new();
     }
 }

@@ -273,13 +273,47 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 p-3 border rounded bg-light">
+                    </div>
+                </div>
+
+                <!-- BIỂU ĐỒ HỆ THỐNG NÂNG CAO -->
+                <div class="row g-4 mt-2">
+                    <div class="col-xl-8">
+                        <div class="card border-0 shadow-sm rounded-3">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold mb-4 text-dark"><i class="bi bi-graph-up me-2 text-success"></i>Lịch sử tài nguyên (10 phút)</h6>
+                                <div style="height: 300px;">
+                                    <canvas id="systemHistoryChart"></canvas>
+                                </div>
+                                <div class="mt-3 small text-muted text-center">
+                                    <span class="me-3"><i class="bi bi-circle-fill text-success small me-1"></i> RAM Usage</span>
+                                    <span><i class="bi bi-dash-lg text-primary small me-1"></i> Threads Count</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4">
+                        <div class="card border-0 shadow-sm rounded-3 h-100">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold mb-4 text-dark"><i class="bi bi-pie-chart me-2 text-warning"></i>Cơ cấu người dùng</h6>
+                                <div style="height: 280px;">
+                                    <canvas id="roleDistributionChart"></canvas>
+                                </div>
+                                <p class="small text-muted mt-3 mb-0 text-center">Phân bổ tài khoản theo vai trò</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 border rounded-3 bg-light">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-shield-lock text-primary me-2 fs-5"></i>
-                            <span class="small fw-bold">Bảo mật hệ thống</span>
+                            <i class="bi bi-shield-check text-success me-3 fs-4"></i>
+                            <div>
+                                <span class="d-block small fw-bold">Bảo mật hệ thống</span>
+                                <span class="x-small text-muted">Mã hóa dữ liệu & Tường lửa đang hoạt động</span>
+                            </div>
                         </div>
-                        <span class="text-primary small fw-bold">SSL / HTTPS Active</span>
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3">SSL / HTTPS Active</span>
                     </div>
                 </div>
             </div>
@@ -356,6 +390,83 @@
             if (tabLink) {
                 let tab = new bootstrap.Tab(tabLink);
                 tab.show();
+                
+                // Kích hoạt biểu đồ nếu vào tab giám sát
+                if (hash === "#menu3") {
+                    setTimeout(initSystemCharts, 200);
+                }
+            }
+        }
+
+        // 2. LOGIC BIỂU ĐỒ HỆ THỐNG
+        let systemChart = null;
+        let roleChart = null;
+
+        function initSystemCharts() {
+            if (typeof Chart === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+                script.onload = renderCharts;
+                document.head.appendChild(script);
+            } else {
+                renderCharts();
+            }
+        }
+
+        function renderCharts() {
+            const histCtx = document.getElementById('systemHistoryChart');
+            if (histCtx && !systemChart) {
+                systemChart = new Chart(histCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ReportVM.HistoryLabels)),
+                        datasets: [
+                            {
+                                label: 'RAM (MB)',
+                                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ReportVM.RamHistory)),
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.4, fill: true, pointRadius: 2, yAxisID: 'y'
+                            },
+                            {
+                                label: 'Threads',
+                                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ReportVM.ThreadHistory)),
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'transparent',
+                                tension: 0.1, borderDash: [5, 5], pointRadius: 0, yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { type: 'linear', display: true, position: 'left', grid: { color: '#f1f5f9' } },
+                            y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+                        }
+                    }
+                });
+            }
+
+            const rCtx = document.getElementById('roleDistributionChart');
+            if (rCtx && !roleChart) {
+                roleChart = new Chart(rCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ReportVM.RoleLabels)),
+                        datasets: [{
+                            data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ReportVM.RoleCounts)),
+                            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'],
+                            borderWidth: 2, borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true, font: { size: 11 } } } },
+                        cutout: '70%'
+                    }
+                });
             }
         }
         

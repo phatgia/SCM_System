@@ -34,6 +34,15 @@ namespace SCM_System.Models.ViewModels
         public int ThreadCount { get; set; }
         public string Uptime { get; set; } = "";
         public string StartTime { get; set; } = "";
+
+        // History for Charts (Admin)
+        public List<string> HistoryLabels { get; set; } = new();
+        public List<double> RamHistory { get; set; } = new();
+        public List<int> ThreadHistory { get; set; } = new();
+
+        // Role Distribution (Admin)
+        public List<string> RoleLabels { get; set; } = new();
+        public List<int> RoleCounts { get; set; } = new();
     }
 
     public class RecentOrderHomeViewModel

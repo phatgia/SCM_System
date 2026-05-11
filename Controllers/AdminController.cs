@@ -89,6 +89,26 @@ namespace SCM_System.Controllers
                 ProcessID = process.Id
             };
 
+            // Giả lập dữ liệu lịch sử cho biểu đồ đường (10 phút gần nhất)
+            for (int i = 9; i >= 0; i--)
+            {
+                var time = DateTime.Now.AddMinutes(-i).ToString("HH:mm");
+                reportVM.HistoryLabels.Add(time);
+                // Giả lập biến động nhẹ quanh giá trị hiện tại
+                reportVM.RamHistory.Add(reportVM.RamUsageMB + new Random().Next(-5, 5));
+                reportVM.ThreadHistory.Add(reportVM.ThreadCount + new Random().Next(-2, 3));
+            }
+
+            // Lấy phân bổ vai trò cho biểu đồ tròn
+            var roleStats = await _context.Users
+                .Include(u => u.Role)
+                .GroupBy(u => u.Role.RoleName)
+                .Select(g => new { Name = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            reportVM.RoleLabels = roleStats.Select(s => s.Name).ToList();
+            reportVM.RoleCounts = roleStats.Select(s => s.Count).ToList();
+
             // --- 4. GỘP CHUNG VÀ TRẢ VỀ VIEW ---
             var combinedModel = new AdminCombinedViewModel
             {

@@ -65,6 +65,29 @@
                 </div>
             </div>
         </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-xl-8">
+                <div class="card border-0 shadow-sm rounded-4 bg-white">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4">Độ ổn định hệ thống (RAM & Threads)</h5>
+                        <div style="height: 300px;">
+                            <canvas id="systemStabilityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="card border-0 shadow-sm rounded-4 bg-white">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4">Phân bổ người dùng</h5>
+                        <div style="height: 300px;">
+                            <canvas id="userDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 
     <!-- BUSINESS STATS CARDS -->
@@ -445,6 +468,61 @@
                                 ticks: { stepSize: 50 }
                             }
                         }
+                    }
+                });
+                </text>
+            }
+            @if (User.IsInRole("Quản trị viên"))
+            {
+                <text>
+                // System Stability Chart
+                const ctxStable = document.getElementById('systemStabilityChart').getContext('2d');
+                new Chart(ctxStable, {
+                    type: 'line',
+                    data: {
+                        labels: @Html.Raw(Json.Serialize(Model.HistoryLabels)),
+                        datasets: [
+                            {
+                                label: 'RAM (MB)',
+                                data: @Html.Raw(Json.Serialize(Model.RamHistory)),
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.4, fill: true, pointRadius: 2, yAxisID: 'y'
+                            },
+                            {
+                                label: 'Threads',
+                                data: @Html.Raw(Json.Serialize(Model.ThreadHistory)),
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'transparent',
+                                tension: 0.1, borderDash: [5, 5], pointRadius: 0, yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            y: { type: 'linear', display: true, position: 'left', grid: { color: '#f1f5f9' } },
+                            y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+                        }
+                    }
+                });
+
+                // User Distribution Chart
+                const ctxUser = document.getElementById('userDistributionChart').getContext('2d');
+                new Chart(ctxUser, {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Html.Raw(Json.Serialize(Model.RoleLabels)),
+                        datasets: [{
+                            data: @Html.Raw(Json.Serialize(Model.RoleCounts)),
+                            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6']
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom' } }
                     }
                 });
                 </text>
