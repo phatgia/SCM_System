@@ -30,5 +30,11 @@ namespace SCM_System.Models.ViewModels
         // Role Distribution for Pie Chart
         public List<string> RoleLabels { get; set; } = new();
         public List<int> RoleCounts { get; set; } = new();
+
+        // Database Stats
+        public Dictionary<string, int> EntityCounts { get; set; } = new();
+
+        // Recent System Events
+        public List<SystemEventViewModel> RecentEvents { get; set; } = new();
     }
 }

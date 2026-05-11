@@ -49,6 +49,15 @@ namespace SCM_System.Models.ViewModels
         public List<SystemEventViewModel> RecentEvents { get; set; } = new();
     }
 
+    public class SystemEventViewModel
+    {
+        public string EventName { get; set; } = "";
+        public string Username { get; set; } = "";
+        public DateTime Timestamp { get; set; }
+        public string Details { get; set; } = "";
+        public string Type { get; set; } = "info"; // info, warning, danger
+    }
+
     public class RecentOrderHomeViewModel
     {
         public string OrderCode { get; set; } = string.Empty;

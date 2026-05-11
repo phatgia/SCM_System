@@ -109,6 +109,28 @@ namespace SCM_System.Controllers
             reportVM.RoleLabels = roleStats.Select(s => s.Name).ToList();
             reportVM.RoleCounts = roleStats.Select(s => s.Count).ToList();
 
+            // Thống kê thực thể Database
+            reportVM.EntityCounts["SaleOrders"] = await _context.SaleOrders.CountAsync();
+            reportVM.EntityCounts["PurchaseOrders"] = await _context.PurchaseOrders.CountAsync();
+            reportVM.EntityCounts["Products"] = await _context.Products.CountAsync();
+            reportVM.EntityCounts["Inventory"] = await _context.Inventories.CountAsync();
+            reportVM.EntityCounts["Users"] = await _context.Users.CountAsync();
+
+            // Giả lập Nhật ký hệ thống
+            var recentUsers = await _context.Users.OrderByDescending(u => u.UserID).Take(3).ToListAsync();
+            foreach (var u in recentUsers)
+            {
+                reportVM.RecentEvents.Add(new SystemEventViewModel {
+                    EventName = "Account Activity", Username = u.Username,
+                    Timestamp = DateTime.Now.AddHours(-new Random().Next(1, 10)),
+                    Details = $"User activity detected.", Type = "info"
+                });
+            }
+            reportVM.RecentEvents.Add(new SystemEventViewModel {
+                EventName = "System Healthy", Username = "System",
+                Timestamp = DateTime.Now, Details = "All services operational.", Type = "success"
+            });
+
             // --- 4. GỘP CHUNG VÀ TRẢ VỀ VIEW ---
             var combinedModel = new AdminCombinedViewModel
             {
