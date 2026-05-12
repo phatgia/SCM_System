@@ -61,7 +61,7 @@
                             <i class="bi bi-grid-1x2-fill me-3 fs-5"></i> Tổng quan
                         </a>
                     </li>
-                    @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên mua hàng")) {
+                    @if (User.IsInRole("Nhân viên mua hàng")) {
                         <!-- MUA HÀNG -->
                         <li class="nav-item">
                             <a href="#muaHangMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
@@ -94,7 +94,7 @@
                             </div>
                         </li>
                     }
-                    @if (User.IsInRole("Quản trị viên") || User.IsInRole("Quản lý kho")) {
+                    @if (User.IsInRole("Quản lý kho")) {
                         <!-- QUẢN LÝ KHO -->
                         <li class="nav-item">
                             <a href="#quanLyKhoMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
@@ -142,7 +142,7 @@
                             </div>
                         </li>
                     }
-                    @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên bán hàng")) {
+                    @if (User.IsInRole("Nhân viên bán hàng")) {
                         <!-- BÁN HÀNG -->
                         <li class="nav-item">
                             <a href="#banHangMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
@@ -177,7 +177,7 @@
                     }
 
 
-                    @if (User.IsInRole("Quản trị viên") || User.IsInRole("Nhân viên vận chuyển")) {
+                    @if (User.IsInRole("Nhân viên vận chuyển")) {
                         <!-- VẬN CHUYỂN -->    
                         <li class="nav-item">
                             <a href="#vanChuyenMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
@@ -210,7 +210,7 @@
                             </div>
                         </li>
                     }
-                    @if (User.IsInRole("Quản lý") || User.IsInRole("Quản trị viên")) {
+                    @if (User.IsInRole("Quản lý")) {
                         <!-- QUẢN LÝ -->
                         <li class="nav-item">
                             <a href="#quanLyMenu" data-bs-toggle="collapse" class="nav-link sidebar-link rounded-3 d-flex align-items-center py-2">
