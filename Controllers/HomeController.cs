@@ -122,6 +122,41 @@ namespace SCM_System.Controllers
                     Status = d.Status
                 }).ToListAsync();
 
+            // --- Biểu đồ cho Nhân viên vận chuyển ---
+            if (User.IsInRole("Nhân viên vận chuyển") || User.IsInRole("Quản lý"))
+            {
+                var deliveries = await _context.Deliveries.ToListAsync();
+                var statusGroups = deliveries.GroupBy(d => d.Status).Select(g => new { Status = g.Key, Count = g.Count() }).ToList();
+                model.DeliveryStatusLabels = statusGroups.Select(g => g.Status).ToList();
+                model.DeliveryStatusCounts = statusGroups.Select(g => g.Count).ToList();
+
+                var last7Days = Enumerable.Range(0, 7).Select(i => now.Date.AddDays(-i)).Reverse().ToList();
+                var completedDeliveries = deliveries
+                    .Where(d => d.Status == "Thành công" && d.DeliveryTime.HasValue)
+                    .GroupBy(d => d.DeliveryTime!.Value.Date)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                foreach (var d in last7Days)
+                {
+                    model.DeliveryDateLabels.Add(d.ToString("dd/MM"));
+                    model.DeliveryVolumeCounts.Add(completedDeliveries.ContainsKey(d) ? completedDeliveries[d] : 0);
+                }
+            }
+
+            // --- Biểu đồ cho Nhân viên mua hàng ---
+            if (User.IsInRole("Nhân viên mua hàng") || User.IsInRole("Quản lý"))
+            {
+                var suppliers = await _context.Suppliers.Include(s => s.PurchaseOrders).ToListAsync();
+                var topSuppliers = suppliers.OrderByDescending(s => s.PurchaseOrders.Sum(po => po.TotalAmount)).Take(5).ToList();
+                model.POSupplierNames = topSuppliers.Select(s => s.SupplierName).ToList();
+                model.POSupplierSpends = topSuppliers.Select(s => s.PurchaseOrders.Sum(po => po.TotalAmount) / rate).ToList();
+
+                var pos = await _context.PurchaseOrders.ToListAsync();
+                var poStatusGroups = pos.GroupBy(p => p.Status).Select(g => new { Status = g.Key, Count = g.Count() }).ToList();
+                model.POPurchaseStatusLabels = poStatusGroups.Select(g => g.Status).ToList();
+                model.POPurchaseStatusCounts = poStatusGroups.Select(g => g.Count).ToList();
+            }
+
             // 6. System Metrics (For Admin only)
             if (User.IsInRole("Quản trị viên"))
             {

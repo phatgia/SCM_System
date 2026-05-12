@@ -24,6 +24,18 @@ namespace SCM_System.Models.ViewModels
         public List<string> InventoryCategoryLabels { get; set; } = new();
         public List<int> InventoryCategoryQuantities { get; set; } = new();
 
+        // Delivery Charts (Vận chuyển)
+        public List<string> DeliveryStatusLabels { get; set; } = new();
+        public List<int> DeliveryStatusCounts { get; set; } = new();
+        public List<string> DeliveryDateLabels { get; set; } = new();
+        public List<int> DeliveryVolumeCounts { get; set; } = new();
+
+        // Purchase Charts (Mua hàng)
+        public List<string> POSupplierNames { get; set; } = new();
+        public List<decimal> POSupplierSpends { get; set; } = new();
+        public List<string> POPurchaseStatusLabels { get; set; } = new();
+        public List<int> POPurchaseStatusCounts { get; set; } = new();
+
         // Tables & Lists
         public List<RecentOrderHomeViewModel> RecentOrders { get; set; } = new();
         public List<LowStockAlertViewModel> LowStockWarnings { get; set; } = new();
