@@ -1,0 +1,107 @@
+@model SCM_System.Models.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-10">
+            
+            <div class="d-flex align-items-center mb-4">
+                <a href="/" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i> Quay lại</a>
+                <h3 class="fw-bold mb-0">Hồ sơ người dùng</h3>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <form asp-action="Profile" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="UserID" />
+
+                        <div class="row g-4">
+                            <!-- Left Column: Avatar & Role -->
+                            <div class="col-md-4 text-center border-end-md">
+                                <div class="mb-3">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto shadow-sm" style="width: 120px; height: 120px; font-size: 3rem;">
+                                        @(Model.FullName?.FirstOrDefault().ToString().ToUpper() ?? "?")
+                                    </div>
+                                </div>
+                                <h5 class="fw-bold mb-1">@Model.Username</h5>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill">
+                                    @Model.RoleName
+                                </span>
+                            </div>
+
+                            <!-- Right Column: Form Fields -->
+                            <div class="col-md-8 ps-md-4">
+                                <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">Thông tin cơ bản</h6>
+                                
+                                <div class="mb-3">
+                                    <label asp-for="FullName" class="form-label small fw-semibold text-muted">Họ và tên <span class="text-danger">*</span></label>
+                                    <input asp-for="FullName" class="form-control bg-light" />
+                                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-6 mb-3">
+                                        <label asp-for="Email" class="form-label small fw-semibold text-muted">Email</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                                            <input asp-for="Email" type="email" class="form-control bg-light border-start-0" placeholder="example@email.com" />
+                                        </div>
+                                        <span asp-validation-for="Email" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-sm-6 mb-3">
+                                        <label asp-for="PhoneNumber" class="form-label small fw-semibold text-muted">Số điện thoại</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-telephone text-muted"></i></span>
+                                            <input asp-for="PhoneNumber" class="form-control bg-light border-start-0" placeholder="0123456789" />
+                                        </div>
+                                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Username" class="form-label small fw-semibold text-muted">Tên đăng nhập <span class="text-danger">*</span></label>
+                                    <input asp-for="Username" class="form-control bg-light" readonly />
+                                    <div class="form-text x-small">Tên đăng nhập không thể thay đổi.</div>
+                                </div>
+
+                                <h6 class="fw-bold mb-3 mt-4 text-primary border-bottom pb-2">Đổi mật khẩu (Tùy chọn)</h6>
+                                
+                                <div class="mb-3">
+                                    <label asp-for="CurrentPassword" class="form-label small fw-semibold text-muted">Mật khẩu hiện tại</label>
+                                    <input asp-for="CurrentPassword" class="form-control bg-light" placeholder="Nhập nếu muốn đổi mật khẩu" />
+                                    <span asp-validation-for="CurrentPassword" class="text-danger small"></span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6 mb-3">
+                                        <label asp-for="NewPassword" class="form-label small fw-semibold text-muted">Mật khẩu mới</label>
+                                        <input asp-for="NewPassword" class="form-control bg-light" />
+                                        <span asp-validation-for="NewPassword" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-sm-6 mb-3">
+                                        <label asp-for="ConfirmNewPassword" class="form-label small fw-semibold text-muted">Xác nhận mật khẩu</label>
+                                        <input asp-for="ConfirmNewPassword" class="form-control bg-light" />
+                                        <span asp-validation-for="ConfirmNewPassword" class="text-danger small"></span>
+                                    </div>
+                                </div>
+
+                                <div class="text-end mt-4">
+                                    <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
+                                        <i class="bi bi-floppy me-2"></i> Lưu thay đổi
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

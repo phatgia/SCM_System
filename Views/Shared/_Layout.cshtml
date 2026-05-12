@@ -260,19 +260,19 @@
             </div>
 
             <div class="p-3 border-top border-secondary border-opacity-25 mt-auto flex-shrink-0">
-                <div class="d-flex align-items-center justify-content-between mb-3">
+                <a href="@Url.Action("Profile", "Account")" class="text-decoration-none d-block mb-3 rounded hover-bg-dark transition-all p-2 mx-n2">
                     <div class="d-flex align-items-center">
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold" style="width: 35px; height: 35px; background-color: #1a56db !important;">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold flex-shrink-0 shadow-sm" style="width: 38px; height: 38px; background-color: #3b82f6 !important;">
                             @(Context.User.FindFirst("FullName")?.Value?.FirstOrDefault().ToString().ToUpper() ?? "?")
                         </div>
-                        <div class="lh-sm">
-                            <h6 class="mb-0 fs-6 fw-bold text-white">@(Context.User.FindFirst("FullName")?.Value ?? "Người dùng")</h6>
+                        <div class="lh-sm text-truncate">
+                            <h6 class="mb-0 fw-bold text-white fs-6 text-truncate">@(Context.User.FindFirst("FullName")?.Value ?? "Người dùng")</h6>
                             <span class="badge bg-secondary text-light mt-1" style="font-size: 0.7rem;">@(Context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "")</span>
                         </div>
                     </div>
-                </div>
+                </a>
 
-                <div>
+                <div class="px-2">
                     <a href="@Url.Action("Logout", "Account")" class="text-danger text-decoration-none d-flex align-items-center">
                         <i class="bi bi-box-arrow-left me-2 fs-5"></i>
                         <span class="fw-bold">Đăng xuất</span>

@@ -210,5 +210,91 @@ namespace SCM_System.Controllers
             TempData["Success"] = $"Tạo tài khoản \"{model.Username}\" thành công!";
             return RedirectToAction("Register");
         }
+
+        // =====================================================================
+        // PROFILE - THÔNG TIN CÁ NHÂN
+        // =====================================================================
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> Profile()
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserID == userId);
+            if (user == null) return NotFound();
+
+            var model = new ProfileViewModel
+            {
+                UserID = user.UserID,
+                RoleName = user.Role.RoleName,
+                FullName = user.FullName,
+                Username = user.Username,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(ProfileViewModel model)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId) || userId != model.UserID)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserID == userId);
+            if (user == null) return NotFound();
+
+            // Khôi phục RoleName để View hiển thị nếu có lỗi
+            model.RoleName = user.Role.RoleName;
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Kiểm tra mật khẩu hiện tại nếu người dùng muốn đổi mật khẩu
+            if (!string.IsNullOrEmpty(model.NewPassword))
+            {
+                if (string.IsNullOrEmpty(model.CurrentPassword) || user.Password != model.CurrentPassword)
+                {
+                    ModelState.AddModelError("CurrentPassword", "Mật khẩu hiện tại không đúng.");
+                    return View(model);
+                }
+                user.Password = model.NewPassword;
+            }
+
+            // Cập nhật thông tin
+            user.FullName = model.FullName;
+            user.Email = model.Email;
+            user.PhoneNumber = model.PhoneNumber;
+
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+
+            // Cập nhật lại Claims nếu FullName thay đổi
+            if (user.FullName != User.FindFirst("FullName")?.Value)
+            {
+                var identity = (ClaimsIdentity)User.Identity!;
+                var claim = identity.FindFirst("FullName");
+                if (claim != null) identity.RemoveClaim(claim);
+                identity.AddClaim(new Claim("FullName", user.FullName));
+                
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            }
+
+            TempData["Success"] = "Cập nhật thông tin cá nhân thành công!";
+            return RedirectToAction("Profile");
+        }
     }
 }
