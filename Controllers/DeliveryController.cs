@@ -433,30 +433,38 @@ namespace SCM_System.Controllers
     
         // ─── GET /Delivery/ScanPickup ─────────────────────────────────────────
         // Shipper quét QR → nhận hàng từ kho
-        // Logic mới: Hỗ trợ cả đơn đã phân công shipper và đơn "mở" (ai quét trước nhận đơn)
         [HttpGet]
-        [Authorize(Roles = "Quản trị viên,Nhân viên vận chuyển")]
+        [Authorize(Roles = "Quản trị viên,Nhân viên vận chuyển,Quản lý kho")]
         public async Task<IActionResult> ScanPickup(int soId, string token)
         {
             // 1. Xác thực token HMAC
             if (string.IsNullOrEmpty(token) || !ValidatePickupToken(soId, token))
             {
-                TempData["ErrorMessage"] = "Mã QR không hợp lệ!";
-                return RedirectToAction("Delivery");
+                ViewBag.Success = false;
+                ViewBag.Message = "Mã QR không hợp lệ hoặc đã hết hạn!";
+                return View("PickupResult");
             }
 
-            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int currentUserId))
-                return Unauthorized();
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int currentUserId))
+            {
+                ViewBag.Success = false;
+                ViewBag.Message = "Không thể xác định người dùng. Vui lòng đăng nhập lại.";
+                return View("PickupResult");
+            }
 
-            // 2. Sử dụng Transaction để đảm bảo tính nguyên tử (Atomicity)
+            // 2. Sử dụng Transaction để đảm bảo tính nguyên tử
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var order = await _context.SaleOrders
                     .Include(s => s.Deliveries)
+                    .Include(s => s.Customer)
                     .FirstOrDefaultAsync(s => s.SOID == soId);
 
                 if (order == null) throw new Exception("Không tìm thấy đơn hàng.");
+
+                ViewBag.OrderCode = $"SO-{order.OrderDate.Year}-{order.SOID:D3}";
+                ViewBag.CustomerName = order.Customer?.Name ?? "Không rõ";
 
                 var delivery = order.Deliveries.FirstOrDefault(d => d.Status == "Chờ lấy hàng");
 
@@ -465,15 +473,14 @@ namespace SCM_System.Controllers
                     // TRƯỜNG HỢP 1: Đã phân công Shipper từ trước
                     if (delivery.UserID != currentUserId && !User.IsInRole("Quản trị viên"))
                     {
-                        TempData["ErrorMessage"] = "Đơn này đã được chỉ định cho một Shipper khác!";
-                        return RedirectToAction("Delivery");
+                        ViewBag.Success = false;
+                        ViewBag.Message = "Đơn này đã được chỉ định cho một Shipper khác!";
+                        return View("PickupResult");
                     }
-
-                    // Cập nhật trạng thái
                     delivery.Status = "Đang giao hàng";
                     delivery.DeliveryTime = DateTime.Now;
                 }
-                else if (order.Status == "Đã soạn xong")
+                else if (order.Status == "Đã soạn xong" || order.Status == "Đã soạn" || order.Status == "Chờ lấy hàng")
                 {
                     // TRƯỜNG HỢP 2: Đơn "mở" - Người đầu tiên quét sẽ nhận đơn
                     var newDelivery = new Delivery
@@ -487,24 +494,31 @@ namespace SCM_System.Controllers
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = $"Đơn hàng đang ở trạng thái '{order.Status}', không thể nhận.";
-                    return RedirectToAction("Delivery");
+                    ViewBag.Success = false;
+                    ViewBag.Message = $"Đơn hàng đang ở trạng thái '{order.Status}', không thể nhận.";
+                    return View("PickupResult");
                 }
 
                 order.Status = "Đang giao hàng";
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
+                // Lấy tên shipper
+                var shipper = await _context.Users.FindAsync(currentUserId);
+                ViewBag.ShipperName = shipper?.FullName ?? User.Identity?.Name ?? "N/A";
+
                 await _hubContext.Clients.All.SendAsync("OrderHandedOver", soId);
 
-                TempData["SuccessMessage"] = "Nhận đơn thành công! Bạn đã được gán làm người giao cho đơn này.";
-                return RedirectToAction("Delivery");
+                ViewBag.Success = true;
+                ViewBag.Message = "Nhận đơn thành công! Bạn đã được gán làm người giao cho đơn này.";
+                return View("PickupResult");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                TempData["ErrorMessage"] = "Lỗi khi nhận đơn: " + ex.Message;
-                return RedirectToAction("Delivery");
+                ViewBag.Success = false;
+                ViewBag.Message = "Lỗi hệ thống: " + ex.Message;
+                return View("PickupResult");
             }
         }
 
