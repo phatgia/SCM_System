@@ -491,8 +491,12 @@
             try {
                 const resp = await fetch(`/Delivery/GenerateQR?soId=${soId}`);
                 if (!resp.ok) {
-                    const err = await resp.json();
-                    alert("Lỗi: " + (err.message || "Không thể tạo QR."));
+                    let errorMsg = "Không thể tạo QR. Vui lòng kiểm tra trạng thái đơn hàng.";
+                    try {
+                        const errBody = await resp.json();
+                        errorMsg = errBody.message || errorMsg;
+                    } catch (_) {}
+                    alert("⚠️ " + errorMsg);
                     return;
                 }
                 const data = await resp.json();

@@ -58,12 +58,14 @@ namespace SCM_System.Controllers
             if (order == null)
                 return NotFound(new { message = "Không tìm thấy đơn hàng." });
 
-            // Cho phép tạo QR nếu đơn đã soạn xong HOẶC đơn đã phân công nhưng chưa lấy
-            bool isReady = order.Status == "Đã soạn xong" || 
-                           (order.Status == "Đang giao hàng" && order.Deliveries.Any(d => d.Status == "Chờ lấy hàng"));
+            // Cho phép tạo QR nếu đơn sẵn sàng bàn giao
+            bool isReady = order.Status == "Đã soạn xong" 
+                        || order.Status == "Đã soạn"
+                        || order.Status == "Chờ lấy hàng"
+                        || (order.Status == "Đang giao hàng" && order.Deliveries.Any(d => d.Status == "Chờ lấy hàng"));
 
             if (!isReady)
-                return BadRequest(new { message = $"Đơn đang ở trạng thái '{order.Status}', chưa sẵn sàng để bàn giao." });
+                return BadRequest(new { message = $"Đơn đang ở trạng thái '{order.Status}', chưa sẵn sàng để bàn giao. Cần soạn hàng xong trước." });
 
             var token = GeneratePickupToken(soId);
             var url   = $"{Request.Scheme}://{Request.Host}/Delivery/ScanPickup"
