@@ -683,6 +683,10 @@
                     }
                 });
                 </text>
+            }
+
+            @if (User.IsInRole("Quản lý") || User.IsInRole("Nhân viên vận chuyển"))
+            {
                 <text>
                 // Delivery Status Chart
                 const ctxDelStatus = document.getElementById('deliveryStatusHomeChart');
@@ -716,7 +720,12 @@
                         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
                     });
                 }
+                </text>
+            }
 
+            @if (User.IsInRole("Quản lý") || User.IsInRole("Nhân viên mua hàng"))
+            {
+                <text>
                 // PO Status Chart
                 const ctxPOStatus = document.getElementById('poStatusHomeChart');
                 if(ctxPOStatus) {
