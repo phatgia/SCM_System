@@ -15,7 +15,7 @@ using System.Text;
 
 namespace SCM_System.Controllers
 {
-    [Authorize(Roles = "Quản trị viên,Nhân viên vận chuyển")]
+    [Authorize(Roles = "Quản trị viên,Nhân viên vận chuyển,Quản lý kho")]
     public class DeliveryController : Controller
     {
         private readonly SCMDbContext _context;
@@ -68,7 +68,9 @@ namespace SCM_System.Controllers
                 return BadRequest(new { message = $"Đơn đang ở trạng thái '{order.Status}', chưa sẵn sàng để bàn giao. Cần soạn hàng xong trước." });
 
             var token = GeneratePickupToken(soId);
-            var url   = $"{Request.Scheme}://{Request.Host}/Delivery/ScanPickup"
+            // Sử dụng X-Forwarded-Proto để xác định đúng scheme khi deploy trên Railway (HTTPS proxy)
+            var scheme = Request.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? Request.Scheme;
+            var url   = $"{scheme}://{Request.Host}/Delivery/ScanPickup"
                       + $"?soId={soId}&token={Uri.EscapeDataString(token)}";
 
             string shipperName = "Chưa có (Ai quét trước nhận đơn)";
