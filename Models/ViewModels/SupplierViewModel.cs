@@ -51,6 +51,18 @@ namespace SCM_System.Models.ViewModels
         public string? SearchReturn { get; set; }
         public SupplierFormViewModel Form { get; set; } = new();
         public string CurrencySymbol { get; set; } = "₫";
+
+        // Biểu đồ: Top Nhà cung cấp (theo chi phí)
+        public List<string> TopSupplierNames { get; set; } = new();
+        public List<decimal> TopSupplierSpends { get; set; } = new();
+
+        // Biểu đồ: Trạng thái đơn nhập
+        public List<string> POStatusLabels { get; set; } = new();
+        public List<int> POStatusCounts { get; set; } = new();
+
+        // Biểu đồ: Chi phí nhập hàng 6 tháng qua
+        public List<string> MonthlyLabels { get; set; } = new();
+        public List<decimal> MonthlySpends { get; set; } = new();
     }
 
     public class SupplierFormViewModel

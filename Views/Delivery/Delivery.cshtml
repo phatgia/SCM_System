@@ -35,6 +35,29 @@
             <div class="col-md-4"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-2 fw-bold text-primary">@Model.InDeliveryCount</div><div class="small text-muted">Đang giao</div></div></div>
             <div class="col-md-4"><div class="card border-0 shadow-sm text-center p-3"><div class="fs-2 fw-bold text-success">@Model.CompletedThisMonthCount</div><div class="small text-muted">Hoàn thành tháng <span class="text-success fw-bold">@DateTime.Now.Month</span> này</div></div></div>
         </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-xl-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-4 text-dark"><i class="bi bi-pie-chart-fill me-2 text-primary"></i>Trạng thái đơn hàng</h6>
+                        <div style="height: 250px;">
+                            <canvas id="deliveryStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-8">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-4 text-dark"><i class="bi bi-bar-chart-line-fill me-2 text-success"></i>Lượng đơn giao thành công (7 ngày qua)</h6>
+                        <div style="height: 250px;">
+                            <canvas id="deliveryVolumeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <div class="card border-0 shadow-sm mb-4 d-md-none">
             <div class="card-body bg-light rounded text-center">
@@ -421,4 +444,46 @@
                 }).catch(err => console.log("Lỗi khi tắt camera: ", err));
             }
         }
+
+        // --- Khởi tạo Biểu đồ ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusCtx = document.getElementById('deliveryStatusChart');
+            if (statusCtx) {
+                new Chart(statusCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Html.Raw(Json.Serialize(Model.StatusLabels)),
+                        datasets: [{
+                            data: @Html.Raw(Json.Serialize(Model.StatusCounts)),
+                            backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#6366f1']
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: '75%',
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 10 } } }
+                    }
+                });
+            }
+
+            const volumeCtx = document.getElementById('deliveryVolumeChart');
+            if (volumeCtx) {
+                new Chart(volumeCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: @Html.Raw(Json.Serialize(Model.DateLabels)),
+                        datasets: [{
+                            label: 'Đơn thành công',
+                            data: @Html.Raw(Json.Serialize(Model.DeliveryCounts)),
+                            backgroundColor: '#10b981',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                    }
+                });
+            }
+        });
 </script>

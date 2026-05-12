@@ -38,5 +38,13 @@ namespace SCM_System.Models.ViewModels
 
         // Dùng chung: danh sách shipper cho modal phân công
         public List<ShipperItem> Shippers { get; set; } = new();
+
+        // Biểu đồ: Trạng thái đơn hàng
+        public List<string> StatusLabels { get; set; } = new();
+        public List<int> StatusCounts { get; set; } = new();
+
+        // Biểu đồ: Hiệu suất giao hàng 7 ngày qua
+        public List<string> DateLabels { get; set; } = new();
+        public List<int> DeliveryCounts { get; set; } = new();
     }
 }

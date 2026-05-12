@@ -167,6 +167,34 @@ namespace SCM_System.Controllers
                 SearchReturn = searchReturn,
                 CurrencySymbol = symbol
             };
+
+            // --- Biểu đồ 1: Top 5 NCC theo chi phí ---
+            var topSuppliers = suppliers.OrderByDescending(s => s.TotalPurchased).Take(5).ToList();
+            vm.TopSupplierNames = topSuppliers.Select(s => s.SupplierName).ToList();
+            vm.TopSupplierSpends = topSuppliers.Select(s => s.TotalPurchased).ToList();
+
+            // --- Biểu đồ 2: Trạng thái đơn nhập ---
+            var poStatusGroups = pos.GroupBy(p => p.Status).Select(g => new { Status = g.Key, Count = g.Count() }).ToList();
+            vm.POStatusLabels = poStatusGroups.Select(g => g.Status).ToList();
+            vm.POStatusCounts = poStatusGroups.Select(g => g.Count).ToList();
+
+            // --- Biểu đồ 3: Chi phí nhập hàng 6 tháng qua ---
+            var now = DateTime.Now;
+            var last6Months = Enumerable.Range(0, 6).Select(i => now.AddMonths(-i)).Reverse().ToList();
+            
+            // Re-fetch POs without search filter for accurate monthly stats
+            var allPos = await _context.PurchaseOrders.Where(p => p.Status != "Đã hủy").ToListAsync();
+            
+            var monthlySpends = allPos
+                .GroupBy(p => new { p.OrderDate.Year, p.OrderDate.Month })
+                .ToDictionary(g => $"{g.Key.Month}/{g.Key.Year}", g => g.Sum(p => p.TotalAmount) / rate);
+
+            foreach (var month in last6Months)
+            {
+                string label = $"{month.Month}/{month.Year}";
+                vm.MonthlyLabels.Add(label);
+                vm.MonthlySpends.Add(monthlySpends.ContainsKey(label) ? monthlySpends[label] : 0);
+            }
  
             return View(vm);
         }

@@ -158,6 +158,28 @@ namespace SCM_System.Controllers
                 ActiveDeliveries = activeDeliveryCount.FirstOrDefault(x => x.Key == u.UserID)?.Count ?? 0
             }).ToList();
 
+            // --- Biểu đồ 1: Trạng thái đơn hàng ---
+            var statusGroups = vm.AllDeliveries
+                .GroupBy(d => d.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToList();
+
+            vm.StatusLabels = statusGroups.Select(g => g.Status).ToList();
+            vm.StatusCounts = statusGroups.Select(g => g.Count).ToList();
+
+            // --- Biểu đồ 2: Hiệu suất giao hàng 7 ngày qua ---
+            var last7Days = Enumerable.Range(0, 7).Select(i => now.Date.AddDays(-i)).Reverse().ToList();
+            var completedDeliveries = vm.AllDeliveries
+                .Where(d => d.Status == "Thành công" && d.DeliveryTime.HasValue)
+                .GroupBy(d => d.DeliveryTime!.Value.Date)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            foreach (var date in last7Days)
+            {
+                vm.DateLabels.Add(date.ToString("dd/MM"));
+                vm.DeliveryCounts.Add(completedDeliveries.ContainsKey(date) ? completedDeliveries[date] : 0);
+            }
+
             if (!string.IsNullOrEmpty(searchCode))
             {
                 string idString = searchCode.Split('-').LastOrDefault() ?? "";
